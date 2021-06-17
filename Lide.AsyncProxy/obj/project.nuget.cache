@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "tuVOQBYVC18+fdlE90Hgzq8RjXNXyLRj3FIk2XUJXvBuI4nPiuB/Rc13yoyuw4ZsrsZ5ZT5hEnBP9uq5vZn2lg==",
+  "success": true,
+  "projectFilePath": "/home/nikola.gamzakov/Development/Lide/Lide.AsyncProxy/Lide.AsyncProxy.csproj",
+  "expectedPackageFiles": [
+    "/home/nikola.gamzakov/.nuget/packages/stylecop.analyzers/1.1.118/stylecop.analyzers.1.1.118.nupkg.sha512"
+  ],
+  "logs": []
+}

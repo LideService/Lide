@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "dgSpecHash": "3tjc/RW3YKAT2OdMg9QQbp/au9M9g0oCRo7w/plIfly4ZrmX11RrI5c6iUGUTihD9SACAGjU2co6bNpI6y3b5Q==",
+  "success": true,
+  "projectFilePath": "/home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/Lide.WebApiTests.csproj",
+  "expectedPackageFiles": [
+    "/home/nikola.gamzakov/.nuget/packages/autofac/6.2.0/autofac.6.2.0.nupkg.sha512",
+    "/home/nikola.gamzakov/.nuget/packages/autofac.extensions.dependencyinjection/7.1.0/autofac.extensions.dependencyinjection.7.1.0.nupkg.sha512",
+    "/home/nikola.gamzakov/.nuget/packages/microsoft.extensions.apidescription.server/3.0.0/microsoft.extensions.apidescription.server.3.0.0.nupkg.sha512",
+    "/home/nikola.gamzakov/.nuget/packages/microsoft.extensions.dependencyinjection/5.0.1/microsoft.extensions.dependencyinjection.5.0.1.nupkg.sha512",
+    "/home/nikola.gamzakov/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/5.0.0/microsoft.extensions.dependencyinjection.abstractions.5.0.0.nupkg.sha512",
+    "/home/nikola.gamzakov/.nuget/packages/microsoft.openapi/1.2.3/microsoft.openapi.1.2.3.nupkg.sha512",
+    "/home/nikola.gamzakov/.nuget/packages/swashbuckle.aspnetcore/5.6.3/swashbuckle.aspnetcore.5.6.3.nupkg.sha512",
+    "/home/nikola.gamzakov/.nuget/packages/swashbuckle.aspnetcore.swagger/5.6.3/swashbuckle.aspnetcore.swagger.5.6.3.nupkg.sha512",
+    "/home/nikola.gamzakov/.nuget/packages/swashbuckle.aspnetcore.swaggergen/5.6.3/swashbuckle.aspnetcore.swaggergen.5.6.3.nupkg.sha512",
+    "/home/nikola.gamzakov/.nuget/packages/swashbuckle.aspnetcore.swaggerui/5.6.3/swashbuckle.aspnetcore.swaggerui.5.6.3.nupkg.sha512",
+    "/home/nikola.gamzakov/.nuget/packages/system.diagnostics.diagnosticsource/4.7.1/system.diagnostics.diagnosticsource.4.7.1.nupkg.sha512"
+  ],
+  "logs": []
+}

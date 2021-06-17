@@ -1,0 +1,88 @@
+{
+  "version": 3,
+  "targets": {
+    "net5.0": {
+      "Lide.AsyncProxy/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v5.0",
+        "compile": {
+          "bin/placeholder/Lide.AsyncProxy.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Lide.AsyncProxy.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Lide.AsyncProxy/1.0.0": {
+      "type": "project",
+      "path": "../Lide.AsyncProxy/Lide.AsyncProxy.csproj",
+      "msbuildProject": "../Lide.AsyncProxy/Lide.AsyncProxy.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net5.0": [
+      "Lide.AsyncProxy >= 1.0.0"
+    ]
+  },
+  "packageFolders": {
+    "/home/nikola.gamzakov/.nuget/packages/": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "/home/nikola.gamzakov/Development/Lide/Lide.TracingProxy/Lide.TracingProxy.csproj",
+      "projectName": "Lide.TracingProxy",
+      "projectPath": "/home/nikola.gamzakov/Development/Lide/Lide.TracingProxy/Lide.TracingProxy.csproj",
+      "packagesPath": "/home/nikola.gamzakov/.nuget/packages/",
+      "outputPath": "/home/nikola.gamzakov/Development/Lide/Lide.TracingProxy/obj/",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "/home/nikola.gamzakov/.nuget/NuGet/NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net5.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net5.0": {
+          "targetAlias": "net5.0",
+          "projectReferences": {
+            "/home/nikola.gamzakov/Development/Lide/Lide.AsyncProxy/Lide.AsyncProxy.csproj": {
+              "projectPath": "/home/nikola.gamzakov/Development/Lide/Lide.AsyncProxy/Lide.AsyncProxy.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net5.0": {
+        "targetAlias": "net5.0",
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "/usr/lib64/dotnet/sdk/5.0.104/RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
