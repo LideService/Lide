@@ -9,60 +9,62 @@ namespace Lide.WebApiTests.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
-        private static IT last;
-        private readonly IT _t;
-        private readonly IServiceProvider _serviceProvider;
+        private readonly IKarta _t;
+        private readonly IKarta2 _t2;
 
-        public WeatherForecastController(IT t, IServiceProvider serviceProvider)
+        public WeatherForecastController(IKarta t, IKarta2 t2)
         {
             Console.WriteLine("ctor");
             _t = t;
-            _serviceProvider = serviceProvider;
+            _t2 = t2;
         }
 
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            if (last != null)
-            {
-                Console.WriteLine(last.Equals(_t));
-            }
             _t.Do();
-            last = _t;
-            
+            _t2.Do();
             return Enumerable.Empty<string>();
         }
     }
 
-    public interface IT
+    public interface IKarta
     {
         void Do();
     }
-    public interface IT2
+    public interface IKarta2
     {
         void Do();
     }
 
-    public class T : IT
+    public class Obb : IKarta
     {
-        private readonly IT2 _it2;
-
-        public T(IT2 it2)
-        {
-            _it2 = it2;
-        }
         public void Do()
         {
-            _it2.Do();
-            Console.WriteLine("Do1");
+            Console.WriteLine("Obb");
         }
     }
     
-    public class T2 : IT2
+    public class Unc : IKarta
     {
         public void Do()
         {
-            Console.WriteLine("Do2");
+            Console.WriteLine("Unc");
+        }
+    }
+
+    
+    public class Dsk : IKarta2
+    {
+        private static readonly Random R = new Random();
+        private readonly int _id;
+        public Dsk()
+        {
+            _id = R.Next();
+        }
+        public void Do()
+        {
+            Console.WriteLine($"Dsk {_id}");
         }
     }
     

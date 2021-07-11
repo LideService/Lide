@@ -1,23 +1,23 @@
 using System.Threading.Tasks;
-using static Lide.AsyncProxy.DispatchProxyGeneratorAsync.DispatchProxyGeneratorAsync;
+using Lide.AsyncProxy.DispatchProxyGeneratorAsync;
 
 namespace Lide.AsyncProxy
 {
-    internal class DispatchProxyHandlerAsync
+    public class DispatchProxyHandlerAsync
     {
         public object InvokeHandle(object[] args)
         {
-            return Invoke(args);
+            return ProxyGeneratorAsync.Invoke(args);
         }
 
         public Task InvokeAsyncHandle(object[] args)
         {
-            return InvokeAsync(args);
+            return ProxyGeneratorAsync.InvokeAsync(args);
         }
 
         public Task<T> InvokeAsyncHandleT<T>(object[] args)
         {
-            return InvokeAsync<T>(args);
+            return ProxyGeneratorAsync.InvokeAsync<T>(args);
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -7,21 +8,21 @@ using System.Threading.Tasks;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
 {
-    internal class ProxyBuilder
+    public class ProxyBuilder
     {
         private const int InvokeActionFieldAndCtorParameterIndex = 0;
-        private static readonly MethodInfo DelegateInvoke = typeof(DispatchProxyHandlerAsync).GetMethod("InvokeHandle");
-        private static readonly MethodInfo DelegateInvokeAsync = typeof(DispatchProxyHandlerAsync).GetMethod("InvokeAsyncHandle");
-        private static readonly MethodInfo DelegateInvokeAsyncT = typeof(DispatchProxyHandlerAsync).GetMethod("InvokeAsyncHandleT");
+        private static readonly MethodInfo DelegateInvoke = typeof(DispatchProxyHandlerAsync).GetMethod(nameof(DispatchProxyHandlerAsync.InvokeHandle));
+        private static readonly MethodInfo DelegateInvokeAsync = typeof(DispatchProxyHandlerAsync).GetMethod(nameof(DispatchProxyHandlerAsync.InvokeAsyncHandle));
+        private static readonly MethodInfo DelegateInvokeAsyncT = typeof(DispatchProxyHandlerAsync).GetMethod(nameof(DispatchProxyHandlerAsync.InvokeAsyncHandleT));
 
-        private readonly ProxyAssembly _assembly;
+        private readonly ProxyAssembly _proxyAssembly;
         private readonly TypeBuilder _typeBuilder;
         private readonly Type _proxyBaseType;
         private readonly List<FieldBuilder> _fields;
 
-        public ProxyBuilder(ProxyAssembly assembly, TypeBuilder typeBuilder, Type proxyBaseType)
+        public ProxyBuilder(ProxyAssembly proxyAssembly, TypeBuilder typeBuilder, Type proxyBaseType)
         {
-            _assembly = assembly;
+            _proxyAssembly = proxyAssembly;
             _typeBuilder = typeBuilder;
             _proxyBaseType = proxyBaseType;
 
@@ -34,20 +35,17 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
         public Type CreateType()
         {
             Complete();
-
-            // TODO
-            return _typeBuilder.CreateTypeInfo()?.AsType() ??
-                   throw new ArgumentNullException();
+            return _typeBuilder.CreateTypeInfo()?.AsType() ?? throw new ArgumentNullException();
         }
 
-        // [SuppressMessage("Microsoft.Maintainability", "CA1502", Justification = "Who cares")]
-        public void AddInterfaceImpl(Type interfaceType)
+        [SuppressMessage("Microsoft.Maintainability", "CA1502", Justification = "Who cares")]
+        public void AddInterfaceImplementation(Type interfaceType)
         {
-            _assembly.EnsureTypeIsVisible(interfaceType);
+            _proxyAssembly.EnsureTypeIsVisible(interfaceType);
             _typeBuilder.AddInterfaceImplementation(interfaceType);
 
-            var propertyMap = new Dictionary<MethodInfo, PropertyAccessorInfo>(MethodInfoComparer.Instance);
-            foreach (PropertyInfo pi in interfaceType.GetRuntimeProperties())
+            var propertyMap = new Dictionary<MethodInfo, PropertyAccessorInfo>(MethodInfoEqualityComparer.Instance);
+            foreach (var pi in interfaceType.GetRuntimeProperties())
             {
                 var ai = new PropertyAccessorInfo(pi.GetMethod, pi.SetMethod);
                 if (pi.GetMethod != null)
@@ -61,186 +59,184 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
                 }
             }
 
-            var eventMap = new Dictionary<MethodInfo, EventAccessorInfo>(MethodInfoComparer.Instance);
-            foreach (EventInfo ei in interfaceType.GetRuntimeEvents())
+            var eventMap = new Dictionary<MethodInfo, EventAccessorInfo>(MethodInfoEqualityComparer.Instance);
+            foreach (var eventInfo in interfaceType.GetRuntimeEvents())
             {
-                var ai = new EventAccessorInfo(ei.AddMethod, ei.RemoveMethod, ei.RaiseMethod);
-                if (ei.AddMethod != null)
+                var eventAccessorInfo = new EventAccessorInfo(eventInfo.AddMethod, eventInfo.RemoveMethod, eventInfo.RaiseMethod);
+                if (eventInfo.AddMethod != null)
                 {
-                    eventMap[ei.AddMethod] = ai;
+                    eventMap[eventInfo.AddMethod] = eventAccessorInfo;
                 }
 
-                if (ei.RemoveMethod != null)
+                if (eventInfo.RemoveMethod != null)
                 {
-                    eventMap[ei.RemoveMethod] = ai;
+                    eventMap[eventInfo.RemoveMethod] = eventAccessorInfo;
                 }
 
-                if (ei.RaiseMethod != null)
+                if (eventInfo.RaiseMethod != null)
                 {
-                    eventMap[ei.RaiseMethod] = ai;
+                    eventMap[eventInfo.RaiseMethod] = eventAccessorInfo;
                 }
             }
 
-            AddMethodImplementations(interfaceType, propertyMap, eventMap);
-            AddPropertyImplementations(interfaceType, propertyMap);
-            AddEventImplementations(interfaceType, eventMap);
-        }
-
-        private void AddEventImplementations(Type interfaceType, Dictionary<MethodInfo, EventAccessorInfo> eventMap)
-        {
-            foreach (EventInfo eventInfo in interfaceType.GetRuntimeEvents())
+            foreach (var methodInfo in interfaceType.GetRuntimeMethods())
             {
-                MethodInfo methodInfo = eventInfo.AddMethod ?? eventInfo.RemoveMethod;
-                if (methodInfo == null || eventInfo.EventHandlerType == null)
+                MethodBuilder methodBuilder = AddMethodImplementation(methodInfo);
+                if (propertyMap.TryGetValue(methodInfo, out var associatedProperty))
                 {
-                    // TODO
-                    throw new ArgumentNullException();
-                }
-
-                EventAccessorInfo ai = eventMap[methodInfo];
-                EventBuilder eb = _typeBuilder.DefineEvent(eventInfo.Name, eventInfo.Attributes, eventInfo.EventHandlerType);
-                if (ai.AddMethodBuilder != null)
-                {
-                    eb.SetAddOnMethod(ai.AddMethodBuilder);
-                }
-
-                if (ai.RemoveMethodBuilder != null)
-                {
-                    eb.SetRemoveOnMethod(ai.RemoveMethodBuilder);
-                }
-
-                if (ai.RaiseMethodBuilder != null)
-                {
-                    eb.SetRaiseMethod(ai.RaiseMethodBuilder);
-                }
-            }
-        }
-
-        private void AddPropertyImplementations(Type interfaceType, Dictionary<MethodInfo, PropertyAccessorInfo> propertyMap)
-        {
-            foreach (PropertyInfo propertyInfo in interfaceType.GetRuntimeProperties())
-            {
-                MethodInfo methodInfo = propertyInfo.GetMethod ?? propertyInfo.SetMethod;
-                if (methodInfo == null)
-                {
-                    // TODO
-                    throw new ArgumentNullException();
-                }
-
-                PropertyAccessorInfo ai = propertyMap[methodInfo];
-                Type[] parameterTypes = propertyInfo.GetIndexParameters().Select(p => p.ParameterType).ToArray();
-                PropertyBuilder pb = _typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, parameterTypes);
-                if (ai.GetMethodBuilder != null)
-                {
-                    pb.SetGetMethod(ai.GetMethodBuilder);
-                }
-
-                if (ai.SetMethodBuilder != null)
-                {
-                    pb.SetSetMethod(ai.SetMethodBuilder);
-                }
-            }
-        }
-
-        private void AddMethodImplementations(Type interfaceType, Dictionary<MethodInfo, PropertyAccessorInfo> propertyMap, Dictionary<MethodInfo, EventAccessorInfo> eventMap)
-        {
-            foreach (MethodInfo methodInfo in interfaceType.GetRuntimeMethods())
-            {
-                MethodBuilder mdb = AddMethodImpl(methodInfo);
-                if (propertyMap.TryGetValue(methodInfo, out PropertyAccessorInfo associatedProperty))
-                {
-                    if (MethodInfoComparer.Instance.Equals(associatedProperty.InterfaceGetMethod, methodInfo))
+                    if (MethodInfoEqualityComparer.Instance.Equals(associatedProperty.InterfaceGetMethod, methodInfo))
                     {
-                        associatedProperty.GetMethodBuilder = mdb;
+                        associatedProperty.GetMethodBuilder = methodBuilder;
                     }
-                    else if (MethodInfoComparer.Instance.Equals(associatedProperty.InterfaceSetMethod, methodInfo))
+                    else if (MethodInfoEqualityComparer.Instance.Equals(associatedProperty.InterfaceSetMethod, methodInfo))
                     {
-                        associatedProperty.SetMethodBuilder = mdb;
+                        associatedProperty.SetMethodBuilder = methodBuilder;
                     }
                     else
                     {
-                        // TODO
                         throw new ArgumentOutOfRangeException();
                     }
                 }
 
-                if (eventMap.TryGetValue(methodInfo, out EventAccessorInfo associatedEvent))
+                if (eventMap.TryGetValue(methodInfo, out var associatedEvent))
                 {
-                    if (MethodInfoComparer.Instance.Equals(associatedEvent.InterfaceAddMethod, methodInfo))
+                    if (MethodInfoEqualityComparer.Instance.Equals(associatedEvent.InterfaceAddMethod, methodInfo))
                     {
-                        associatedEvent.AddMethodBuilder = mdb;
+                        associatedEvent.AddMethodBuilder = methodBuilder;
                     }
-                    else if (MethodInfoComparer.Instance.Equals(associatedEvent.InterfaceRemoveMethod, methodInfo))
+                    else if (MethodInfoEqualityComparer.Instance.Equals(associatedEvent.InterfaceRemoveMethod, methodInfo))
                     {
-                        associatedEvent.RemoveMethodBuilder = mdb;
+                        associatedEvent.RemoveMethodBuilder = methodBuilder;
                     }
-                    else if (MethodInfoComparer.Instance.Equals(associatedEvent.InterfaceRaiseMethod, methodInfo))
+                    else if (MethodInfoEqualityComparer.Instance.Equals(associatedEvent.InterfaceRaiseMethod, methodInfo))
                     {
-                        associatedEvent.RaiseMethodBuilder = mdb;
+                        associatedEvent.RaiseMethodBuilder = methodBuilder;
                     }
                     else
                     {
-                        // TODO
                         throw new ArgumentOutOfRangeException();
                     }
                 }
             }
+
+            foreach (var propertyInfo in interfaceType.GetRuntimeProperties())
+            {
+                var propertyAccessorInfo = propertyMap[propertyInfo.GetMethod ?? propertyInfo.SetMethod ?? throw new ArgumentNullException()];
+                var parameterTypes = propertyInfo.GetIndexParameters().Select(p => p.ParameterType).ToArray();
+                var propertyBuilder = _typeBuilder.DefineProperty(propertyInfo.Name, propertyInfo.Attributes, propertyInfo.PropertyType, parameterTypes);
+                if (propertyAccessorInfo.GetMethodBuilder != null)
+                {
+                    propertyBuilder.SetGetMethod(propertyAccessorInfo.GetMethodBuilder);
+                }
+
+                if (propertyAccessorInfo.SetMethodBuilder != null)
+                {
+                    propertyBuilder.SetSetMethod(propertyAccessorInfo.SetMethodBuilder);
+                }
+            }
+
+            foreach (var eventInfo in interfaceType.GetRuntimeEvents())
+            {
+                var eventAccessorInfo = eventMap[eventInfo.AddMethod ?? eventInfo.RemoveMethod ?? throw new ArgumentNullException()];
+                var eventBuilder = _typeBuilder.DefineEvent(eventInfo.Name, eventInfo.Attributes, eventInfo.EventHandlerType ?? throw new ArgumentNullException());
+                if (eventAccessorInfo.AddMethodBuilder != null)
+                {
+                    eventBuilder.SetAddOnMethod(eventAccessorInfo.AddMethodBuilder);
+                }
+
+                if (eventAccessorInfo.RemoveMethodBuilder != null)
+                {
+                    eventBuilder.SetRemoveOnMethod(eventAccessorInfo.RemoveMethodBuilder);
+                }
+
+                if (eventAccessorInfo.RaiseMethodBuilder != null)
+                {
+                    eventBuilder.SetRaiseMethod(eventAccessorInfo.RaiseMethodBuilder);
+                }
+            }
         }
 
-        private MethodBuilder AddMethodImpl(MethodInfo mi)
+        private void Complete()
         {
-            ParameterInfo[] parameters = mi.GetParameters();
-            Type[] paramTypes = ProxyBuilderStatics.ParamTypes(parameters, false);
+            Type[] fieldTypes = new Type[_fields.Count];
+            for (int i = 0; i < fieldTypes.Length; i++)
+            {
+                fieldTypes[i] = _fields[i].FieldType;
+            }
 
-            MethodBuilder mdb = _typeBuilder.DefineMethod(mi.Name, MethodAttributes.Public | MethodAttributes.Virtual, mi.ReturnType, paramTypes);
+            ConstructorBuilder constructorBuilder = _typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, fieldTypes);
+            ILGenerator ilGenerator = constructorBuilder.GetILGenerator();
+
+            ConstructorInfo baseCtor =
+                _proxyBaseType.GetTypeInfo().DeclaredConstructors.SingleOrDefault(c => c.IsPublic && c.GetParameters().Length == 0)
+                ?? throw new ArgumentNullException();
+
+            ilGenerator.Emit(OpCodes.Ldarg_0);
+            ilGenerator.Emit(OpCodes.Call, baseCtor);
+
+            for (int i = 0; i < fieldTypes.Length; i++)
+            {
+                ilGenerator.Emit(OpCodes.Ldarg_0);
+                ilGenerator.Emit(OpCodes.Ldarg, i + 1);
+                ilGenerator.Emit(OpCodes.Stfld, _fields[i]);
+            }
+
+            ilGenerator.Emit(OpCodes.Ret);
+        }
+
+        private MethodBuilder AddMethodImplementation(MethodInfo mi)
+        {
+            var parameterInfos = mi.GetParameters();
+            var paramTypes = ProxyBuilderStatics.ParamTypes(parameterInfos, false);
+
+            var methodBuilder = _typeBuilder.DefineMethod(mi.Name, MethodAttributes.Public | MethodAttributes.Virtual, mi.ReturnType, paramTypes);
             if (mi.ContainsGenericParameters)
             {
-                Type[] ts = mi.GetGenericArguments();
-                string[] ss = new string[ts.Length];
-                for (int i = 0; i < ts.Length; i++)
+                var genericTypes = mi.GetGenericArguments();
+                var stringsArray = new string[genericTypes.Length];
+                for (var i = 0; i < genericTypes.Length; i++)
                 {
-                    ss[i] = ts[i].Name;
+                    stringsArray[i] = genericTypes[i].Name;
                 }
 
-                GenericTypeParameterBuilder[] genericParameters = mdb.DefineGenericParameters(ss);
-                for (int i = 0; i < genericParameters.Length; i++)
+                var genericTypeParameterBuilders = methodBuilder.DefineGenericParameters(stringsArray);
+                for (var i = 0; i < genericTypeParameterBuilders.Length; i++)
                 {
-                    genericParameters[i].SetGenericParameterAttributes(ts[i].GetTypeInfo().GenericParameterAttributes);
+                    genericTypeParameterBuilders[i].SetGenericParameterAttributes(genericTypes[i].GetTypeInfo().GenericParameterAttributes);
                 }
             }
 
-            ILGenerator il = mdb.GetILGenerator();
-            ParametersArray args = new ParametersArray(il, paramTypes);
-            il.Emit(OpCodes.Nop);
-            GenericArray<object> argsArr = new GenericArray<object>(il, ProxyBuilderStatics.ParamTypes(parameters, true).Length);
+            var ilGenerator = methodBuilder.GetILGenerator();
+            var parametersArray = new ParametersArray(ilGenerator, paramTypes);
 
-            for (int i = 0; i < parameters.Length; i++)
+            ilGenerator.Emit(OpCodes.Nop);
+            var argsArr = new GenericArray<object>(ilGenerator, ProxyBuilderStatics.ParamTypes(parameterInfos, true).Length);
+
+            for (int i = 0; i < parameterInfos.Length; i++)
             {
-                if (!parameters[i].IsOut)
+                if (!parameterInfos[i].IsOut)
                 {
                     argsArr.BeginSet(i);
-                    args.Get(i);
-                    argsArr.EndSet(parameters[i].ParameterType);
+                    parametersArray.Get(i);
+                    argsArr.EndSet(parameterInfos[i].ParameterType);
                 }
             }
 
-            GenericArray<object> packedArr = new GenericArray<object>(il, PackedArgs.PackedTypes.Length);
+            GenericArray<object> packedArr = new GenericArray<object>(ilGenerator, PackedArgs.PackedTypes.Length);
+
             packedArr.BeginSet(ArgumentPositions.DispatchProxyPosition);
-            il.Emit(OpCodes.Ldarg_0);
+            ilGenerator.Emit(OpCodes.Ldarg_0);
             packedArr.EndSet(typeof(DispatchProxyAsync));
 
-            // TODO
-            MethodInfo typeGetTypeFromHandle = typeof(Type).GetRuntimeMethod("GetTypeFromHandle", new[] { typeof(RuntimeTypeHandle) })
-                                               ?? throw new ArgumentNullException();
-
-            _assembly.GetTokenForMethod(mi, out Type declaringType, out int methodToken);
+            var typeGetTypeFromHandle = typeof(Type).GetRuntimeMethod("GetTypeFromHandle", new[] { typeof(RuntimeTypeHandle) }) ?? throw new ArgumentNullException();
+            _proxyAssembly.GetTokenForMethod(mi, out var declaringType, out var methodToken);
             packedArr.BeginSet(ArgumentPositions.DeclaringTypePosition);
-            il.Emit(OpCodes.Ldtoken, declaringType);
-            il.Emit(OpCodes.Call, typeGetTypeFromHandle);
+            ilGenerator.Emit(OpCodes.Ldtoken, declaringType);
+            ilGenerator.Emit(OpCodes.Call, typeGetTypeFromHandle);
             packedArr.EndSet(typeof(object));
 
             packedArr.BeginSet(ArgumentPositions.MethodTokenPosition);
-            il.Emit(OpCodes.Ldc_I4, methodToken);
+            ilGenerator.Emit(OpCodes.Ldc_I4, methodToken);
             packedArr.EndSet(typeof(int));
 
             packedArr.BeginSet(ArgumentPositions.ArgsPosition);
@@ -250,13 +246,13 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
             if (mi.ContainsGenericParameters)
             {
                 packedArr.BeginSet(ArgumentPositions.GenericTypesPosition);
-                Type[] genericTypes = mi.GetGenericArguments();
-                GenericArray<Type> typeArr = new GenericArray<Type>(il, genericTypes.Length);
+                var genericTypes = mi.GetGenericArguments();
+                var typeArr = new GenericArray<Type>(ilGenerator, genericTypes.Length);
                 for (int i = 0; i < genericTypes.Length; ++i)
                 {
                     typeArr.BeginSet(i);
-                    il.Emit(OpCodes.Ldtoken, genericTypes[i]);
-                    il.Emit(OpCodes.Call, typeGetTypeFromHandle);
+                    ilGenerator.Emit(OpCodes.Ldtoken, genericTypes[i]);
+                    ilGenerator.Emit(OpCodes.Call, typeGetTypeFromHandle);
                     typeArr.EndSet(typeof(Type));
                 }
 
@@ -264,17 +260,17 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
                 packedArr.EndSet(typeof(Type[]));
             }
 
-            for (int i = 0; i < parameters.Length; i++)
+            for (int i = 0; i < parameterInfos.Length; i++)
             {
-                if (parameters[i].ParameterType.IsByRef)
+                if (parameterInfos[i].ParameterType.IsByRef)
                 {
-                    args.BeginSet(i);
+                    parametersArray.BeginSet(i);
                     argsArr.Get(i);
-                    args.EndSet(i, typeof(object));
+                    parametersArray.EndSet(i, typeof(object));
                 }
             }
 
-            MethodInfo invokeMethod = DelegateInvoke;
+            var invokeMethod = DelegateInvoke;
             if (mi.ReturnType == typeof(Task))
             {
                 invokeMethod = DelegateInvokeAsync;
@@ -286,52 +282,22 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
                 invokeMethod = DelegateInvokeAsyncT.MakeGenericMethod(returnTypes);
             }
 
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldfld, _fields[InvokeActionFieldAndCtorParameterIndex]);
+            ilGenerator.Emit(OpCodes.Ldarg_0);
+            ilGenerator.Emit(OpCodes.Ldfld, _fields[InvokeActionFieldAndCtorParameterIndex]);
             packedArr.Load();
-            il.Emit(OpCodes.Callvirt, invokeMethod);
+            ilGenerator.Emit(OpCodes.Callvirt, invokeMethod);
             if (mi.ReturnType != typeof(void))
             {
-                ProxyBuilderStatics.Convert(il, typeof(object), mi.ReturnType, false);
+                ProxyBuilderStatics.Convert(ilGenerator, typeof(object), mi.ReturnType, false);
             }
             else
             {
-                il.Emit(OpCodes.Pop);
+                ilGenerator.Emit(OpCodes.Pop);
             }
 
-            il.Emit(OpCodes.Ret);
-
-            _typeBuilder.DefineMethodOverride(mdb, mi);
-            return mdb;
-        }
-
-        private void Complete()
-        {
-            Type[] args = new Type[_fields.Count];
-            for (int i = 0; i < args.Length; i++)
-            {
-                args[i] = _fields[i].FieldType;
-            }
-
-            ConstructorBuilder cb = _typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, args);
-            ILGenerator il = cb.GetILGenerator();
-
-            // TODO
-            ConstructorInfo baseCtor = _proxyBaseType.GetTypeInfo().DeclaredConstructors.SingleOrDefault(c => c.IsPublic && c.GetParameters().Length == 0)
-                ?? throw new ArgumentNullException();
-
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Call, baseCtor);
-
-            // store all the fields
-            for (int i = 0; i < args.Length; i++)
-            {
-                il.Emit(OpCodes.Ldarg_0);
-                il.Emit(OpCodes.Ldarg, i + 1);
-                il.Emit(OpCodes.Stfld, _fields[i]);
-            }
-
-            il.Emit(OpCodes.Ret);
+            ilGenerator.Emit(OpCodes.Ret);
+            _typeBuilder.DefineMethodOverride(methodBuilder, mi);
+            return methodBuilder;
         }
     }
 }

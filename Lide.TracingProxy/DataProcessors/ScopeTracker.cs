@@ -1,5 +1,5 @@
 using System;
-using Lide.TracingProxy.Contracts;
+using Lide.TracingProxy.DataProcessors.Contract;
 
 namespace Lide.TracingProxy.DataProcessors
 {

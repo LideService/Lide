@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Lide.TracingProxy.Contracts;
-using Lide.TracingProxy.Model;
+using Lide.TracingProxy.DataProcessors.Contract;
+using Lide.TracingProxy.DataProcessors.Model;
 
 namespace Lide.TracingProxy.DataProcessors
 {
@@ -12,12 +12,12 @@ namespace Lide.TracingProxy.DataProcessors
         // 1. ExtractCallerInformation
         // 2. Proxy invocation
         private static readonly int InitialFramesToSkip = 2;
-        private static readonly List<string> ExcludeNamespaces = new List<string> { "System", "Microsoft" };
+        private static readonly List<string> ExcludeNamespaces = new() { "System", "Microsoft" };
 
         public CallerInformation ExtractCallerInformation()
         {
             bool skipFirst = false;
-            StackTrace stackTrace = new StackTrace(true);
+            StackTrace stackTrace = new(true);
             for (int i = InitialFramesToSkip; i < stackTrace.FrameCount; i++)
             {
                 StackFrame? stackFrame = stackTrace.GetFrame(i);
@@ -45,7 +45,7 @@ namespace Lide.TracingProxy.DataProcessors
                     continue;
                 }
 
-                return new CallerInformation()
+                return new CallerInformation
                 {
                     CallerFileName = frameFileName,
                     CallerMethodName = frameMethodInfo.Name,
@@ -53,7 +53,7 @@ namespace Lide.TracingProxy.DataProcessors
                 };
             }
             
-            return new CallerInformation()
+            return new CallerInformation
             {
                 CallerFileName = string.Empty,
                 CallerMethodName = string.Empty,

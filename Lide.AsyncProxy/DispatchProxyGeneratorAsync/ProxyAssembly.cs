@@ -8,7 +8,7 @@ using Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
 {
-    internal class ProxyAssembly
+    public class ProxyAssembly
     {
         private readonly AssemblyBuilder _assemblyBuilder;
         private readonly ModuleBuilder _moduleBuilder;
@@ -22,12 +22,12 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
         public ProxyAssembly()
         {
             AssemblyBuilderAccess access = AssemblyBuilderAccess.Run;
-            var assemblyName = new AssemblyName("ProxyBuilder2")
+            var assemblyName = new AssemblyName("Lide.AsyncProxy")
             {
                 Version = new Version(1, 0, 0),
             };
             _assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(assemblyName, access);
-            _moduleBuilder = _assemblyBuilder.DefineDynamicModule("testMod");
+            _moduleBuilder = _assemblyBuilder.DefineDynamicModule("Lide.DynamicModule");
         }
 
         public ProxyBuilder CreateProxy(string name, Type proxyBaseType)
@@ -37,7 +37,7 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             return new ProxyBuilder(this, tb, proxyBaseType);
         }
 
-        public void EnsureTypeIsVisible(Type type)
+        internal void EnsureTypeIsVisible(Type type)
         {
             TypeInfo typeInfo = type.GetTypeInfo();
             if (!typeInfo.IsVisible)
@@ -51,7 +51,7 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             }
         }
 
-        public void GetTokenForMethod(MethodBase method, out Type type, out int token)
+        internal void GetTokenForMethod(MethodBase method, out Type type, out int token)
         {
             type = method.DeclaringType;
             token = 0;
@@ -63,9 +63,68 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             }
         }
 
-        public MethodBase ResolveMethodToken(Type type, int token)
+        internal MethodBase ResolveMethodToken(int token)
         {
             return _methodsByToken[token];
+        }
+
+        private TypeInfo GenerateTypeInfoOfIgnoresAccessChecksToAttribute()
+        {
+            TypeBuilder attributeTypeBuilder =
+                _moduleBuilder.DefineType("System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute",
+                    TypeAttributes.Public | TypeAttributes.Class,
+                    typeof(Attribute));
+
+            FieldBuilder assemblyNameField = attributeTypeBuilder.DefineField("assemblyName", typeof(string), FieldAttributes.Private);
+            ConstructorBuilder constructorBuilder = attributeTypeBuilder.DefineConstructor(MethodAttributes.Public,
+                CallingConventions.HasThis,
+                new[] { assemblyNameField.FieldType });
+
+            ILGenerator il = constructorBuilder.GetILGenerator();
+
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldarg, 1);
+            il.Emit(OpCodes.Stfld, assemblyNameField);
+            il.Emit(OpCodes.Ret);
+
+            attributeTypeBuilder.DefineProperty(
+                name: "AssemblyName",
+                attributes: PropertyAttributes.None,
+                callingConvention: CallingConventions.HasThis,
+                returnType: typeof(string),
+                parameterTypes: null);
+
+            var getterMethodBuilder = attributeTypeBuilder.DefineMethod(
+                name: "get_AssemblyName",
+                attributes: MethodAttributes.Public,
+                callingConvention: CallingConventions.HasThis,
+                returnType: typeof(string),
+                parameterTypes: null);
+
+            il = getterMethodBuilder.GetILGenerator();
+            il.Emit(OpCodes.Ldarg_0);
+            il.Emit(OpCodes.Ldfld, assemblyNameField);
+            il.Emit(OpCodes.Ret);
+
+            var attributeUsageTypeInfo = typeof(AttributeUsageAttribute).GetTypeInfo();
+
+            var attributeUsageConstructorInfo =
+                attributeUsageTypeInfo.DeclaredConstructors
+                    .Single(c => c.GetParameters().Count() == 1 &&
+                                 c.GetParameters()[0].ParameterType == typeof(AttributeTargets));
+
+            var allowMultipleProperty =
+                attributeUsageTypeInfo.DeclaredProperties
+                    .Single(f => string.Equals(f.Name, "AllowMultiple"));
+
+            CustomAttributeBuilder customAttributeBuilder =
+                new CustomAttributeBuilder(attributeUsageConstructorInfo,
+                    new object[] { AttributeTargets.Assembly },
+                    new[] { allowMultipleProperty },
+                    new object[] { true });
+
+            attributeTypeBuilder.SetCustomAttribute(customAttributeBuilder);
+            return attributeTypeBuilder.CreateTypeInfo();
         }
 
         private void GenerateInstanceOfIgnoresAccessChecksToAttribute(string assemblyName)
@@ -80,63 +139,6 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             CustomAttributeBuilder customAttributeBuilder =
                 new CustomAttributeBuilder(attributeConstructor, new object[] { assemblyName });
             _assemblyBuilder.SetCustomAttribute(customAttributeBuilder);
-        }
-
-        private TypeInfo GenerateTypeInfoOfIgnoresAccessChecksToAttribute()
-        {
-            TypeBuilder attributeTypeBuilder =
-                _moduleBuilder.DefineType("System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute",
-                               TypeAttributes.Public | TypeAttributes.Class,
-                               typeof(Attribute));
-
-            FieldBuilder assemblyNameField = attributeTypeBuilder.DefineField("assemblyName", typeof(string), FieldAttributes.Private);
-            ConstructorBuilder constructorBuilder = attributeTypeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new[] { assemblyNameField.FieldType });
-
-            ILGenerator il = constructorBuilder.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldarg, 1);
-            il.Emit(OpCodes.Stfld, assemblyNameField);
-            il.Emit(OpCodes.Ret);
-
-            attributeTypeBuilder.DefineProperty(
-                name: "AssemblyName",
-                attributes: PropertyAttributes.None,
-                callingConvention: CallingConventions.HasThis,
-                returnType: typeof(string),
-                parameterTypes: null);
-
-            MethodBuilder getterMethodBuilder = attributeTypeBuilder.DefineMethod(
-                name: "get_AssemblyName",
-                attributes: MethodAttributes.Public,
-                callingConvention: CallingConventions.HasThis,
-                returnType: typeof(string),
-                parameterTypes: null);
-
-            il = getterMethodBuilder.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Ldfld, assemblyNameField);
-            il.Emit(OpCodes.Ret);
-
-            TypeInfo attributeUsageTypeInfo = typeof(AttributeUsageAttribute).GetTypeInfo();
-
-            ConstructorInfo attributeUsageConstructorInfo =
-                attributeUsageTypeInfo.DeclaredConstructors
-                    .Single(c => c.GetParameters().Count() == 1 &&
-                                 c.GetParameters()[0].ParameterType == typeof(AttributeTargets));
-
-            PropertyInfo allowMultipleProperty =
-                attributeUsageTypeInfo.DeclaredProperties
-                    .Single(f => string.Equals(f.Name, "AllowMultiple"));
-
-            CustomAttributeBuilder customAttributeBuilder =
-                new CustomAttributeBuilder(attributeUsageConstructorInfo,
-                                            new object[] { AttributeTargets.Assembly },
-                                            new[] { allowMultipleProperty },
-                                            new object[] { true });
-
-            attributeTypeBuilder.SetCustomAttribute(customAttributeBuilder);
-
-            return attributeTypeBuilder.CreateTypeInfo();
         }
     }
 }

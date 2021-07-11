@@ -3,7 +3,7 @@ using System.Reflection.Emit;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
 {
-    internal class ParametersArray
+    public class ParametersArray
     {
         private readonly ILGenerator _ilGenerator;
         private readonly Type[] _paramTypes;
@@ -14,19 +14,19 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
             _paramTypes = paramTypes;
         }
 
-        public void Get(int index)
+        public void Get(int i)
         {
-            _ilGenerator.Emit(OpCodes.Ldarg, index + 1);
+            _ilGenerator.Emit(OpCodes.Ldarg, i + 1);
         }
 
-        public void BeginSet(int index)
+        public void BeginSet(int i)
         {
-            _ilGenerator.Emit(OpCodes.Ldarg, index + 1);
+            _ilGenerator.Emit(OpCodes.Ldarg, i + 1);
         }
 
-        public void EndSet(int index, Type stackType)
+        public void EndSet(int i, Type stackType)
         {
-            Type argType = _paramTypes[index].GetElementType();
+            Type argType = _paramTypes[i].GetElementType();
             ProxyBuilderStatics.Convert(_ilGenerator, stackType, argType, false);
             ProxyBuilderStatics.Stind(_ilGenerator, argType);
         }

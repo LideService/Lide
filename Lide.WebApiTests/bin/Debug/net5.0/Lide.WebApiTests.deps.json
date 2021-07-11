@@ -25,8 +25,8 @@
     ".NETCoreApp,Version=v5.0": {
       "Lide.WebApiTests/1.0.0": {
         "dependencies": {
-          "Autofac": "6.2.0",
-          "Autofac.Extensions.DependencyInjection": "7.1.0",
+          "Lide.AsyncProxy": "1.0.0",
+          "Lide.TracingProxy": "1.0.0",
           "Microsoft.Extensions.DependencyInjection": "5.0.1",
           "Swashbuckle.AspNetCore": "5.6.3",
           "Microsoft.AspNetCore.Antiforgery": "5.0.0.0",
@@ -178,7 +178,7 @@
           "System.Data": "4.0.0.0",
           "System.Diagnostics.Contracts": "5.0.0.0",
           "System.Diagnostics.Debug": "5.0.0.0",
-          "System.Diagnostics.DiagnosticSource.Reference": "5.0.0.0",
+          "System.Diagnostics.DiagnosticSource": "5.0.0.0",
           "System.Diagnostics.EventLog": "5.0.0.0",
           "System.Diagnostics.FileVersionInfo": "5.0.0.0",
           "System.Diagnostics.Process": "5.0.0.0",
@@ -319,35 +319,6 @@
           "Lide.WebApiTests.dll": {}
         }
       },
-      "Autofac/6.2.0": {
-        "dependencies": {
-          "System.Diagnostics.DiagnosticSource": "4.7.1"
-        },
-        "runtime": {
-          "lib/net5.0/Autofac.dll": {
-            "assemblyVersion": "6.2.0.0",
-            "fileVersion": "6.2.0.0"
-          }
-        },
-        "compile": {
-          "lib/net5.0/Autofac.dll": {}
-        }
-      },
-      "Autofac.Extensions.DependencyInjection/7.1.0": {
-        "dependencies": {
-          "Autofac": "6.2.0",
-          "Microsoft.Extensions.DependencyInjection.Abstractions": "5.0.0"
-        },
-        "runtime": {
-          "lib/netstandard2.1/Autofac.Extensions.DependencyInjection.dll": {
-            "assemblyVersion": "7.1.0.0",
-            "fileVersion": "7.1.0.0"
-          }
-        },
-        "compile": {
-          "lib/netstandard2.1/Autofac.Extensions.DependencyInjection.dll": {}
-        }
-      },
       "Microsoft.Extensions.ApiDescription.Server/3.0.0": {},
       "Microsoft.Extensions.DependencyInjection/5.0.1": {
         "dependencies": {
@@ -422,7 +393,25 @@
           "lib/netcoreapp3.0/Swashbuckle.AspNetCore.SwaggerUI.dll": {}
         }
       },
-      "System.Diagnostics.DiagnosticSource/4.7.1": {},
+      "Lide.AsyncProxy/1.0.0": {
+        "runtime": {
+          "Lide.AsyncProxy.dll": {}
+        },
+        "compile": {
+          "Lide.AsyncProxy.dll": {}
+        }
+      },
+      "Lide.TracingProxy/1.0.0": {
+        "dependencies": {
+          "Lide.AsyncProxy": "1.0.0"
+        },
+        "runtime": {
+          "Lide.TracingProxy.dll": {}
+        },
+        "compile": {
+          "Lide.TracingProxy.dll": {}
+        }
+      },
       "Microsoft.AspNetCore.Antiforgery/5.0.0.0": {
         "compile": {
           "Microsoft.AspNetCore.Antiforgery.dll": {}
@@ -1317,7 +1306,7 @@
         },
         "compileOnly": true
       },
-      "System.Diagnostics.DiagnosticSource.Reference/5.0.0.0": {
+      "System.Diagnostics.DiagnosticSource/5.0.0.0": {
         "compile": {
           "System.Diagnostics.DiagnosticSource.dll": {}
         },
@@ -2123,20 +2112,6 @@
       "serviceable": false,
       "sha512": ""
     },
-    "Autofac/6.2.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-BX8IM0GANE38uSr4QwXL4PgA8vWWYt2P5cZzipn/vDnf0fDbPSGKSHEroJ09rB7ANxdyf7MdEgVs+pvL8kwYCg==",
-      "path": "autofac/6.2.0",
-      "hashPath": "autofac.6.2.0.nupkg.sha512"
-    },
-    "Autofac.Extensions.DependencyInjection/7.1.0": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-nm6rZREZ9tjdKXu9cmT69zHkZODagjCPlRRCOhiS1VqFFis9LQnMl18L4OYr8yfCW1WAQkFDD2CNaK/kF5Eqeg==",
-      "path": "autofac.extensions.dependencyinjection/7.1.0",
-      "hashPath": "autofac.extensions.dependencyinjection.7.1.0.nupkg.sha512"
-    },
     "Microsoft.Extensions.ApiDescription.Server/3.0.0": {
       "type": "package",
       "serviceable": true,
@@ -2193,12 +2168,15 @@
       "path": "swashbuckle.aspnetcore.swaggerui/5.6.3",
       "hashPath": "swashbuckle.aspnetcore.swaggerui.5.6.3.nupkg.sha512"
     },
-    "System.Diagnostics.DiagnosticSource/4.7.1": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-j81Lovt90PDAq8kLpaJfJKV/rWdWuEk6jfV+MBkee33vzYLEUsy4gXK8laa9V2nZlLM9VM9yA/OOQxxPEJKAMw==",
-      "path": "system.diagnostics.diagnosticsource/4.7.1",
-      "hashPath": "system.diagnostics.diagnosticsource.4.7.1.nupkg.sha512"
+    "Lide.AsyncProxy/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Lide.TracingProxy/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
     },
     "Microsoft.AspNetCore.Antiforgery/5.0.0.0": {
       "type": "referenceassembly",
@@ -2945,7 +2923,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "System.Diagnostics.DiagnosticSource.Reference/5.0.0.0": {
+    "System.Diagnostics.DiagnosticSource/5.0.0.0": {
       "type": "referenceassembly",
       "serviceable": false,
       "sha512": ""

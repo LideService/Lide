@@ -3,7 +3,7 @@ using System.Reflection.Emit;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
 {
-    internal sealed class EventAccessorInfo
+    public sealed class EventAccessorInfo
     {
         public EventAccessorInfo(MethodInfo interfaceAddMethod, MethodInfo interfaceRemoveMethod, MethodInfo interfaceRaiseMethod)
         {

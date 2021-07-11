@@ -27,6 +27,8 @@
 /home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/obj/Debug/net5.0/ref/Lide.WebApiTests.dll
 /home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/obj/Debug/net5.0/Lide.WebApiTests.pdb
 /home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/obj/Debug/net5.0/Lide.WebApiTests.genruntimeconfig.cache
-/home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/bin/Debug/net5.0/Autofac.dll
-/home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/bin/Debug/net5.0/Autofac.Extensions.DependencyInjection.dll
 /home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/bin/Debug/net5.0/Microsoft.Extensions.DependencyInjection.dll
+/home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/bin/Debug/net5.0/Lide.AsyncProxy.dll
+/home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/bin/Debug/net5.0/Lide.AsyncProxy.pdb
+/home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/bin/Debug/net5.0/Lide.TracingProxy.dll
+/home/nikola.gamzakov/Development/Lide/Lide.WebApiTests/bin/Debug/net5.0/Lide.TracingProxy.pdb

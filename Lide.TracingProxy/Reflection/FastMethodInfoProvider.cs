@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using Lide.TracingProxy.Contracts;
-using Lide.TracingProxy.Model;
+using Lide.TracingProxy.Reflection.Contract;
+using Lide.TracingProxy.Reflection.Model;
 
 namespace Lide.TracingProxy.Reflection
 {

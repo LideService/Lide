@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Reflection;
-using Lide.TracingProxy.Contracts;
+using Lide.TracingProxy.Reflection.Contract;
 
 namespace Lide.TracingProxy.Reflection
 {
