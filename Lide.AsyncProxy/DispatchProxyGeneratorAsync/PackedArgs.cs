@@ -3,7 +3,7 @@ using Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
 {
-    public class PackedArgs
+    internal class PackedArgs
     {
         public static readonly Type[] PackedTypes = { typeof(object), typeof(Type), typeof(int), typeof(object[]), typeof(Type[]), typeof(object) };
         private readonly object[] _args;

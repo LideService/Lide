@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
 {
-    public class ProxyMethodResolverContext
+    internal class ProxyMethodResolverContext
     {
         public ProxyMethodResolverContext(PackedArgs packed, MethodBase method)
         {

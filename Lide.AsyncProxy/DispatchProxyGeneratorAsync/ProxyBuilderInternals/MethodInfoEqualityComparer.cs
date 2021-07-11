@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
 {
-    public sealed class MethodInfoEqualityComparer : EqualityComparer<MethodInfo>
+    internal sealed class MethodInfoEqualityComparer : EqualityComparer<MethodInfo>
     {
         public static readonly MethodInfoEqualityComparer Instance = new ();
 

@@ -3,7 +3,7 @@ using System.Reflection.Emit;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
 {
-    public class GenericArray<T>
+    internal class GenericArray<T>
     {
         private readonly ILGenerator _ilGenerator;
         private readonly LocalBuilder _localBuilder;

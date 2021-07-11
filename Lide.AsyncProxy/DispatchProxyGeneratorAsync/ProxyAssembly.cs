@@ -8,7 +8,7 @@ using Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
 {
-    public class ProxyAssembly
+    internal class ProxyAssembly
     {
         private readonly AssemblyBuilder _assemblyBuilder;
         private readonly ModuleBuilder _moduleBuilder;

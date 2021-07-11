@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
 {
-    public static class ProxyBuilderStatics
+    internal static class ProxyBuilderStatics
     {
         private static readonly Dictionary<Type, (OpCode convCode, OpCode ldindCode, OpCode stindCode)> TypeCodes =
             new ()

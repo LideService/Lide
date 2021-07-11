@@ -3,7 +3,7 @@ using Lide.AsyncProxy.DispatchProxyGeneratorAsync;
 
 namespace Lide.AsyncProxy
 {
-    public class DispatchProxyHandlerAsync
+    public sealed class DispatchProxyHandlerAsync
     {
         public object InvokeHandle(object[] args)
         {

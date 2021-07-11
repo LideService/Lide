@@ -8,7 +8,7 @@ namespace Lide.AsyncProxy
         public static TInterface Create<TInterface, TProxy>()
             where TProxy : DispatchProxyAsync
         {
-            return (TInterface)ProxyGeneratorAsync.CreateProxyInstance(typeof(TInterface),typeof(TProxy));
+            return (TInterface)ProxyGeneratorAsync.CreateProxyInstance(typeof(TInterface), typeof(TProxy));
         }
 
         public static object Create(Type tInterface, Type tProxy)

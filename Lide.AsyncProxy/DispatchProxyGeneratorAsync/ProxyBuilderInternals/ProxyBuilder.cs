@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
 {
-    public class ProxyBuilder
+    internal class ProxyBuilder
     {
         private const int InvokeActionFieldAndCtorParameterIndex = 0;
         private static readonly MethodInfo DelegateInvoke = typeof(DispatchProxyHandlerAsync).GetMethod(nameof(DispatchProxyHandlerAsync.InvokeHandle));

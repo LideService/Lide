@@ -3,7 +3,7 @@ using System.Reflection.Emit;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
 {
-    public class ParametersArray
+    internal class ParametersArray
     {
         private readonly ILGenerator _ilGenerator;
         private readonly Type[] _paramTypes;

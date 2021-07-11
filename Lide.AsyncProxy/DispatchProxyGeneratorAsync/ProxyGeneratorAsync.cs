@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
 {
-    public static class ProxyGeneratorAsync
+    internal static class ProxyGeneratorAsync
     {
         private static readonly Dictionary<Type, Dictionary<Type, Type>> BaseTypeAndInterfaceToGeneratedProxyType = new ();
         private static readonly ProxyAssembly ProxyAssembly = new ();

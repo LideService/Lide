@@ -1,6 +1,6 @@
 namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
 {
-    public static class ArgumentPositions
+    internal static class ArgumentPositions
     {
         public const int DispatchProxyPosition = 0;
         public const int DeclaringTypePosition = 1;
