@@ -7,15 +7,17 @@ using Lide.TracingProxy.Reflection.Model;
 
 namespace Lide.TracingProxy.Reflection
 {
-    public class FastMethodInfoProvider : IFastMethodInfoProvider
+    public class ProviderMethodInfoCompiled : IMethodInfoProvider
     {
-        public MethodInfoDelegate CompileMethodInfo(MethodInfo methodInfo)
+        public static IMethodInfoProvider Singleton = new ProviderMethodInfoCompiled();
+
+        public MethodInfoCompiled GetMethodInfoCompiled(MethodInfo methodInfo)
         {
             ParameterExpression instanceExpression = Expression.Parameter(typeof(object), "instance");
             ParameterExpression argumentsExpression = Expression.Parameter(typeof(object[]), "arguments");
             List<Expression> argumentExpressions = new ();
             ParameterInfo[] parameterInfos = methodInfo.GetParameters();
-            UnaryExpression? instanceExpressionWithType = !methodInfo.IsStatic ? Expression.Convert(instanceExpression, methodInfo.ReflectedType!) : null;
+            UnaryExpression instanceExpressionWithType = !methodInfo.IsStatic ? Expression.Convert(instanceExpression, methodInfo.ReflectedType!) : null;
 
             for (int idx = 0; idx < parameterInfos.Length; idx++)
             {
@@ -32,12 +34,12 @@ namespace Lide.TracingProxy.Reflection
             else
             {
                 UnaryExpression callExpression = Expression.Convert(Expression.Call(instanceExpressionWithType, methodInfo, argumentExpressions), typeof(object));
-                MethodInfoDelegate objectDelegate = Expression.Lambda<MethodInfoDelegate>(callExpression, instanceExpression, argumentsExpression).Compile();
-                return objectDelegate;
+                MethodInfoCompiled objectCompiled = Expression.Lambda<MethodInfoCompiled>(callExpression, instanceExpression, argumentsExpression).Compile();
+                return objectCompiled;
             }
         }
 
-        private MethodInfoDelegate WrapWithVoid(Action<object, object[]> fastMethodInfo)
+        private MethodInfoCompiled WrapWithVoid(Action<object, object[]> fastMethodInfo)
         {
             return (instance, arguments) =>
             {

@@ -1,82 +1,62 @@
-using System;
 using Lide.TracingProxy.Contract;
+using Lide.TracingProxy.DataProcessors;
 using Lide.TracingProxy.DataProcessors.Contract;
 using Lide.TracingProxy.Reflection.Contract;
 
 namespace Lide.TracingProxy.Reflection
 {
-    public partial class ProxyDecoratorTyped<TOriginalObject> :  IProxyCompositorGeneric<TOriginalObject>
-        where TOriginalObject : class
+    public partial class ProxyDecoratorTyped<TInterface> : IProxyCompositorTyped<TInterface>
+        where TInterface : class
     {
-        public static IProxyCompositorGeneric<TOriginalObject> CreateProxyDecorator()
-        {
-            return null!;//(ProxyDecoratorTyped<TOriginalObject>)(object)DispatchProxyAsyncFactory. Create<TOriginalObject, ProxyDecoratorTyped<TOriginalObject>>();
-        }
-
-        public IProxyCompositorGeneric<TOriginalObject> SetOriginalObject(TOriginalObject originalObject)
+        public IProxyCompositorTyped<TInterface> SetOriginalObject(TInterface originalObject)
         {
             _originalObject = originalObject;
-            _originalObjectType = typeof(TOriginalObject);
+            _originalObjectType = typeof(TInterface);
             return this;
         }
 
-        public IProxyCompositorGeneric<TOriginalObject> SetDecorator(IObjectDecorator decorator)
+        public IProxyCompositorTyped<TInterface> SetDecorator(IObjectDecorator decorator)
         {
             _decorators.Add(decorator);
             return this;
         }
 
-        public IProxyCompositorGeneric<TOriginalObject> SetDecorators(params IObjectDecorator[] decorators)
+        public IProxyCompositorTyped<TInterface> SetDecorators(params IObjectDecorator[] decorators)
         {
             _decorators.AddRange(decorators);
             return this;
         }
 
-        public IProxyCompositorGeneric<TOriginalObject> SetFastMethodInfoCache(IFastMethodInfoCache fastMethodInfoCache)
+        public IProxyCompositorTyped<TInterface> SetDelegateMethodInfoCache(IMethodInfoCache methodInfoCache)
         {
-            _fastMethodInfoCache = fastMethodInfoCache;
+            _methodInfoCache = methodInfoCache;
             return this;
         }
 
-        public IProxyCompositorGeneric<TOriginalObject> SetScopeTracker(IScopeTracker scopeTracker)
+        public IProxyCompositorTyped<TInterface> SetDelegateMethodInfoProvider(IMethodInfoProvider methodInfoProvider)
+        {
+            _methodInfoProvider = methodInfoProvider;
+            return this;
+        }
+
+        public IProxyCompositorTyped<TInterface> SetScopeTracker(IScopeTracker scopeTracker)
         {
             _scopeTracker = scopeTracker;
             return this;
         }
-        
-        public TOriginalObject GetDecoratedObject()
+
+        public TInterface GetDecoratedObject()
         {
-            return GetDecoratedObjectInternal(true)!;
-        }
-        
-        public TOriginalObject? GetDecoratedObjectSafe()
-        {
-            return GetDecoratedObjectInternal(false);
-        }
+            _methodInfoCache ??= CacheMethodInfoInvoke.Singleton;
+            _methodInfoProvider ??= ProviderMethodInfoInvoke.Singleton;
+            _scopeTracker ??= TrackerDummy.Singleton;
 
-        private TOriginalObject? GetDecoratedObjectInternal(bool throwOnError)
-        {
-            if (_originalObject == null && throwOnError)
-            {
-                throw new ArgumentException("Expected to have the originalObject set");
-            }
-
-            if (_fastMethodInfoCache == null && throwOnError)
-            {
-                throw new ArgumentException("Can't have cache enabled without the actual cache");
-            }
-
-            if (_scopeTracker == null && throwOnError)
-            {
-                throw new ArgumentException("Can't proxy without any scope detection");
-            }
-
-            if (_decorators.Count == 0)
+            if (_originalObject == null || _decorators.Count == 0)
             {
                 return _originalObject;
             }
 
-            return (TOriginalObject)(object)this;
+            return (TInterface)(object)this;
         }
     }
 }

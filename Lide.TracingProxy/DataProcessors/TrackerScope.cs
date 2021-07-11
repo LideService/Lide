@@ -3,11 +3,11 @@ using Lide.TracingProxy.DataProcessors.Contract;
 
 namespace Lide.TracingProxy.DataProcessors
 {
-    public class ScopeTracker : IScopeTracker
+    public class TrackerScope : IScopeTracker
     {
         private string _scopeGuid;
 
-        public ScopeTracker()
+        public TrackerScope()
         {
             _scopeGuid = Guid.NewGuid().ToString();
         }

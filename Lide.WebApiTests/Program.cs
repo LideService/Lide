@@ -2,6 +2,8 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Lide.AsyncProxy;
+using Lide.TracingProxy.ObjectDecorator;
+using Lide.TracingProxy.Reflection;
 
 namespace Lide.WebApiTests
 {
@@ -12,10 +14,20 @@ namespace Lide.WebApiTests
         {
             var obj = new T();
             var prox = DispatchProxyAsyncFactory.Create(typeof(IT), typeof(Test));
+            var prox2 = ProxyDecoratorFactory.CreateProxyDecorator<IT>();
+            var prox3 = ProxyDecoratorFactory.CreateProxyDecorator(typeof(IT));
+            prox2.SetDecorator(new ConsoleDecorator());
+            prox2.SetOriginalObject(obj);
+            prox3.SetDecorator(new ConsoleDecorator());
+            prox3.SetDecorator(new ConsoleDecorator());
+            prox3.SetOriginalObject(obj);
             ((Test)(object)prox).SetTarget(obj);
             obj.Do();
             ((IT)prox).Do();
+            prox2.GetDecoratedObject().Do();
+            ((IT)prox3.GetDecoratedObject()).Do();
             return;
+            
             
         }
 

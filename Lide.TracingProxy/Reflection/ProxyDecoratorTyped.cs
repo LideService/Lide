@@ -11,14 +11,15 @@ using Lide.TracingProxy.Reflection.Model;
 
 namespace Lide.TracingProxy.Reflection
 {
-    public partial class ProxyDecoratorTyped<TOriginalObject> : DispatchProxyAsync
-        where TOriginalObject : class
+    public partial class ProxyDecoratorTyped<TInterface> : DispatchProxyAsync
+        where TInterface : class
     {
         private readonly List<IObjectDecorator> _decorators = new ();
-        private IFastMethodInfoCache _fastMethodInfoCache = null!;
-        private IScopeTracker _scopeTracker = null!;
-        private TOriginalObject _originalObject = null!;
-        private Type _originalObjectType = null!;
+        private IMethodInfoCache _methodInfoCache;
+        private IMethodInfoProvider _methodInfoProvider;
+        private IScopeTracker _scopeTracker;
+        private TInterface _originalObject;
+        private Type _originalObjectType;
 
         public override object Invoke(MethodInfo methodInfo, object[] methodParameters)
         {
@@ -51,7 +52,7 @@ namespace Lide.TracingProxy.Reflection
 
         private object ExecuteAfter(MethodInfo methodInfo, object[] methodParameters)
         {
-            MethodInfoDelegate executableMethodInfo = _fastMethodInfoCache.GetCompiledMethodInfo(_originalObjectType, methodInfo);
+            var executableMethodInfo = GetExecutableMethodInfo(methodInfo);
             var result = executableMethodInfo.Invoke(_originalObject, methodParameters);
             foreach (var proxyDecorator in _decorators)
             {
@@ -70,13 +71,23 @@ namespace Lide.TracingProxy.Reflection
 
         private Task ExecuteAfterAsync(MethodInfo methodInfo, object[] methodParameters)
         {
-            MethodInfoDelegate executableMethodInfo = _fastMethodInfoCache.GetCompiledMethodInfo(_originalObjectType, methodInfo);
+            var executableMethodInfo = GetExecutableMethodInfo(methodInfo);
             var resultTask = (Task)executableMethodInfo.Invoke(_originalObject, methodParameters);
-            var wrappedTask = resultTask.ContinueWith(_ =>
+            var wrappedTask = resultTask?.ContinueWith(task =>
             {
-                foreach (var proxyDecorator in _decorators)
+                if (task.Exception != null)
                 {
-                    proxyDecorator.ExecuteAfter(methodInfo, _originalObject, methodParameters);
+                    foreach (var proxyDecorator in _decorators)
+                    {
+                        proxyDecorator.ExecuteException(methodInfo, _originalObject, methodParameters, task.Exception);
+                    }
+                }
+                else
+                {
+                    foreach (var proxyDecorator in _decorators)
+                    {
+                        proxyDecorator.ExecuteAfter(methodInfo, _originalObject, methodParameters);
+                    }
                 }
             });
 
@@ -85,20 +96,42 @@ namespace Lide.TracingProxy.Reflection
 
         private Task<TReturnType> ExecuteAfterAsync<TReturnType>(MethodInfo methodInfo, object[] methodParameters)
         {
-            MethodInfoDelegate executableMethodInfo = _fastMethodInfoCache.GetCompiledMethodInfo(_originalObjectType, methodInfo);
+            var executableMethodInfo = GetExecutableMethodInfo(methodInfo);
             var resultTask = (Task<TReturnType>)executableMethodInfo.Invoke(_originalObject, methodParameters);
-            var wrappedTask = resultTask.ContinueWith(task =>
+            var wrappedTask = resultTask?.ContinueWith(task =>
             {
                 TReturnType result = task.Result;
-                foreach (var proxyDecorator in _decorators)
+                if (task.Exception != null)
                 {
-                    result = proxyDecorator.ExecuteAfter(methodInfo, _originalObject, methodParameters, result);
+                    foreach (var proxyDecorator in _decorators)
+                    {
+                        proxyDecorator.ExecuteException(methodInfo, _originalObject, methodParameters, task.Exception);
+                    }
+                }
+                else
+                {
+                    foreach (var proxyDecorator in _decorators)
+                    {
+                        result = proxyDecorator.ExecuteAfter(methodInfo, _originalObject, methodParameters, result);
+                    }
                 }
 
                 return result;
             });
 
             return wrappedTask;
+        }
+
+        private MethodInfoCompiled GetExecutableMethodInfo(MethodInfo methodInfo)
+        {
+            if (_methodInfoCache.Exists(_originalObjectType, methodInfo))
+            {
+                return _methodInfoCache.GetValue(_originalObjectType, methodInfo);
+            }
+
+            var methodInfoDelegate = _methodInfoProvider.GetMethodInfoCompiled(methodInfo);
+            _methodInfoCache.TryAdd(_originalObjectType, methodInfo, methodInfoDelegate);
+            return methodInfoDelegate;
         }
 
         private TReturnType ExecuteSafe<TReturnType>(MethodInfo methodInfo, object[] methodParameters, Func<MethodInfo, object[], TReturnType> executeAction)

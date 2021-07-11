@@ -1,7 +1,7 @@
 ﻿namespace Lide.TracingProxy.Reflection.Model
 {
-    public class VoidReturn
+    public sealed class VoidReturn
     {
-        public static VoidReturn Default = new VoidReturn();
+        public static readonly VoidReturn Default = new ();
     }
 }

@@ -1,6 +1,6 @@
 using System;
 using System.Reflection;
-using System.Text.Json;
+using System.Threading.Tasks;
 using Lide.TracingProxy.Contract;
 
 namespace Lide.TracingProxy.ObjectDecorator
@@ -9,32 +9,37 @@ namespace Lide.TracingProxy.ObjectDecorator
     {
         public object[] ExecuteBefore(MethodInfo methodInfo, object originalObject, object[] methodParams)
         {
-            Console.WriteLine(originalObject.GetType());
-            Console.WriteLine(methodInfo);
-            Console.WriteLine(JsonSerializer.Serialize(methodParams));
+            Console.WriteLine("ExecuteBefore");
             return methodParams;
         }
 
         public void ExecuteAfter(MethodInfo methodInfo, object originalObject, object[] methodParams)
         {
-            Console.WriteLine(originalObject.GetType());
-            Console.WriteLine(methodInfo);
-            Console.WriteLine(JsonSerializer.Serialize(methodParams));
+            Console.WriteLine("ExecuteAfter");
         }
 
         public T ExecuteAfter<T>(MethodInfo methodInfo, object originalObject, object[] methodParams, T methodResult)
         {
-            Console.WriteLine(originalObject.GetType());
-            Console.WriteLine(methodInfo);
-            Console.WriteLine(JsonSerializer.Serialize(methodParams));
-            Console.WriteLine(JsonSerializer.Serialize(methodResult));
+            Console.WriteLine("ExecuteAfter`T");
             return methodResult;
         }
 
-        public Exception ExecuteException(MethodInfo methodInfo, object originalObject, object[] methodParams,
-            Exception exception)
+        public Exception ExecuteException(MethodInfo methodInfo, object originalObject, object[] methodParams, Exception exception)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("ExecuteException");
+            return exception;
+        }
+
+        public Task ExecuteAfter(MethodInfo methodInfo, object originalObject, object[] methodParams, Task methodResult)
+        {
+            Console.WriteLine("ExecuteAfter-Task");
+            return methodResult;
+        }
+
+        public Task<T> ExecuteAfter<T>(MethodInfo methodInfo, object originalObject, object[] methodParams, Task<T> methodResult)
+        {
+            Console.WriteLine("ExecuteAfter-Task`T");
+            return methodResult;
         }
     }
 }

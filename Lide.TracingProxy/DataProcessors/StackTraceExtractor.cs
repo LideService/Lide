@@ -11,16 +11,16 @@ namespace Lide.TracingProxy.DataProcessors
         // Frames skipped:
         // 1. ExtractCallerInformation
         // 2. Proxy invocation
-        private static readonly int InitialFramesToSkip = 2;
-        private static readonly List<string> ExcludeNamespaces = new() { "System", "Microsoft" };
+        private const int InitialFramesToSkip = 2;
+        private static readonly List<string> ExcludeNamespaces = new () { "System", "Microsoft" };
 
         public CallerInformation ExtractCallerInformation()
         {
             bool skipFirst = false;
-            StackTrace stackTrace = new(true);
+            StackTrace stackTrace = new (true);
             for (int i = InitialFramesToSkip; i < stackTrace.FrameCount; i++)
             {
-                StackFrame? stackFrame = stackTrace.GetFrame(i);
+                StackFrame stackFrame = stackTrace.GetFrame(i);
                 if (stackFrame == null)
                 {
                     continue;
@@ -52,7 +52,7 @@ namespace Lide.TracingProxy.DataProcessors
                     CallerLineNumber = frameLineNumber,
                 };
             }
-            
+
             return new CallerInformation
             {
                 CallerFileName = string.Empty,

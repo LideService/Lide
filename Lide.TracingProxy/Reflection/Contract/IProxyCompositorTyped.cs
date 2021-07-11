@@ -3,15 +3,15 @@ using Lide.TracingProxy.DataProcessors.Contract;
 
 namespace Lide.TracingProxy.Reflection.Contract
 {
-    public interface IProxyCompositorGeneric<TOriginalObject>
-        where TOriginalObject : class
+    public interface IProxyCompositorTyped<TInterface>
+        where TInterface : class
     {
-        IProxyCompositorGeneric<TOriginalObject> SetOriginalObject(TOriginalObject originalObject);
-        IProxyCompositorGeneric<TOriginalObject> SetDecorator(IObjectDecorator decorator);
-        IProxyCompositorGeneric<TOriginalObject> SetDecorators(params IObjectDecorator[] decorators);
-        IProxyCompositorGeneric<TOriginalObject> SetFastMethodInfoCache(IFastMethodInfoCache fastMethodInfoCache);
-        IProxyCompositorGeneric<TOriginalObject> SetScopeTracker(IScopeTracker scopeTracker);
-        TOriginalObject GetDecoratedObject();
-        TOriginalObject? GetDecoratedObjectSafe();
+        IProxyCompositorTyped<TInterface> SetOriginalObject(TInterface originalObject);
+        IProxyCompositorTyped<TInterface> SetDecorator(IObjectDecorator decorator);
+        IProxyCompositorTyped<TInterface> SetDecorators(params IObjectDecorator[] decorators);
+        IProxyCompositorTyped<TInterface> SetDelegateMethodInfoCache(IMethodInfoCache methodInfoCache);
+        IProxyCompositorTyped<TInterface> SetDelegateMethodInfoProvider(IMethodInfoProvider methodInfoProvider);
+        IProxyCompositorTyped<TInterface> SetScopeTracker(IScopeTracker scopeTracker);
+        TInterface GetDecoratedObject();
     }
 }

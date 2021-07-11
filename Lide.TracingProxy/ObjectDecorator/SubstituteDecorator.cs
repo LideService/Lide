@@ -1,10 +1,9 @@
 using System;
 using System.Reflection;
-using Lide.TracingProxy.Contract;
 
 namespace Lide.TracingProxy.ObjectDecorator
 {
-    public class SubstituteDecorator : IObjectDecorator
+    public class SubstituteDecorator
     {
         public void ExecuteAfter(MethodInfo methodInfo, object originalObject, object[] methodParams)
         {

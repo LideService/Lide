@@ -8,9 +8,9 @@ namespace Lide.TracingProxy.Reflection.Contract
         IProxyCompositorAnonymous SetOriginalObject(object originalObject);
         IProxyCompositorAnonymous SetDecorator(IObjectDecorator decorator);
         IProxyCompositorAnonymous SetDecorators(params IObjectDecorator[] decorators);
-        IProxyCompositorAnonymous SetFastMethodInfoCache(IFastMethodInfoCache fastMethodInfoCache);
+        IProxyCompositorAnonymous SetDelegateMethodInfoCache(IMethodInfoCache fastMethodInfoCache);
+        IProxyCompositorAnonymous SetDelegateMethodInfoProvider(IMethodInfoProvider fastMethodInfoCache);
         IProxyCompositorAnonymous SetScopeTracker(IScopeTracker scopeTracker);
         object GetDecoratedObject();
-        object? GetDecoratedObjectSafe();
     }
 }
