@@ -1,5 +1,10 @@
 using System;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
+using Lide.Decorators.ObjectDecorator;
+using Lide.WebAPI;
+using Lide.WebApiTests.Controllers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -11,12 +16,21 @@ namespace Lide.WebApiTests
 {
     public class Startup
     {
+        
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo {Title = "Lide.WebApiTests", Version = "v1"}); });
-            //services.AddSingleton<IKarta, Obb>();
-            //services.AddSingleton<IKarta2, Wrapper<Dsk>>();
+            
+            services.AddHttpClient("github", c =>
+            {
+                Console.WriteLine("HttpClient");
+                c.BaseAddress = new Uri("https://api.github.com/");
+                // Github API versioning
+                c.DefaultRequestHeaders.Add("Accept", "application/vnd.github.v3+json");
+                // Github requires a user-agent
+                c.DefaultRequestHeaders.Add("User-Agent", "HttpClientFactory-Sample");
+            });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider sp)
@@ -27,38 +41,12 @@ namespace Lide.WebApiTests
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Lide.WebApiTests v1"));
             }
-
-            app.UseMiddleware<ReplaceMiddleware>();
-
+            
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
+            app.UseMiddleware<ContainerMiddleware>();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
-        }
-
-        private class ReplaceMiddleware
-        {
-            private readonly RequestDelegate _next;
-
-            public ReplaceMiddleware(RequestDelegate next)
-            {
-                _next = next;
-            }
-            public Task Invoke(HttpContext httpContext)
-            {
-                Console.WriteLine("Invoke");
-                var provider = httpContext.RequestServices.GetService<IServiceProvider>();
-                httpContext.RequestServices = new ContainerBuilder(provider);
-                return this._next(httpContext);
-            }
         }
     }
 }
-
-/*
- * 1. Потрфейл
- * 2. Карта
- * 3. Чекиране
- * 4. Пин
- * 5. .. 
-*/

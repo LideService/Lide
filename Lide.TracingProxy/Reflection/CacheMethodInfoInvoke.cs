@@ -23,7 +23,7 @@ namespace Lide.TracingProxy.Reflection
             return methodInfo.Invoke;
         }
 
-        public MethodInfoCompiled GetOrAdd(Type originalObjectType, MethodInfo methodInfo, Func<Type, MethodInfo, MethodInfoCompiled> delegateCreator)
+        public MethodInfoCompiled GetOrAdd(Type originalObjectType, MethodInfo methodInfo, Func<MethodInfoCompiled> delegateCreator)
         {
             return methodInfo.Invoke;
         }

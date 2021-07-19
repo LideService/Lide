@@ -11,7 +11,9 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Lide.AsyncProxy\Lide.AsyncProxy.csproj" />
+      <ProjectReference Include="..\Lide.Decorators\Lide.Decorators.csproj" />
       <ProjectReference Include="..\Lide.TracingProxy\Lide.TracingProxy.csproj" />
+      <ProjectReference Include="..\Lide.WebAPI\Lide.WebAPI.csproj" />
     </ItemGroup>
 
 </Project>

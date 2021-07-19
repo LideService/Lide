@@ -1,6 +1,4 @@
 using Lide.TracingProxy.Contract;
-using Lide.TracingProxy.DataProcessors;
-using Lide.TracingProxy.DataProcessors.Contract;
 using Lide.TracingProxy.Reflection.Contract;
 
 namespace Lide.TracingProxy.Reflection
@@ -39,17 +37,10 @@ namespace Lide.TracingProxy.Reflection
             return this;
         }
 
-        public IProxyCompositorTyped<TInterface> SetScopeTracker(IScopeTracker scopeTracker)
-        {
-            _scopeTracker = scopeTracker;
-            return this;
-        }
-
         public TInterface GetDecoratedObject()
         {
             _methodInfoCache ??= CacheMethodInfoInvoke.Singleton;
             _methodInfoProvider ??= ProviderMethodInfoInvoke.Singleton;
-            _scopeTracker ??= TrackerDummy.Singleton;
 
             if (_originalObject == null || _decorators.Count == 0)
             {

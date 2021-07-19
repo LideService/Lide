@@ -15,9 +15,9 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
         private static readonly MethodInfo DispatchProxyInvokeAsyncMethod = typeof(DispatchProxyAsync).GetTypeInfo().GetDeclaredMethod(nameof(DispatchProxyAsync.InvokeAsync));
         private static readonly MethodInfo DispatchProxyInvokeAsyncTMethod = typeof(DispatchProxyAsync).GetTypeInfo().GetDeclaredMethod(nameof(DispatchProxyAsync.InvokeAsyncT));
 
-        public static object CreateProxyInstance(Type interfaceType, Type baseType)
+        public static object CreateProxyInstance(Type interfaceType, Type proxyType)
         {
-            var proxiedType = GetProxyType(baseType, interfaceType);
+            var proxiedType = GetProxyType(proxyType, interfaceType);
             return Activator.CreateInstance(proxiedType, new DispatchProxyHandlerAsync());
         }
 
@@ -64,19 +64,19 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             }
         }
 
-        private static Type GetProxyType(Type baseType, Type interfaceType)
+        private static Type GetProxyType(Type proxyType, Type interfaceType)
         {
             lock (BaseTypeAndInterfaceToGeneratedProxyType)
             {
-                if (!BaseTypeAndInterfaceToGeneratedProxyType.TryGetValue(baseType, out var interfaceToProxy))
+                if (!BaseTypeAndInterfaceToGeneratedProxyType.TryGetValue(proxyType, out var interfaceToProxy))
                 {
                     interfaceToProxy = new Dictionary<Type, Type>();
-                    BaseTypeAndInterfaceToGeneratedProxyType[baseType] = interfaceToProxy;
+                    BaseTypeAndInterfaceToGeneratedProxyType[proxyType] = interfaceToProxy;
                 }
 
                 if (!interfaceToProxy.TryGetValue(interfaceType, out var generatedProxy))
                 {
-                    generatedProxy = GenerateProxyType(baseType, interfaceType);
+                    generatedProxy = GenerateProxyType(proxyType, interfaceType);
                     interfaceToProxy[interfaceType] = generatedProxy;
                 }
 
@@ -84,30 +84,30 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             }
         }
 
-        private static Type GenerateProxyType(Type baseType, Type interfaceType)
+        private static Type GenerateProxyType(Type proxyType, Type interfaceType)
         {
-            var baseTypeInfo = baseType.GetTypeInfo();
+            var proxyTypeInfo = proxyType.GetTypeInfo();
             if (!interfaceType.GetTypeInfo().IsInterface)
             {
                 throw new ArgumentException($"InterfaceType must be interface, {interfaceType.FullName}", nameof(interfaceType));
             }
 
-            if (baseTypeInfo.IsSealed)
+            if (proxyTypeInfo.IsSealed)
             {
-                throw new ArgumentException($"BaseType cannot be sealed, {baseTypeInfo.FullName}", nameof(baseType));
+                throw new ArgumentException($"ProxyType cannot be sealed, {proxyTypeInfo.FullName}", nameof(proxyType));
             }
 
-            if (baseTypeInfo.IsAbstract)
+            if (proxyTypeInfo.IsAbstract)
             {
-                throw new ArgumentException($"BaseType cannot be abstract {baseType.FullName}", nameof(baseType));
+                throw new ArgumentException($"ProxyType cannot be abstract {proxyType.FullName}", nameof(proxyType));
             }
 
-            if (!baseTypeInfo.DeclaredConstructors.Any(c => c.IsPublic && c.GetParameters().Length == 0))
+            if (!proxyTypeInfo.DeclaredConstructors.Any(c => c.IsPublic && c.GetParameters().Length == 0))
             {
-                throw new ArgumentException($"BaseType must have default ctor {baseType.FullName}", nameof(baseType));
+                throw new ArgumentException($"ProxyType must have default ctor {proxyType.FullName}", nameof(proxyType));
             }
 
-            var proxyBuilder = ProxyAssembly.CreateProxy("generatedProxy", baseType);
+            var proxyBuilder = ProxyAssembly.CreateProxy("generatedProxy", proxyType);
             foreach (var implementedInterfacesTypes in interfaceType.GetTypeInfo().ImplementedInterfaces)
             {
                 proxyBuilder.AddInterfaceImplementation(implementedInterfacesTypes);

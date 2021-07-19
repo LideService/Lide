@@ -42,7 +42,7 @@ namespace Lide.TracingProxy.Reflection
             throw new ArgumentOutOfRangeException();
         }
 
-        public MethodInfoCompiled GetOrAdd(Type originalObjectType, MethodInfo methodInfo, Func<Type, MethodInfo, MethodInfoCompiled> delegateCreator)
+        public MethodInfoCompiled GetOrAdd(Type originalObjectType, MethodInfo methodInfo, Func<MethodInfoCompiled> delegateCreator)
         {
             if (!_cache.ContainsKey(originalObjectType))
             {
@@ -51,7 +51,7 @@ namespace Lide.TracingProxy.Reflection
 
             if (!_cache[originalObjectType].ContainsKey(methodInfo))
             {
-                _cache[originalObjectType][methodInfo] = delegateCreator.Invoke(originalObjectType, methodInfo);
+                _cache[originalObjectType][methodInfo] = delegateCreator.Invoke();
             }
 
             return _cache[originalObjectType][methodInfo];

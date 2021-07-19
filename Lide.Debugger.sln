@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lide.TracingProxy", "Lide.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lide.WebApiTests", "Lide.WebApiTests\Lide.WebApiTests.csproj", "{710773B2-2D07-4E09-B9CC-EFFAF08487AE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lide.Decorators", "Lide.Decorators\Lide.Decorators.csproj", "{468C7069-1E4C-4DFD-8846-0A43B90D0EAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lide.WebAPI", "Lide.WebAPI\Lide.WebAPI.csproj", "{ACCB882A-B9F9-47FD-9297-F36F80FBD9CD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{710773B2-2D07-4E09-B9CC-EFFAF08487AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{710773B2-2D07-4E09-B9CC-EFFAF08487AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{710773B2-2D07-4E09-B9CC-EFFAF08487AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{468C7069-1E4C-4DFD-8846-0A43B90D0EAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{468C7069-1E4C-4DFD-8846-0A43B90D0EAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{468C7069-1E4C-4DFD-8846-0A43B90D0EAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{468C7069-1E4C-4DFD-8846-0A43B90D0EAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACCB882A-B9F9-47FD-9297-F36F80FBD9CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACCB882A-B9F9-47FD-9297-F36F80FBD9CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACCB882A-B9F9-47FD-9297-F36F80FBD9CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACCB882A-B9F9-47FD-9297-F36F80FBD9CD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -8,6 +8,6 @@ namespace Lide.TracingProxy.Reflection.Contract
         bool TryAdd(Type originalObjectType, MethodInfo methodInfo, MethodInfoCompiled methodInfoCompiled);
         bool Exists(Type originalObjectType, MethodInfo methodInfo);
         MethodInfoCompiled GetValue(Type originalObjectType, MethodInfo methodInfo);
-        MethodInfoCompiled GetOrAdd(Type originalObjectType, MethodInfo methodInfo, Func<Type, MethodInfo, MethodInfoCompiled> delegateCreator);
+        MethodInfoCompiled GetOrAdd(Type originalObjectType, MethodInfo methodInfo, Func<MethodInfoCompiled> delegateCreator);
     }
 }

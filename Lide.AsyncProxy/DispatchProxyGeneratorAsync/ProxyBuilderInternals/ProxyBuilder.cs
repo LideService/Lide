@@ -38,7 +38,7 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync.ProxyBuilderInternals
             return _typeBuilder.CreateTypeInfo()?.AsType() ?? throw new ArgumentNullException();
         }
 
-        [SuppressMessage("Microsoft.Maintainability", "CA1502", Justification = "Who cares")]
+        [SuppressMessage("Microsoft.Maintainability", "CA1502", Justification = "It is what it is")]
         public void AddInterfaceImplementation(Type interfaceType)
         {
             _proxyAssembly.EnsureTypeIsVisible(interfaceType);

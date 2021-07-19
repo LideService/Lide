@@ -1,5 +1,4 @@
 using Lide.TracingProxy.Contract;
-using Lide.TracingProxy.DataProcessors.Contract;
 
 namespace Lide.TracingProxy.Reflection.Contract
 {
@@ -11,7 +10,6 @@ namespace Lide.TracingProxy.Reflection.Contract
         IProxyCompositorTyped<TInterface> SetDecorators(params IObjectDecorator[] decorators);
         IProxyCompositorTyped<TInterface> SetDelegateMethodInfoCache(IMethodInfoCache methodInfoCache);
         IProxyCompositorTyped<TInterface> SetDelegateMethodInfoProvider(IMethodInfoProvider methodInfoProvider);
-        IProxyCompositorTyped<TInterface> SetScopeTracker(IScopeTracker scopeTracker);
         TInterface GetDecoratedObject();
     }
 }
