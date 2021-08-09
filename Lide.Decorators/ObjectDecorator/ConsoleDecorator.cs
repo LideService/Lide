@@ -1,53 +1,55 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using Lide.Decorators.Contract;
 using Lide.TracingProxy.Contract;
 
 namespace Lide.Decorators.ObjectDecorator
 {
     public class ConsoleDecorator : IObjectDecorator
     {
-        public string Id { get; } = "Console";
+        private readonly IConsoleWrapper _consoleWrapper;
+        public string Id { get; } = "Lide.Console";
+        public bool Volatile { get; } = false;
 
-        public object[] ExecuteBefore(MethodInfo methodInfo, object[] methodParams) 
+        public ConsoleDecorator(IConsoleWrapper consoleWrapper)
         {
-            Console.WriteLine("object[] ExecuteBefore");
-            return methodParams;
+            _consoleWrapper = consoleWrapper;
+        }
+        
+        public object[] ExecuteBefore(object originalObject, MethodInfo methodInfo, object[] methodParams)
+        {
+            throw new NotImplementedException();
         }
 
-        public void ExecuteAfter(MethodInfo methodInfo, object[] methodParams)
+        public void ExecuteAfter(object originalObject, MethodInfo methodInfo, object[] methodParams)
         {
-            Console.WriteLine("void ExecuteAfter");
+            throw new NotImplementedException();
         }
 
-        public T ExecuteAfter<T>(MethodInfo methodInfo, object[] methodParams, T methodResult)
+        public T ExecuteAfter<T>(object originalObject, MethodInfo methodInfo, object[] methodParams, T methodResult)
         {
-            Console.WriteLine("T ExecuteAfter<T>");
-            return methodResult;
+            throw new NotImplementedException();
         }
 
-        public Exception ExecuteException(MethodInfo methodInfo, object[] methodParams, Exception exception)
+        public Exception ExecuteException(object originalObject, MethodInfo methodInfo, object[] methodParams, Exception exception)
         {
-            Console.WriteLine("Exception ExecuteException");
-            return exception;
+            throw new NotImplementedException();
         }
 
-        public AggregateException ExecuteException(MethodInfo methodInfo, object[] methodParams, AggregateException exception)
+        public AggregateException ExecuteException(object originalObject, MethodInfo methodInfo, object[] methodParams, AggregateException exception)
         {
-            Console.WriteLine("AggregateException ExecuteException");
-            return exception;
+            throw new NotImplementedException();
         }
 
-        public Task ExecuteAfter(MethodInfo methodInfo, object[] methodParams, Task methodResult)
+        public Task ExecuteAfter(object originalObject, MethodInfo methodInfo, object[] methodParams, Task methodResult)
         {
-            Console.WriteLine("Task ExecuteAfter");
-            return methodResult;
+            throw new NotImplementedException();
         }
 
-        public Task<T> ExecuteAfter<T>(MethodInfo methodInfo, object[] methodParams, Task<T> methodResult)
+        public Task<T> ExecuteAfter<T>(object originalObject, MethodInfo methodInfo, object[] methodParams, Task<T> methodResult)
         {
-            Console.WriteLine("Task<T> ExecuteAfter<T>");
-            return methodResult;
+            throw new NotImplementedException();
         }
     }
 }

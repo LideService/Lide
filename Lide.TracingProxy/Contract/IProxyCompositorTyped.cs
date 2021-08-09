@@ -1,6 +1,4 @@
-using Lide.TracingProxy.Contract;
-
-namespace Lide.TracingProxy.Reflection.Contract
+namespace Lide.TracingProxy.Contract
 {
     public interface IProxyCompositorTyped<TInterface>
         where TInterface : class

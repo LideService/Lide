@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Lide.TracingProxy.Reflection.Contract
+namespace Lide.TracingProxy.Contract
 {
     public interface IMethodInfoCache
     {

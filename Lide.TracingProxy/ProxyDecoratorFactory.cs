@@ -1,8 +1,9 @@
 using System;
 using Lide.AsyncProxy;
-using Lide.TracingProxy.Reflection.Contract;
+using Lide.TracingProxy.Contract;
+using Lide.TracingProxy.DecoratedProxy;
 
-namespace Lide.TracingProxy.Reflection
+namespace Lide.TracingProxy
 {
     public static class ProxyDecoratorFactory
     {

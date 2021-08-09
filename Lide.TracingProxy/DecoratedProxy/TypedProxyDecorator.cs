@@ -4,9 +4,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Lide.AsyncProxy;
 using Lide.TracingProxy.Contract;
-using Lide.TracingProxy.Reflection.Contract;
 
-namespace Lide.TracingProxy.Reflection
+namespace Lide.TracingProxy.DecoratedProxy
 {
     public partial class ProxyDecoratorTyped<TInterface> : DispatchProxyAsync
         where TInterface : class

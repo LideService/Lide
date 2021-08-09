@@ -1,13 +1,13 @@
 using System;
 using System.Collections.Concurrent;
 using System.Reflection;
-using Lide.TracingProxy.Reflection.Contract;
+using Lide.TracingProxy.Contract;
 
 namespace Lide.TracingProxy.Reflection
 {
     public class CacheMethodInfoCompiled : IMethodInfoCache
     {
-        public static IMethodInfoCache Singleton = new CacheMethodInfoCompiled();
+        public static readonly IMethodInfoCache Singleton = new CacheMethodInfoCompiled();
 
         private readonly ConcurrentDictionary<Type, ConcurrentDictionary<MethodInfo, MethodInfoCompiled>> _cache = new ();
 

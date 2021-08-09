@@ -1,4 +1,4 @@
-﻿namespace Lide.TracingProxy.Reflection.Model
+﻿namespace Lide.TracingProxy.Model
 {
     public sealed class VoidReturn
     {

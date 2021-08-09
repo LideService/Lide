@@ -1,7 +1,8 @@
+using System.Linq;
 using Lide.TracingProxy.Contract;
-using Lide.TracingProxy.Reflection.Contract;
+using Lide.TracingProxy.Reflection;
 
-namespace Lide.TracingProxy.Reflection
+namespace Lide.TracingProxy.DecoratedProxy
 {
     public partial class ProxyDecoratorTyped<TInterface> : IProxyCompositorTyped<TInterface>
         where TInterface : class
@@ -15,13 +16,17 @@ namespace Lide.TracingProxy.Reflection
 
         public IProxyCompositorTyped<TInterface> SetDecorator(IObjectDecorator decorator)
         {
-            _decorators.Add(decorator);
+            if (decorator != null)
+            {
+                _decorators.Add(decorator);
+            }
+
             return this;
         }
 
         public IProxyCompositorTyped<TInterface> SetDecorators(params IObjectDecorator[] decorators)
         {
-            _decorators.AddRange(decorators);
+            _decorators.AddRange(decorators.Where(x => x != null));
             return this;
         }
 

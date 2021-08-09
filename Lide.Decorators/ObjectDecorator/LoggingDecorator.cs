@@ -1,4 +1,4 @@
-namespace Lide.TracingProxy.ObjectDecorator
+namespace Lide.Decorators.ObjectDecorator
 {
     public class LoggingDecorator
     {

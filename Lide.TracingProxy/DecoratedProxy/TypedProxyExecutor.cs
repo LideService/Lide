@@ -3,10 +3,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
-using Lide.TracingProxy.Reflection.Model;
+using Lide.TracingProxy.Model;
 
-// ReSharper disable CA1031
-namespace Lide.TracingProxy.Reflection
+namespace Lide.TracingProxy.DecoratedProxy
 {
     [SuppressMessage("Exception", "CA1031", Justification = "Never throws for any reason")]
     [SuppressMessage("ReSharper", "UnusedTypeParameter", Justification = "Partial class")]
@@ -18,7 +17,7 @@ namespace Lide.TracingProxy.Reflection
             var modifiedMethodParameters = methodParameters;
             foreach (var proxyDecorator in _decorators)
             {
-                ExecuteSafe(() => modifiedMethodParameters = proxyDecorator.ExecuteBefore(methodInfo, modifiedMethodParameters));
+                ExecuteSafe(() => modifiedMethodParameters = proxyDecorator.ExecuteBefore(_originalObject, methodInfo, modifiedMethodParameters));
             }
 
             return modifiedMethodParameters;
@@ -36,7 +35,7 @@ namespace Lide.TracingProxy.Reflection
                 var modifiedException = exception;
                 foreach (var proxyDecorator in _decorators)
                 {
-                    ExecuteSafe(() => modifiedException = proxyDecorator.ExecuteException(methodInfo, methodParameters, modifiedException));
+                    ExecuteSafe(() => modifiedException = proxyDecorator.ExecuteException(_originalObject, methodInfo, methodParameters, modifiedException));
                 }
 
                 ExceptionDispatchInfo.Capture(modifiedException).Throw();
@@ -50,11 +49,11 @@ namespace Lide.TracingProxy.Reflection
             {
                 if (result is VoidReturn)
                 {
-                    ExecuteSafe(() => proxyDecorator.ExecuteAfter(methodInfo, methodParameters));
+                    ExecuteSafe(() => proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters));
                 }
                 else
                 {
-                    ExecuteSafe(() => result = proxyDecorator.ExecuteAfter(methodInfo, methodParameters, result));
+                    ExecuteSafe(() => result = proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters, result));
                 }
             }
 
@@ -65,7 +64,7 @@ namespace Lide.TracingProxy.Reflection
         {
             foreach (var proxyDecorator in _decorators)
             {
-                ExecuteSafe(() => proxyDecorator.ExecuteAfter(methodInfo, methodParameters, resultTask));
+                ExecuteSafe(() => proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters, resultTask));
             }
 
             var wrappedTask = resultTask?.ContinueWith(task =>
@@ -75,7 +74,7 @@ namespace Lide.TracingProxy.Reflection
                     var aggregateException = task.Exception;
                     foreach (var proxyDecorator in _decorators)
                     {
-                        ExecuteSafe(() => aggregateException = proxyDecorator.ExecuteException(methodInfo, methodParameters, aggregateException));
+                        ExecuteSafe(() => aggregateException = proxyDecorator.ExecuteException(_originalObject, methodInfo, methodParameters, aggregateException));
                     }
 
                     ExceptionDispatchInfo.Capture(aggregateException).Throw();
@@ -84,7 +83,7 @@ namespace Lide.TracingProxy.Reflection
                 {
                     foreach (var proxyDecorator in _decorators)
                     {
-                        ExecuteSafe(() => proxyDecorator.ExecuteAfter(methodInfo, methodParameters));
+                        ExecuteSafe(() => proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters));
                     }
                 }
             });
@@ -96,7 +95,7 @@ namespace Lide.TracingProxy.Reflection
         {
             foreach (var proxyDecorator in _decorators)
             {
-                ExecuteSafe(() => proxyDecorator.ExecuteAfter(methodInfo, methodParameters, resultTask));
+                ExecuteSafe(() => proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters, resultTask));
             }
 
             var wrappedTask = resultTask?.ContinueWith(task =>
@@ -106,7 +105,7 @@ namespace Lide.TracingProxy.Reflection
                     var aggregateException = task.Exception;
                     foreach (var proxyDecorator in _decorators)
                     {
-                        ExecuteSafe(() => aggregateException = proxyDecorator.ExecuteException(methodInfo, methodParameters, aggregateException));
+                        ExecuteSafe(() => aggregateException = proxyDecorator.ExecuteException(_originalObject, methodInfo, methodParameters, aggregateException));
                     }
 
                     ExceptionDispatchInfo.Capture(aggregateException).Throw();
@@ -116,7 +115,7 @@ namespace Lide.TracingProxy.Reflection
                 var result = task.Result;
                 foreach (var proxyDecorator in _decorators)
                 {
-                    ExecuteSafe(() => result = proxyDecorator.ExecuteAfter(methodInfo, methodParameters, result));
+                    ExecuteSafe(() => result = proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters, result));
                 }
 
                 return result;
