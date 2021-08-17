@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
+using Lide.TracingProxy.Contract;
 using Lide.TracingProxy.Model;
 
 namespace Lide.TracingProxy.DecoratedProxy
@@ -14,13 +16,24 @@ namespace Lide.TracingProxy.DecoratedProxy
     {
         private object[] ExecuteBefore(MethodInfo methodInfo, object[] methodParameters)
         {
-            var modifiedMethodParameters = methodParameters;
+            var editedParameters = methodParameters;
             foreach (var proxyDecorator in _decorators)
             {
-                ExecuteSafe(() => modifiedMethodParameters = proxyDecorator.ExecuteBefore(_originalObject, methodInfo, modifiedMethodParameters));
+                try
+                {
+                    var returnParameters = proxyDecorator.ExecuteBeforeInvoke(_originalObject, methodInfo, methodParameters, editedParameters);
+                    if (proxyDecorator.IsVolatile)
+                    {
+                        editedParameters = returnParameters;
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logError?.Invoke($"Decorator {proxyDecorator.Id} has encountered an error with action {nameof(proxyDecorator.ExecuteBeforeInvoke)}: {e}");
+                }
             }
 
-            return modifiedMethodParameters;
+            return editedParameters;
         }
 
         private TReturnType ExecuteMethodInfo<TReturnType>(MethodInfo methodInfo, object[] methodParameters)
@@ -32,108 +45,58 @@ namespace Lide.TracingProxy.DecoratedProxy
             }
             catch (Exception exception)
             {
-                var modifiedException = exception;
-                foreach (var proxyDecorator in _decorators)
-                {
-                    ExecuteSafe(() => modifiedException = proxyDecorator.ExecuteException(_originalObject, methodInfo, methodParameters, modifiedException));
-                }
-
-                ExceptionDispatchInfo.Capture(modifiedException).Throw();
-                throw;
+                var editedEorR = ExecuteAfterDecorators(methodInfo, methodParameters, exception, null);
+                return (TReturnType)editedEorR.Result;
             }
         }
 
         private object ExecuteAfter(MethodInfo methodInfo, object[] methodParameters, object result)
         {
-            foreach (var proxyDecorator in _decorators)
-            {
-                if (result is VoidReturn)
-                {
-                    ExecuteSafe(() => proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters));
-                }
-                else
-                {
-                    ExecuteSafe(() => result = proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters, result));
-                }
-            }
-
-            return result;
+            var editedEorR = ExecuteAfterDecorators(methodInfo, methodParameters, null, result is VoidReturn ? null : result);
+            return result is VoidReturn ? null : editedEorR.Result;
         }
 
         private Task ExecuteAfterAsync(MethodInfo methodInfo, object[] methodParameters, Task resultTask)
         {
-            foreach (var proxyDecorator in _decorators)
-            {
-                ExecuteSafe(() => proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters, resultTask));
-            }
-
-            var wrappedTask = resultTask?.ContinueWith(task =>
-            {
-                if (task.Exception != null)
-                {
-                    var aggregateException = task.Exception;
-                    foreach (var proxyDecorator in _decorators)
-                    {
-                        ExecuteSafe(() => aggregateException = proxyDecorator.ExecuteException(_originalObject, methodInfo, methodParameters, aggregateException));
-                    }
-
-                    ExceptionDispatchInfo.Capture(aggregateException).Throw();
-                }
-                else
-                {
-                    foreach (var proxyDecorator in _decorators)
-                    {
-                        ExecuteSafe(() => proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters));
-                    }
-                }
-            });
-
-            return wrappedTask;
+            return resultTask?.ContinueWith(task => ExecuteAfterDecorators(methodInfo, methodParameters, task.Exception, null));
         }
 
         private Task<TReturnType> ExecuteAfterAsync<TReturnType>(MethodInfo methodInfo, object[] methodParameters, Task<TReturnType> resultTask)
         {
-            foreach (var proxyDecorator in _decorators)
+            return resultTask?.ContinueWith(task =>
             {
-                ExecuteSafe(() => proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters, resultTask));
-            }
-
-            var wrappedTask = resultTask?.ContinueWith(task =>
-            {
-                if (task.Exception != null)
-                {
-                    var aggregateException = task.Exception;
-                    foreach (var proxyDecorator in _decorators)
-                    {
-                        ExecuteSafe(() => aggregateException = proxyDecorator.ExecuteException(_originalObject, methodInfo, methodParameters, aggregateException));
-                    }
-
-                    ExceptionDispatchInfo.Capture(aggregateException).Throw();
-                    throw new Exception();
-                }
-
-                var result = task.Result;
-                foreach (var proxyDecorator in _decorators)
-                {
-                    ExecuteSafe(() => result = proxyDecorator.ExecuteAfter(_originalObject, methodInfo, methodParameters, result));
-                }
-
-                return result;
+                var editedEorR = ExecuteAfterDecorators(methodInfo, methodParameters, task.Exception, task.Result);
+                return (TReturnType)editedEorR.Result;
             });
-
-            return wrappedTask;
         }
 
-        private void ExecuteSafe(Action action)
+        private ExceptionOrResult ExecuteAfterDecorators(MethodInfo methodInfo, object[] methodParameters, Exception exception, object result)
         {
-            try
+            var originalEorR = new ExceptionOrResult(exception, result);
+            var editedEorR = new ExceptionOrResult(exception, result);
+            foreach (var proxyDecorator in _decorators)
             {
-                action();
+                try
+                {
+                    var resultEorR = proxyDecorator.ExecuteAfterResult(_originalObject, methodInfo, methodParameters, originalEorR, editedEorR);
+                    if (proxyDecorator.IsVolatile)
+                    {
+                        editedEorR = resultEorR;
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logError?.Invoke($"Decorator {proxyDecorator.Id} has encountered an error with action {nameof(proxyDecorator.ExecuteAfterResult)}: {e}");
+                }
             }
-            catch
+
+            if (editedEorR.Exception != null)
             {
-                // ignored
+                ExceptionDispatchInfo.Capture((AggregateException) editedEorR.Exception).Throw();
+                throw new Exception();
             }
+
+            return editedEorR;
         }
     }
 }

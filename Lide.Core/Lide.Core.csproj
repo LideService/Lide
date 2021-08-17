@@ -5,7 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Lide.Core\Lide.Core.csproj" />
       <ProjectReference Include="..\Lide.TracingProxy\Lide.TracingProxy.csproj" />
     </ItemGroup>
+
 </Project>

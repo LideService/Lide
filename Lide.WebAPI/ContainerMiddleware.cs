@@ -1,9 +1,5 @@
 using System;
-using System.IO;
-using System.IO.Compression;
 using System.Threading.Tasks;
-using Lide.Decorators.DataProcessors;
-using Lide.Decorators.Wrappers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -25,9 +21,24 @@ namespace Lide.WebAPI
             var lideCompression = headers.ContainsKey("Lide.Compression") && Convert.ToBoolean(headers["Lide.Compression"]);
             var lideEnabled = headers.ContainsKey("Lide.Enable") && Convert.ToBoolean(headers["Lide.Enable"]);
 
+            // TODO
             if (lideEnabled)
             {
             }
+            
+            // plugins!
+            // if (originalObject is HttpClient httpClient)
+            // {
+            //     httpClient.DefaultRequestHeaders.Add("","");
+            //     _httpHeaderProcessor.AddHeaders(httpClient);
+            // }
+            //
+            // if (serviceType == typeof(IHttpClientFactory))
+            // {
+            //     var wrapper = new HttpClientFactoryWrapper(originalObject as IHttpClientFactory, _httpHeaderProcessor);
+            //     _generatedProxies.Add(originalObject, wrapper);
+            //     return wrapper;
+            // }
             
             httpContext.RequestServices = new ServiceProviderWrapper(provider);
             await _next(httpContext); 

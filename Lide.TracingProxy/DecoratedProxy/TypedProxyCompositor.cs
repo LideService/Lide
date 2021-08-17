@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Lide.TracingProxy.Contract;
 using Lide.TracingProxy.Reflection;
@@ -39,6 +40,12 @@ namespace Lide.TracingProxy.DecoratedProxy
         public IProxyCompositorTyped<TInterface> SetDelegateMethodInfoProvider(IMethodInfoProvider methodInfoProvider)
         {
             _methodInfoProvider = methodInfoProvider;
+            return this;
+        }
+
+        public IProxyCompositorTyped<TInterface> SetLogErrorAction(Action<string> logError)
+        {
+            _logError = logError;
             return this;
         }
 

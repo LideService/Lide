@@ -15,6 +15,7 @@ namespace Lide.TracingProxy.DecoratedProxy
         private IMethodInfoProvider _methodInfoProvider;
         private TInterface _originalObject;
         private Type _originalObjectType;
+        private Action<string> _logError;
 
         public override object Invoke(MethodInfo methodInfo, object[] methodParameters)
         {
