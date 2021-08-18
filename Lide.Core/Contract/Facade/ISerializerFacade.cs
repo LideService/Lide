@@ -1,8 +1,8 @@
 using System;
 
-namespace Lide.Core.Contract.Wrapper
+namespace Lide.Core.Contract.Facade
 {
-    public interface ISerializerWrapper
+    public interface ISerializerFacade
     {
          string Serialize<T>(T data);
          T Deserialize<T>(string data);

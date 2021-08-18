@@ -1,10 +1,10 @@
 using System;
 using System.Text.Json;
-using Lide.Core.Contract.Wrapper;
+using Lide.Core.Contract.Facade;
 
-namespace Lide.Core.Wrapper
+namespace Lide.Core.Facade
 {
-    public class SerializerWrapper : ISerializerWrapper
+    public class SerializerFacade : ISerializerFacade
     {
         public string Serialize<T>(T data)
         {

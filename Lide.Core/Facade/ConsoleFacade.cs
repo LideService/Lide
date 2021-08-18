@@ -1,9 +1,9 @@
 using System;
-using Lide.Core.Contract.Wrapper;
+using Lide.Core.Contract.Facade;
 
-namespace Lide.Core.Wrapper
+namespace Lide.Core.Facade
 {
-    public class ConsoleWrapper : IConsoleWrapper
+    public class ConsoleFacade : IConsoleFacade
     {
         public void Write(string message)
         {

@@ -1,6 +1,6 @@
-namespace Lide.Core.Contract.Wrapper
+namespace Lide.Core.Contract.Facade
 {
-    public interface ILoggerWrapper
+    public interface ILoggerFacade
     {
         void Log(string message);
         void LogError(string message);

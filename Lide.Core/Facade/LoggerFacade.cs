@@ -1,9 +1,9 @@
 using System;
-using Lide.Core.Contract.Wrapper;
+using Lide.Core.Contract.Facade;
 
-namespace Lide.Core.Wrapper
+namespace Lide.Core.Facade
 {
-    public class LoggerWrapper : ILoggerWrapper
+    public class LoggerFacade : ILoggerFacade
     {
         public void Log(string message)
         {

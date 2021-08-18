@@ -17,26 +17,33 @@ namespace Lide.WebApiTests
         
         public static async Task Main(string[] args)
         {
-            var a = new Task(() =>
-            {
-                Console.WriteLine("Test");
-                return;
-            });
-            Console.WriteLine("1");
-            var b = Newtonsoft.Json.JsonConvert.SerializeObject(a);
-            Console.WriteLine("2");
-            var c = Newtonsoft.Json.JsonConvert.DeserializeObject<Task>(b);
-            Console.WriteLine("3");
-            Console.WriteLine(b);
-            c.Start();
-            return;
-            Do(1,"", 3);
-
-
+            var a = new object[] {1, 7, 5};
+            var b = new object[] {1, 7, 5};
+            Console.WriteLine(a.GetHashCode());
+            Console.WriteLine(b.GetHashCode());
+            
             
             return;
-            CreateHostBuilder(args).Build().Run();
-            return;
+            // var a = new Task(() =>
+            // {
+            //     Console.WriteLine("Test");
+            //     return;
+            // });
+            // Console.WriteLine("1");
+            // var b = Newtonsoft.Json.JsonConvert.SerializeObject(a);
+            // Console.WriteLine("2");
+            // var c = Newtonsoft.Json.JsonConvert.DeserializeObject<Task>(b);
+            // Console.WriteLine("3");
+            // Console.WriteLine(b);
+            // c.Start();
+            // return;
+            // Do(1,"", 3);
+            //
+            //
+            //
+            // return;
+            // CreateHostBuilder(args).Build().Run();
+            // return;
         }
 
         public static void Do(int a, string b, double c)

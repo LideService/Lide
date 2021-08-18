@@ -1,6 +1,6 @@
 using System;
 using System.Reflection;
-using Lide.Core.Contract.Wrapper;
+using Lide.Core.Contract.Facade;
 using Lide.TracingProxy.Contract;
 using Lide.TracingProxy.Model;
 
@@ -8,13 +8,13 @@ namespace Lide.Decorators
 {
     public class ConsoleDecorator : IObjectDecorator
     {
-        private readonly IConsoleWrapper _consoleWrapper;
+        private readonly IConsoleFacade _consoleFacade;
         public string Id { get; } = "Lide.Console";
         public bool IsVolatile { get; } = false;
 
-        public ConsoleDecorator(IConsoleWrapper consoleWrapper)
+        public ConsoleDecorator(IConsoleFacade consoleFacade)
         {
-            _consoleWrapper = consoleWrapper;
+            _consoleFacade = consoleFacade;
         }
     }
 }

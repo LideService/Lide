@@ -1,23 +1,23 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
-using Lide.Core.Contract.Wrapper;
 using Lide.TracingProxy.Contract;
 
 namespace Lide.Core.Provider
 {
-    public class DecoratorProvider : IDecoratorProvider
+    public class DecoratorContainer : IDecoratorContainer
     {
         private readonly ISettingsProvider _settingsProvider;
         private readonly List<IObjectDecorator> _decorators = new();
 
-        public DecoratorProvider(
+        public DecoratorContainer(
             ISettingsProvider settingsProvider, 
             IAssemblyPreloader assemblyPreloader, 
             IServiceProvider serviceProvider, 
             IActivatorWrapper activatorWrapper,
-            ILoggerWrapper logger)
+            ILoggerFacade logger)
         {
             _settingsProvider = settingsProvider;
             assemblyPreloader.GetAssemblies()

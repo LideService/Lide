@@ -33,6 +33,7 @@ namespace Lide.TracingProxy.Contract
         /// Desired parameters to be passed to the method - works only if the decorator is volatile.
         /// If no volatile decorators are used, the originalParameters will be passed onto the method.
         /// </returns>
+        /// <note>There is no thread safety, as the same method of the same object can be called multiple times.</note>
         object[] ExecuteBeforeInvoke(object plainObject, MethodInfo methodInfo, object[] originalParameters, object[] editedParameters)
         {
             return originalParameters;
@@ -46,7 +47,8 @@ namespace Lide.TracingProxy.Contract
         /// </summary>
         /// <param name="plainObject">the object on which the methodInfo will be executed.</param>
         /// <param name="methodInfo">the method signature to be/is executed.</param>
-        /// <param name="originalParameters">params to be passed to the method.</param>
+        /// <param name="originalParameters">Non edited parameters designated to be passed to the method.</param>
+        /// <param name="editedParameters">Final parameters, edited by all volatile decorators, which were passed to the method. </param>
         /// <param name="originalEorR">Non edited exception or result after the method is completed.</param>
         /// <param name="editedEorR">Possibly edited parameters by prior volatile decorators. Will match the last volatile ExecuteBeforeInvoke output.</param>
         /// <returns>
@@ -56,7 +58,8 @@ namespace Lide.TracingProxy.Contract
         /// If `Exception` is null, and the return type is value or Task{T}, `Result` will be used as return value regardless of what happened.
         /// If no volatile decorators are used, the original `Result` will be return, or `Exception` raised.
         /// </returns>
-        ExceptionOrResult ExecuteAfterResult(object plainObject, MethodInfo methodInfo, object[] originalParameters, ExceptionOrResult originalEorR, ExceptionOrResult editedEorR)
+        /// <note>There is no thread safety, as the same method of the same object can be called multiple times.</note>
+        ExceptionOrResult ExecuteAfterResult(object plainObject, MethodInfo methodInfo, object[] originalParameters, object[] editedParameters, ExceptionOrResult originalEorR, ExceptionOrResult editedEorR)
         {
             return originalEorR;
         }

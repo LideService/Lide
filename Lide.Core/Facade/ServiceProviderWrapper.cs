@@ -6,20 +6,20 @@ using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
 using Lide.TracingProxy;
 
-namespace Lide.Core.Wrapper
+namespace Lide.Core.Facade
 {
     public class ServiceProviderWrapper : IServiceProvider
     {
         private readonly Dictionary<object, object> _generatedProxies;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IDecoratorProvider _decoratorContainer;
+        private readonly IDecoratorContainer _decoratorContainer;
         private readonly ISettingsProvider _settingsProvider;
         private readonly List<IServiceProviderPlugin> _plugins;
 
         public ServiceProviderWrapper(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _decoratorContainer = (IDecoratorProvider)serviceProvider.GetService(typeof(IDecoratorProvider)) ?? throw new Exception($"Missing service type {nameof(IDecoratorProvider)}");
+            _decoratorContainer = (IDecoratorContainer)serviceProvider.GetService(typeof(IDecoratorContainer)) ?? throw new Exception($"Missing service type {nameof(IDecoratorContainer)}");
             _settingsProvider = (ISettingsProvider) _serviceProvider.GetService(typeof(ISettingsProvider)) ?? throw new Exception($"Missing service type {nameof(ISettingsProvider)}");
             _plugins = ((IEnumerable<IServiceProviderPlugin>) _serviceProvider.GetService(typeof(IEnumerable<IServiceProviderPlugin>)))?.ToList() ?? new List<IServiceProviderPlugin>();
             _generatedProxies = new Dictionary<object, object>(new IdentityEqualityComparer<object>());

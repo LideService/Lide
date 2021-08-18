@@ -36,41 +36,41 @@ namespace Lide.TracingProxy.DecoratedProxy
             return editedParameters;
         }
 
-        private TReturnType ExecuteMethodInfo<TReturnType>(MethodInfo methodInfo, object[] methodParameters)
+        private TReturnType ExecuteMethodInfo<TReturnType>(MethodInfo methodInfo, object[] originalParameters, object[] editedParameters)
         {
             try
             {
                 var executableMethodInfo = _methodInfoCache.GetOrAdd(_originalObjectType, methodInfo, () => _methodInfoProvider.GetMethodInfoCompiled(methodInfo));
-                return (TReturnType)executableMethodInfo.Invoke(_originalObject, methodParameters);
+                return (TReturnType)executableMethodInfo.Invoke(_originalObject, editedParameters);
             }
             catch (Exception exception)
             {
-                var editedEorR = ExecuteAfterDecorators(methodInfo, methodParameters, exception, null);
+                var editedEorR = ExecuteAfterDecorators(methodInfo, originalParameters, editedParameters, exception, null);
                 return (TReturnType)editedEorR.Result;
             }
         }
 
-        private object ExecuteAfter(MethodInfo methodInfo, object[] methodParameters, object result)
+        private object ExecuteAfter(MethodInfo methodInfo, object[] originalParameters, object[] editedParameters, object result)
         {
-            var editedEorR = ExecuteAfterDecorators(methodInfo, methodParameters, null, result is VoidReturn ? null : result);
+            var editedEorR = ExecuteAfterDecorators(methodInfo, originalParameters, editedParameters, null, result is VoidReturn ? null : result);
             return result is VoidReturn ? null : editedEorR.Result;
         }
 
-        private Task ExecuteAfterAsync(MethodInfo methodInfo, object[] methodParameters, Task resultTask)
+        private Task ExecuteAfterAsync(MethodInfo methodInfo, object[] originalParameters, object[] editedParameters, Task resultTask)
         {
-            return resultTask?.ContinueWith(task => ExecuteAfterDecorators(methodInfo, methodParameters, task.Exception, null));
+            return resultTask?.ContinueWith(task => ExecuteAfterDecorators(methodInfo, originalParameters, editedParameters, task.Exception, null));
         }
 
-        private Task<TReturnType> ExecuteAfterAsync<TReturnType>(MethodInfo methodInfo, object[] methodParameters, Task<TReturnType> resultTask)
+        private Task<TReturnType> ExecuteAfterAsync<TReturnType>(MethodInfo methodInfo, object[] originalParameters, object[] editedParameters, Task<TReturnType> resultTask)
         {
             return resultTask?.ContinueWith(task =>
             {
-                var editedEorR = ExecuteAfterDecorators(methodInfo, methodParameters, task.Exception, task.Result);
+                var editedEorR = ExecuteAfterDecorators(methodInfo, originalParameters, editedParameters, task.Exception, task.Result);
                 return (TReturnType)editedEorR.Result;
             });
         }
 
-        private ExceptionOrResult ExecuteAfterDecorators(MethodInfo methodInfo, object[] methodParameters, Exception exception, object result)
+        private ExceptionOrResult ExecuteAfterDecorators(MethodInfo methodInfo, object[] originalParameters, object[] editedParameters, Exception exception, object result)
         {
             var originalEorR = new ExceptionOrResult(exception, result);
             var editedEorR = new ExceptionOrResult(exception, result);
@@ -78,7 +78,7 @@ namespace Lide.TracingProxy.DecoratedProxy
             {
                 try
                 {
-                    var resultEorR = proxyDecorator.ExecuteAfterResult(_originalObject, methodInfo, methodParameters, originalEorR, editedEorR);
+                    var resultEorR = proxyDecorator.ExecuteAfterResult(_originalObject, methodInfo, originalParameters, editedParameters, originalEorR, editedEorR);
                     if (proxyDecorator.IsVolatile)
                     {
                         editedEorR = resultEorR;
@@ -92,7 +92,7 @@ namespace Lide.TracingProxy.DecoratedProxy
 
             if (editedEorR.Exception != null)
             {
-                ExceptionDispatchInfo.Capture((AggregateException) editedEorR.Exception).Throw();
+                ExceptionDispatchInfo.Capture((AggregateException)editedEorR.Exception).Throw();
                 throw new Exception();
             }
 

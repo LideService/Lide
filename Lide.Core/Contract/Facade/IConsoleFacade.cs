@@ -1,6 +1,6 @@
-namespace Lide.Core.Contract.Wrapper
+namespace Lide.Core.Contract.Facade
 {
-    public interface IConsoleWrapper
+    public interface IConsoleFacade
     {
         void Write(string message);
         void WriteLine(string message);

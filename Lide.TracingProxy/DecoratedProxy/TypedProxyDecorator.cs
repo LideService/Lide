@@ -17,27 +17,27 @@ namespace Lide.TracingProxy.DecoratedProxy
         private Type _originalObjectType;
         private Action<string> _logError;
 
-        public override object Invoke(MethodInfo methodInfo, object[] methodParameters)
+        public override object Invoke(MethodInfo methodInfo, object[] originalParameters)
         {
-            methodParameters = ExecuteBefore(methodInfo, methodParameters);
-            var result = ExecuteMethodInfo<object>(methodInfo, methodParameters);
-            result = ExecuteAfter(methodInfo, methodParameters, result);
+            var editedParameters = ExecuteBefore(methodInfo, originalParameters);
+            var result = ExecuteMethodInfo<object>(methodInfo, originalParameters, editedParameters);
+            result = ExecuteAfter(methodInfo, originalParameters, editedParameters, result);
             return result;
         }
 
-        public override Task InvokeAsync(MethodInfo methodInfo, object[] methodParameters)
+        public override Task InvokeAsync(MethodInfo methodInfo, object[] originalParameters)
         {
-            methodParameters = ExecuteBefore(methodInfo, methodParameters);
-            var result = ExecuteMethodInfo<Task>(methodInfo, methodParameters);
-            result = ExecuteAfterAsync(methodInfo, methodParameters, result);
+            var editedParameters = ExecuteBefore(methodInfo, originalParameters);
+            var result = ExecuteMethodInfo<Task>(methodInfo, originalParameters, editedParameters);
+            result = ExecuteAfterAsync(methodInfo, originalParameters, editedParameters, result);
             return result;
         }
 
-        public override Task<TReturnType> InvokeAsyncT<TReturnType>(MethodInfo methodInfo, object[] methodParameters)
+        public override Task<TReturnType> InvokeAsyncT<TReturnType>(MethodInfo methodInfo, object[] originalParameters)
         {
-            methodParameters = ExecuteBefore(methodInfo, methodParameters);
-            var result = ExecuteMethodInfo<Task<TReturnType>>(methodInfo, methodParameters);
-            result = ExecuteAfterAsync(methodInfo, methodParameters, result);
+            var editedParameters = ExecuteBefore(methodInfo, originalParameters);
+            var result = ExecuteMethodInfo<Task<TReturnType>>(methodInfo, originalParameters, editedParameters);
+            result = ExecuteAfterAsync(methodInfo, originalParameters, editedParameters, result);
             return result;
         }
     }

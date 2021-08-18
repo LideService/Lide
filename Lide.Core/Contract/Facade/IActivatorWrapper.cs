@@ -1,6 +1,6 @@
 using System;
 
-namespace Lide.Core.Contract.Wrapper
+namespace Lide.Core.Contract.Facade
 {
     public interface IActivatorWrapper
     {
