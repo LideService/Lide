@@ -9,7 +9,7 @@ namespace Lide.Core.Facade
         {
             Console.Write(message);
         }
-        
+
         public void WriteLine(string message)
         {
             Console.WriteLine(message);

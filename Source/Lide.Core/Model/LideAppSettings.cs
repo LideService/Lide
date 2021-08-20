@@ -1,6 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Lide.Core.Model
 {
-    public class LideAppSettings 
+    [SuppressMessage("Microsoft", "CA1819", Justification = "Easier with array than list")]
+    public class LideAppSettings
     {
         public bool SearchHttpBodyOrQuery { get; set; }
         public string VolatileKey { get; set; }

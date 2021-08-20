@@ -14,10 +14,10 @@ namespace Lide.Core.Facade
         private readonly IFileNameProvider _fileNameProvider;
         private readonly Task _writer;
         private readonly Dictionary<string, FileStream> _fileHandles;
-        
+
         private ConcurrentQueue<QueueData> _queue;
         private bool _keepAlive;
-        
+
         public FileWriter(IFileNameProvider fileNameProvider)
         {
             _fileNameProvider = fileNameProvider;
@@ -26,7 +26,7 @@ namespace Lide.Core.Facade
             _writer = Task.Run(Writer);
             _keepAlive = true;
         }
-        
+
         public void AddToQueue(Func<byte[]> serializer, string decoratorId)
         {
             if (_keepAlive)
@@ -37,15 +37,21 @@ namespace Lide.Core.Facade
 
         public string GetFileName(string decoratorId)
         {
-            return _fileHandles.ContainsKey(decoratorId) 
-                ? _fileHandles[decoratorId].Name 
+            return _fileHandles.ContainsKey(decoratorId)
+                ? _fileHandles[decoratorId].Name
                 : string.Empty;
         }
 
-        public async Task Stop()
+        public async Task KillQueue()
         {
             _keepAlive = false;
-            await _writer;
+            await _writer.ConfigureAwait(false);
+        }
+
+        public void Dispose()
+        {
+            ReleaseUnmanagedResources().Wait();
+            GC.SuppressFinalize(this);
         }
 
         private async Task Writer()
@@ -62,34 +68,28 @@ namespace Lide.Core.Facade
                     }
 
                     var data = queueData.Serializer();
-                    await _fileHandles[queueData.DecoratorId].WriteAsync(data);
+                    await _fileHandles[queueData.DecoratorId].WriteAsync(data).ConfigureAwait(false);
                 }
 
-                await Task.Delay(100);
+                await Task.Delay(100).ConfigureAwait(false);
             }
         }
 
         private async Task ReleaseUnmanagedResources()
         {
-            var stop = Stop();
+            var stop = KillQueue();
             _queue = new ConcurrentQueue<QueueData>();
-            await stop;
-            
+            await stop.ConfigureAwait(false);
+
             var tasks = _fileHandles.Values.Select(async fileHandle =>
             {
-                await fileHandle.FlushAsync();
-                await fileHandle.DisposeAsync();
+                await fileHandle.FlushAsync().ConfigureAwait(false);
+                await fileHandle.DisposeAsync().ConfigureAwait(false);
             });
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
-        public void Dispose()
-        {
-            ReleaseUnmanagedResources().Wait();
-            GC.SuppressFinalize(this);
-        }
-        
         private class QueueData
         {
             public QueueData(Func<byte[]> serializer, string decoratorId)
@@ -97,6 +97,7 @@ namespace Lide.Core.Facade
                 Serializer = serializer;
                 DecoratorId = decoratorId;
             }
+
             public Func<byte[]> Serializer { get; }
             public string DecoratorId { get; }
         }

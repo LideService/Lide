@@ -7,7 +7,7 @@ using Lide.Core.Contract.Provider;
 
 namespace Lide.Core.Provider
 {
-    public class SignatureProvider  : ISignatureProvider
+    public class SignatureProvider : ISignatureProvider
     {
         // Frames skipped:
         // 1. ExtractCallerInformation
@@ -51,7 +51,7 @@ namespace Lide.Core.Provider
 
             return string.Empty;
         }
-        
+
         public string GetMethodSignature(MethodInfo methodInfo)
         {
             var declaringTypeName = ExtractFullTypeName(methodInfo.DeclaringType);

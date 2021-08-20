@@ -12,14 +12,14 @@ namespace Lide.Decorators
 {
     public class DiagnosticsDecorator : IObjectDecorator
     {
+        private static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
         private readonly IFileWriter _fileWriter;
         private readonly ISignatureProvider _signatureProvider;
         private readonly IScopeProvider _scopeProvider;
-        private static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
         private readonly ConcurrentDictionary<int, long> _executionTimes;
 
         public DiagnosticsDecorator(
-            IFileWriter fileWriter, 
+            IFileWriter fileWriter,
             ISignatureProvider signatureProvider,
             IScopeProvider scopeProvider)
         {
@@ -28,10 +28,10 @@ namespace Lide.Decorators
             _scopeProvider = scopeProvider;
             _executionTimes = new ConcurrentDictionary<int, long>();
         }
-        
+
         public string Id { get; } = "Lide.Diagnostics";
         public bool IsVolatile { get; } = false;
-        
+
         public object[] ExecuteBeforeInvoke(object plainObject, MethodInfo methodInfo, object[] originalParameters, object[] editedParameters)
         {
             var methodHash = methodInfo.GetHashCode();

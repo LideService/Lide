@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace Lide.Core.Model
 {
+    [SuppressMessage("Microsoft", "CA1819", Justification = "Easier with array than list")]
     public class LidePropagateSettings
     {
         private const int AppliedDecoratorsIndex = 0;
@@ -11,13 +13,18 @@ namespace Lide.Core.Model
         private const int OverrideDecoratorsIndex = 4;
         private const string FieldSeparator = ";";
         private const string ArraySeparator = ",";
-        
+
         public LidePropagateSettings()
         {
         }
 
         public LidePropagateSettings(string serialized)
         {
+            if (string.IsNullOrEmpty(serialized))
+            {
+                return;
+            }
+
             var parsed = serialized.Split(FieldSeparator);
             AppliedDecorators = parsed[AppliedDecoratorsIndex].Split(',');
             ExcludedAssemblies = parsed[ExcludedAssembliesIndex].Split(',');
@@ -25,7 +32,7 @@ namespace Lide.Core.Model
             ExcludedTypes = parsed[ExcludedTypesIndex].Split(',');
             OverrideDecorators = parsed[OverrideDecoratorsIndex] == "Y" ? true : false;
         }
-        
+
         public bool OverrideDecorators { get; set; }
         public string VolatileKey { get; set; }
         public string[] ExcludedTypes { get; set; }
@@ -40,8 +47,7 @@ namespace Lide.Core.Model
                 (string.Join(ArraySeparator, ExcludedAssemblies), ExcludedAssembliesIndex),
                 (string.Join(ArraySeparator, ExcludedNamespaces), ExcludedNamespacesIndex),
                 (string.Join(ArraySeparator, ExcludedTypes), ExcludedTypesIndex),
-                ((OverrideDecorators ? "Y" : "N"), OverrideDecoratorsIndex));
-
+                (OverrideDecorators ? "Y" : "N", OverrideDecoratorsIndex));
         }
 
         private static string ConstructSerialized(params (string field, int index)[] fields)

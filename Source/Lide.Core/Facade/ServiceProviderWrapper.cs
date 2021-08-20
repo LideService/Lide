@@ -20,15 +20,15 @@ namespace Lide.Core.Facade
         {
             _serviceProvider = serviceProvider;
             _decoratorContainer = (IDecoratorContainer)serviceProvider.GetService(typeof(IDecoratorContainer)) ?? throw new Exception($"Missing service type {nameof(IDecoratorContainer)}");
-            _settingsProvider = (ISettingsProvider) _serviceProvider.GetService(typeof(ISettingsProvider)) ?? throw new Exception($"Missing service type {nameof(ISettingsProvider)}");
-            _plugins = ((IEnumerable<IServiceProviderPlugin>) _serviceProvider.GetService(typeof(IEnumerable<IServiceProviderPlugin>)))?.ToList() ?? new List<IServiceProviderPlugin>();
+            _settingsProvider = (ISettingsProvider)_serviceProvider.GetService(typeof(ISettingsProvider)) ?? throw new Exception($"Missing service type {nameof(ISettingsProvider)}");
+            _plugins = ((IEnumerable<IServiceProviderPlugin>)_serviceProvider.GetService(typeof(IEnumerable<IServiceProviderPlugin>)))?.ToList() ?? new List<IServiceProviderPlugin>();
             _generatedProxies = new Dictionary<object, object>(new IdentityEqualityComparer<object>());
         }
-        
+
         public object GetService(Type serviceType)
         {
             var originalObject = _serviceProvider.GetService(serviceType);
-            if (originalObject == null)  
+            if (originalObject == null)
             {
                 return null;
             }
@@ -36,13 +36,13 @@ namespace Lide.Core.Facade
             var assemblyName = serviceType.Assembly.GetName().Name;
             var @namespace = serviceType.Namespace;
             var excludedByType = _settingsProvider.ExcludedTypes.Contains(serviceType.Name);
-            var excludedByNamespace =  @namespace != null && _settingsProvider.ExcludedNamespaces.Contains(@namespace);
+            var excludedByNamespace = @namespace != null && _settingsProvider.ExcludedNamespaces.Contains(@namespace);
             var excludedByAssembly = assemblyName != null && _settingsProvider.ExcludedAssemblies.Contains(assemblyName);
             if (excludedByType || excludedByNamespace || excludedByAssembly)
             {
                 return originalObject;
             }
-            
+
             if (_generatedProxies.ContainsKey(originalObject))
             {
                 return _generatedProxies[originalObject];
@@ -58,7 +58,7 @@ namespace Lide.Core.Facade
                     return decoratedObject;
                 }
             }
-            
+
             if (serviceType.IsInterface)
             {
                 var proxy = ProxyDecoratorFactory.CreateProxyDecorator(serviceType);

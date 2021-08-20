@@ -1,3 +1,4 @@
+using System;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
 
@@ -5,20 +6,21 @@ namespace Lide.Core.Provider
 {
     public class ScopeProvider : IScopeProvider
     {
-        private string _id;
-        public ScopeProvider(IGuidFacade guidFacade)
+        private string _scopeId;
+
+        public ScopeProvider(IDateTimeFacade dateTimeFacade, IRandomFacade randomFacade)
         {
-            _id = guidFacade.NewGuid();
+            var epoch = dateTimeFacade.GetUnixEpoch();
+            var ticks = epoch.Ticks;
+            var rLong = randomFacade.NextLong();
+            _scopeId = Convert.ToBase64String(BitConverter.GetBytes(ticks ^ rLong));
         }
 
-        public void OverrideScope(string scopeId)
+        public void SetPreviousScopes(string previousScopeId)
         {
-            _id = scopeId;
+            _scopeId = $"{previousScopeId}-{_scopeId}";
         }
 
-        public string GetScopeId()
-        {
-            return _id;
-        }
+        public string GetScopeId() => _scopeId;
     }
 }

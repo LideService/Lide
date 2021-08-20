@@ -7,6 +7,6 @@ namespace Lide.Core.Contract.Facade
     {
         void AddToQueue(Func<byte[]> serializer, string decoratorId);
         string GetFileName(string decoratorId);
-        Task Stop();
+        Task KillQueue();
     }
 }

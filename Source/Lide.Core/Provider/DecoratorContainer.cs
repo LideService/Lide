@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
@@ -7,15 +8,16 @@ using Lide.TracingProxy.Contract;
 
 namespace Lide.Core.Provider
 {
+    [SuppressMessage("Microsoft", "CA1031", Justification = "Regardless of exception must not throw")]
     public class DecoratorContainer : IDecoratorContainer
     {
         private readonly ISettingsProvider _settingsProvider;
-        private readonly List<IObjectDecorator> _decorators = new();
+        private readonly List<IObjectDecorator> _decorators = new ();
 
         public DecoratorContainer(
-            ISettingsProvider settingsProvider, 
-            IAssemblyPreloader assemblyPreloader, 
-            IServiceProvider serviceProvider, 
+            ISettingsProvider settingsProvider,
+            IAssemblyPreloader assemblyPreloader,
+            IServiceProvider serviceProvider,
             IActivatorFacade activatorFacade,
             ILoggerFacade logger)
         {
@@ -26,11 +28,10 @@ namespace Lide.Core.Provider
                 .ToList()
                 .ForEach(decoratorType =>
                 {
-                    
                     try
                     {
                         var decoratorObject = activatorFacade.CreateInstance(serviceProvider, decoratorType);
-                        var decorator = (IObjectDecorator) decoratorObject;
+                        var decorator = (IObjectDecorator)decoratorObject;
                         ConfigureDecorator(decorator);
                         logger.Log($"Decorator configured: {decoratorType.Name}; Id: {decorator.Id};");
                     }

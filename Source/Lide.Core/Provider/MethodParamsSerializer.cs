@@ -8,7 +8,7 @@ using Lide.Core.Model;
 
 namespace Lide.Core.Provider
 {
-    public class MethodParamsSerializer : IMethodParamsSerializer
+    public class MethodParamsSerializer : IParametersSerializer
     {
         private readonly ISerializerFacade _serializerFacade;
         private readonly ConcurrentDictionary<string, Type> _typesCache;
@@ -18,7 +18,7 @@ namespace Lide.Core.Provider
             _serializerFacade = serializerFacade;
             _typesCache = new ConcurrentDictionary<string, Type>();
         }
-        
+
         public string Serialize(object[] methodParams)
         {
             var result = methodParams.Select(param =>
@@ -30,7 +30,7 @@ namespace Lide.Core.Provider
                 return new SerializedParameter
                 {
                     TypeName = typeName,
-                    Data = _serializerFacade.Serialize(param)
+                    Data = _serializerFacade.Serialize(param),
                 };
             }).ToList();
 

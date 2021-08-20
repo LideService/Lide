@@ -1,20 +1,35 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model;
 
 namespace Lide.Core.Provider
 {
+    [SuppressMessage("Microsoft", "CA1819", Justification = "Easier with array than list")]
     public class SettingsProvider : ISettingsProvider
     {
-        public static LideAppSettings LideAppSettings { get; set; }
-        public static LidePropagateSettings LidePropagateSettings { get; set; }
+        private static readonly string[] LideAssemblies = new[]
+        {
+            "Lide.AsyncProxy",
+            "Lide.Core",
+            "Lide.Decorators",
+            "Lide.TracingProxy",
+            "Lide.WebAPI",
+        };
+
+        public LideAppSettings LideAppSettings { get; set; }
+        public LidePropagateSettings LidePropagateSettings { get; set; }
 
         public bool SearchHttpBodyOrQuery => LideAppSettings.SearchHttpBodyOrQuery;
-        public bool OverrideDecorators => LidePropagateSettings.OverrideDecorators;
         public bool AllowVolatileDecorators => LideAppSettings.VolatileKey == LidePropagateSettings.VolatileKey;
         public string[] ExcludedTypes => LideAppSettings.ExcludedTypes.Concat(LidePropagateSettings.ExcludedTypes).ToArray();
         public string[] ExcludedNamespaces => LideAppSettings.ExcludedNamespaces.Concat(LidePropagateSettings.ExcludedNamespaces).ToArray();
-        public string[] ExcludedAssemblies => LideAppSettings.ExcludedAssemblies.Concat(LidePropagateSettings.ExcludedAssemblies).ToArray();
-        public string[] AppliedDecorators => LideAppSettings.AppliedDecorators.Concat(LidePropagateSettings.AppliedDecorators).ToArray();
+        public string[] ExcludedAssemblies => LideAssemblies
+            .Concat(LideAppSettings.ExcludedAssemblies)
+            .Concat(LidePropagateSettings.ExcludedAssemblies).ToArray();
+        public string[] AppliedDecorators =>
+            LidePropagateSettings.OverrideDecorators
+                ? LidePropagateSettings.AppliedDecorators
+                : LideAppSettings.AppliedDecorators.Concat(LidePropagateSettings.AppliedDecorators).ToArray();
     }
 }

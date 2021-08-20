@@ -2,7 +2,7 @@ namespace Lide.Core.Contract.Provider
 {
     public interface IScopeProvider
     {
-        void OverrideScope(string scopeId);
+        public void SetPreviousScopes(string scopeId);
         string GetScopeId();
     }
 }

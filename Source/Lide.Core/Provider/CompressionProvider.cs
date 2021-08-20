@@ -22,7 +22,7 @@ namespace Lide.Core.Provider
             var gZipBuffer = new byte[compressedData.Length + 4];
             Buffer.BlockCopy(compressedData, 0, gZipBuffer, 4, compressedData.Length);
             Buffer.BlockCopy(BitConverter.GetBytes(buffer.Length), 0, gZipBuffer, 0, 4);
-            
+
             return Convert.ToBase64String(gZipBuffer);
         }
 
@@ -31,7 +31,7 @@ namespace Lide.Core.Provider
             var gZipBuffer = Convert.FromBase64String(compressedText);
             var dataLength = BitConverter.ToInt32(gZipBuffer, 0);
             var buffer = new byte[dataLength];
-            
+
             using var memoryStream = new MemoryStream();
             memoryStream.Write(gZipBuffer, 4, gZipBuffer.Length - 4);
             memoryStream.Seek(0, SeekOrigin.Begin);

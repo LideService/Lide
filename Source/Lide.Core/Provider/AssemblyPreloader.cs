@@ -15,13 +15,12 @@ namespace Lide.Core.Provider
 
             assembliesToCheck.Enqueue(Assembly.GetEntryAssembly());
 
-            while(assembliesToCheck.Any())
+            while (assembliesToCheck.Any())
             {
                 var assemblyToCheck = assembliesToCheck.Dequeue();
-
-                foreach(var reference in assemblyToCheck.GetReferencedAssemblies())
+                foreach (var reference in assemblyToCheck.GetReferencedAssemblies())
                 {
-                    if(!loadedAssemblies.Contains(reference.FullName))
+                    if (!loadedAssemblies.Contains(reference.FullName))
                     {
                         var assembly = Assembly.Load(reference);
                         assembliesToCheck.Enqueue(assembly);
