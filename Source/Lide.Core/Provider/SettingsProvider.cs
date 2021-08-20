@@ -10,11 +10,8 @@ namespace Lide.Core.Provider
     {
         private static readonly string[] LideAssemblies = new[]
         {
-            "Lide.AsyncProxy",
-            "Lide.Core",
-            "Lide.Decorators",
-            "Lide.TracingProxy",
-            "Lide.WebAPI",
+            "Lide.",
+            "Microsoft.",
         };
 
         public LideAppSettings LideAppSettings { get; set; }

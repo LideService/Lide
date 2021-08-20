@@ -6,7 +6,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lide.TracingProxy", "Lide.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lide.Decorators", "Lide.Decorators\Lide.Decorators.csproj", "{468C7069-1E4C-4DFD-8846-0A43B90D0EAA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lide.WebAPI", "Lide.WebAPI\Lide.WebAPI.csproj", "{ACCB882A-B9F9-47FD-9297-F36F80FBD9CD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lide.WebApi", "Lide.WebApi\Lide.WebApi.csproj", "{ACCB882A-B9F9-47FD-9297-F36F80FBD9CD}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lide.Core", "Lide.Core\Lide.Core.csproj", "{CF1B0810-F1D3-424A-980A-2DF130718D6B}"
 EndProject

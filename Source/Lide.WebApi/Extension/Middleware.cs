@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 
-namespace Lide.WebAPI.Extension
+namespace Lide.WebApi.Extension
 {
     public static class Middleware
     {
-        public static IApplicationBuilder UseLide(IApplicationBuilder builder)
+        public static IApplicationBuilder UseLide(this IApplicationBuilder builder)
         {
             builder.UseMiddleware<ContainerMiddleware>();
             return builder;

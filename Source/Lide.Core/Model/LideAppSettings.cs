@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Lide.Core.Model
@@ -5,6 +6,14 @@ namespace Lide.Core.Model
     [SuppressMessage("Microsoft", "CA1819", Justification = "Easier with array than list")]
     public class LideAppSettings
     {
+        public LideAppSettings()
+        {
+            ExcludedTypes = Array.Empty<string>();
+            ExcludedNamespaces = Array.Empty<string>();
+            ExcludedAssemblies = Array.Empty<string>();
+            AppliedDecorators = Array.Empty<string>();
+        }
+
         public bool SearchHttpBodyOrQuery { get; set; }
         public string VolatileKey { get; set; }
         public string[] ExcludedTypes { get; set; }

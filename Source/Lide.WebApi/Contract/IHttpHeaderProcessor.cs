@@ -1,6 +1,6 @@
 using System.Net.Http;
 
-namespace Lide.WebAPI.Contract
+namespace Lide.WebApi.Contract
 {
     public interface IHttpHeaderProcessor
     {

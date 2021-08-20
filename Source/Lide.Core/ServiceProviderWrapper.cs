@@ -6,7 +6,7 @@ using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
 using Lide.TracingProxy;
 
-namespace Lide.Core.Facade
+namespace Lide.Core
 {
     public class ServiceProviderWrapper : IServiceProvider
     {
@@ -33,12 +33,7 @@ namespace Lide.Core.Facade
                 return null;
             }
 
-            var assemblyName = serviceType.Assembly.GetName().Name;
-            var @namespace = serviceType.Namespace;
-            var excludedByType = _settingsProvider.ExcludedTypes.Contains(serviceType.Name);
-            var excludedByNamespace = @namespace != null && _settingsProvider.ExcludedNamespaces.Contains(@namespace);
-            var excludedByAssembly = assemblyName != null && _settingsProvider.ExcludedAssemblies.Contains(assemblyName);
-            if (excludedByType || excludedByNamespace || excludedByAssembly)
+            if (IsTypeExcluded(serviceType))
             {
                 return originalObject;
             }
@@ -70,6 +65,16 @@ namespace Lide.Core.Facade
             }
 
             return originalObject;
+        }
+
+        private bool IsTypeExcluded(Type serviceType)
+        {
+            var assemblyName = serviceType.Assembly.GetName().Name;
+            var @namespace = serviceType.Namespace;
+            var excludedByType = _settingsProvider.ExcludedTypes.Any(serviceType.Name.StartsWith);
+            var excludedByNamespace = @namespace != null && _settingsProvider.ExcludedNamespaces.Any(@namespace.StartsWith);
+            var excludedByAssembly = assemblyName != null && _settingsProvider.ExcludedAssemblies.Any(assemblyName.StartsWith);
+            return excludedByType || excludedByNamespace || excludedByAssembly;
         }
 
         private class IdentityEqualityComparer<T> : IEqualityComparer<T>

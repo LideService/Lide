@@ -52,30 +52,30 @@ namespace Lide.Core.Provider
             return string.Empty;
         }
 
-        public string GetMethodSignature(MethodInfo methodInfo)
+        public string GetMethodSignature(MethodInfo methodInfo, bool includeAssembly)
         {
-            var declaringTypeName = ExtractFullTypeName(methodInfo.DeclaringType);
+            var declaringTypeName = ExtractFullTypeName(methodInfo.DeclaringType, includeAssembly);
             var methodName = methodInfo.Name;
             var methodGenerics = string.Empty;
-            var returnType = ExtractFullTypeName(methodInfo.ReturnType);
+            var returnType = ExtractFullTypeName(methodInfo.ReturnType, includeAssembly);
 
             if (methodInfo.IsGenericMethod)
             {
                 var genericArguments = methodInfo.GetGenericArguments()
-                    .Select(ExtractFullTypeName)
+                    .Select(x => ExtractFullTypeName(x, includeAssembly))
                     .ToArray();
 
                 methodGenerics = $"<{string.Join(",", genericArguments)}>";
             }
 
             var methodParams = string.Join(",", methodInfo.GetParameters()
-                .Select(p => ExtractFullTypeName(p.ParameterType))
+                .Select(p => ExtractFullTypeName(p.ParameterType, includeAssembly))
                 .ToArray());
 
             return $"{declaringTypeName}.{methodName}{methodGenerics}({methodParams}):{returnType}";
         }
 
-        public string ExtractFullTypeName(Type type)
+        public string ExtractFullTypeName(Type type, bool includeAssembly)
         {
             var assemblyName = type.Assembly.GetName().Name;
             var @namespace = type.Namespace;
@@ -85,13 +85,19 @@ namespace Lide.Core.Provider
             if (type.IsGenericType)
             {
                 var genericArguments = type.GetGenericArguments()
-                    .Select(ExtractFullTypeName)
+                    .Select(x => ExtractFullTypeName(x, includeAssembly))
                     .ToArray();
 
                 generics = $"<{string.Join(",", genericArguments)}>";
             }
 
-            return $"[{assemblyName}]:{@namespace}+{name}{generics}";
+            var result = string.Empty;
+            if (includeAssembly)
+            {
+                result = $"[{assemblyName}]:";
+            }
+
+            return $"{result}{@namespace}+{name}{generics}";
         }
     }
 }

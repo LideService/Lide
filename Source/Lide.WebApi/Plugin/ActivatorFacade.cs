@@ -2,7 +2,7 @@ using System;
 using Lide.Core.Contract.Facade;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Lide.WebAPI.Plugin
+namespace Lide.WebApi.Plugin
 {
     public class ActivatorFacade : IActivatorFacade
     {

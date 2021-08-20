@@ -1,9 +1,10 @@
 using System.Net.Http;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model;
-using Lide.WebAPI.Contract;
+using Lide.Decorators;
+using Lide.WebApi.Contract;
 
-namespace Lide.WebAPI
+namespace Lide.WebApi
 {
     public class HttpHeaderProcessor : IHttpHeaderProcessor
     {
@@ -16,20 +17,23 @@ namespace Lide.WebAPI
             ISettingsProvider settingsProvider,
             IScopeProvider scopeProvider)
         {
+            _t2 = null;
             _compressionProvider = compressionProvider;
             _settingsProvider = settingsProvider;
             _scopeProvider = scopeProvider;
         }
-        
+
+        public ConsoleDecorator _t2 { get; set; }
+
         public void AddHeaders(HttpClient httpClient)
         {
             var settings = _settingsProvider.LidePropagateSettings.ToString();
             var compressedSettings = _compressionProvider.CompressString(settings);
             var scopeId = _scopeProvider.GetScopeId();
-            httpClient.DefaultRequestHeaders.Add(LideProperties.LideEnabled,"true");
-            httpClient.DefaultRequestHeaders.Add(LideProperties.LideCompression,"true");
-            httpClient.DefaultRequestHeaders.Add(LideProperties.LideScopeId,scopeId);
-            httpClient.DefaultRequestHeaders.Add(LideProperties.LideSettings,compressedSettings);
+            httpClient.DefaultRequestHeaders.Add(LideProperties.LideEnabled, "true");
+            httpClient.DefaultRequestHeaders.Add(LideProperties.LideCompression, "true");
+            httpClient.DefaultRequestHeaders.Add(LideProperties.LideScopeId, scopeId);
+            httpClient.DefaultRequestHeaders.Add(LideProperties.LideSettings, compressedSettings);
         }
     }
 }

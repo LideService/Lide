@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Lide.AsyncProxy\Lide.AsyncProxy.csproj"/>
+        <ProjectReference PrivateAssets="all" Include="..\Lide.AsyncProxy\Lide.AsyncProxy.csproj"/>
     </ItemGroup>
 
 </Project>

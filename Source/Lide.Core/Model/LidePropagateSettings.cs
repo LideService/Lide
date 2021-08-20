@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
@@ -16,9 +17,14 @@ namespace Lide.Core.Model
 
         public LidePropagateSettings()
         {
+            ExcludedTypes = Array.Empty<string>();
+            ExcludedNamespaces = Array.Empty<string>();
+            ExcludedAssemblies = Array.Empty<string>();
+            AppliedDecorators = Array.Empty<string>();
         }
 
         public LidePropagateSettings(string serialized)
+            : this()
         {
             if (string.IsNullOrEmpty(serialized))
             {

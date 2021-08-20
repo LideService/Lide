@@ -22,10 +22,13 @@ namespace Lide.Core.Provider
             ILoggerFacade logger)
         {
             _settingsProvider = settingsProvider;
-            assemblyPreloader.GetAssemblies()
+            var types = assemblyPreloader.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => typeof(IObjectDecorator).IsAssignableFrom(p))
-                .ToList()
+                .Where(p => !p.IsInterface)
+                .ToList();
+
+            types
                 .ForEach(decoratorType =>
                 {
                     try

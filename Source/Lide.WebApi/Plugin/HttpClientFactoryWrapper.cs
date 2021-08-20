@@ -1,7 +1,7 @@
 using System.Net.Http;
-using Lide.WebAPI.Contract;
+using Lide.WebApi.Contract;
 
-namespace Lide.WebAPI.Plugin
+namespace Lide.WebApi.Plugin
 {
     public class HttpClientFactoryWrapper : IHttpClientFactory
     {
@@ -13,7 +13,7 @@ namespace Lide.WebAPI.Plugin
             _originalObject = originalObject;
             _httpHeaderProcessor = httpHeaderProcessor;
         }
-        
+
         public HttpClient CreateClient(string name)
         {
             var client = _originalObject.CreateClient(name);
