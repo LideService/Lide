@@ -11,17 +11,14 @@ namespace Lide.Core.Provider
     [SuppressMessage("Microsoft", "CA1031", Justification = "Regardless of exception must not throw")]
     public class DecoratorContainer : IDecoratorContainer
     {
-        private readonly ISettingsProvider _settingsProvider;
         private readonly List<IObjectDecorator> _decorators = new ();
 
         public DecoratorContainer(
-            ISettingsProvider settingsProvider,
             IAssemblyPreloader assemblyPreloader,
             IServiceProvider serviceProvider,
             IActivatorFacade activatorFacade,
             ILoggerFacade logger)
         {
-            _settingsProvider = settingsProvider;
             var types = assemblyPreloader.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
                 .Where(p => typeof(IObjectDecorator).IsAssignableFrom(p))
@@ -53,11 +50,11 @@ namespace Lide.Core.Provider
             }
         }
 
-        public IObjectDecorator[] GetDecorators()
+        public IObjectDecorator[] GetDecorators(ISettingsProvider settingsProvider)
         {
             return _decorators
-                .Where(x => _settingsProvider.AppliedDecorators.Contains(x.Id))
-                .Where(x => !x.IsVolatile || _settingsProvider.AllowVolatileDecorators)
+                .Where(x => settingsProvider.AppliedDecorators.Contains(x.Id))
+                .Where(x => !x.IsVolatile || settingsProvider.AllowVolatileDecorators)
                 .ToArray();
         }
     }

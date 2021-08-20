@@ -57,7 +57,7 @@ namespace Lide.Core
             if (serviceType.IsInterface)
             {
                 var proxy = ProxyDecoratorFactory.CreateProxyDecorator(serviceType);
-                proxy.SetDecorators(_decoratorContainer.GetDecorators());
+                proxy.SetDecorators(_decoratorContainer.GetDecorators(_settingsProvider));
                 proxy.SetOriginalObject(originalObject);
                 var decoratedObject = proxy.GetDecoratedObject();
                 _generatedProxies.Add(originalObject, decoratedObject);

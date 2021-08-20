@@ -43,7 +43,7 @@ namespace Lide.WebApi.Extension
             var lideEnabledHeader = headers.ContainsKey(LideProperties.LideEnabled) && Convert.ToBoolean(headers[LideProperties.LideEnabled].FirstOrDefault() ?? "false");
             var lideEnabledQuery = query.ContainsKey(LideProperties.LideEnabled) && Convert.ToBoolean(query[LideProperties.LideEnabled].FirstOrDefault() ?? "false");
 
-            lideEnabledHeader = true;
+            ////lideEnabledHeader = true;
             if (lideEnabledHeader)
             {
                 var compressionUsed = headers.ContainsKey(LideProperties.LideCompression) ? headers[LideProperties.LideCompression].FirstOrDefault() : null;

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TaxCalculator.Services.Contracts;
 
 namespace TaxCalculator.Services
@@ -32,12 +33,7 @@ namespace TaxCalculator.Services
 
         public ICalculator GetCalculator(string name)
         {
-            if (_calculators.ContainsKey(name))
-            {
-                return _calculators[name];
-            }
-
-            return null;
+            return _calculators.ContainsKey(name) ? _calculators[name] : null;
         }
     }
 }

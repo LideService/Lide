@@ -5,6 +5,6 @@ namespace Lide.Core.Contract.Provider
     public interface IDecoratorContainer
     {
         void ConfigureDecorator(IObjectDecorator decorator);
-        IObjectDecorator[] GetDecorators();
+        IObjectDecorator[] GetDecorators(ISettingsProvider settingsProvider);
     }
 }

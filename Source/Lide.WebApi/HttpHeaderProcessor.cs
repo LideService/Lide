@@ -1,7 +1,6 @@
 using System.Net.Http;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model;
-using Lide.Decorators;
 using Lide.WebApi.Contract;
 
 namespace Lide.WebApi
@@ -17,13 +16,10 @@ namespace Lide.WebApi
             ISettingsProvider settingsProvider,
             IScopeProvider scopeProvider)
         {
-            _t2 = null;
             _compressionProvider = compressionProvider;
             _settingsProvider = settingsProvider;
             _scopeProvider = scopeProvider;
         }
-
-        public ConsoleDecorator _t2 { get; set; }
 
         public void AddHeaders(HttpClient httpClient)
         {

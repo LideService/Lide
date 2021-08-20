@@ -18,7 +18,10 @@ namespace Lide.Core.Provider
 
         public void SetPreviousScopes(string previousScopeId)
         {
-            _scopeId = $"{previousScopeId}-{_scopeId}";
+            if (!string.IsNullOrEmpty(previousScopeId))
+            {
+                _scopeId = $"{previousScopeId}-{_scopeId}";
+            }
         }
 
         public string GetScopeId() => _scopeId;

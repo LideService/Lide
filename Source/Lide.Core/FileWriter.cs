@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
 
-namespace Lide.Core.Facade
+namespace Lide.Core
 {
     public class FileWriter : IFileWriter
     {

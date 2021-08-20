@@ -23,9 +23,9 @@ namespace TaxCalculator.WebApi
         {
             services.AddControllers();
             services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "TaxCalculator.WebApi", Version = "v1" }); });
-            services.AddTransient<ICalculator, Calculator>();
-            services.AddSingleton<ICalculatorProvider, CalculatorProvider>();
             services.AddLideCore(Configuration);
+            services.AddScoped<ICalculator, Calculator>();
+            services.AddSingleton<ICalculatorProvider, CalculatorProvider>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -37,10 +37,10 @@ namespace TaxCalculator.WebApi
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "TaxCalculator.WebApi v1"));
             }
 
-            app.UseLide();
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
+            app.UseLide();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
