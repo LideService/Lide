@@ -7,6 +7,7 @@ using Lide.Core.Facade;
 using Lide.Core.Model;
 using Lide.Core.Provider;
 using Lide.Decorators;
+using Lide.TracingProxy.Contract;
 using Lide.WebApi.Contract;
 using Lide.WebApi.Plugin;
 using Microsoft.Extensions.Configuration;
@@ -16,11 +17,9 @@ namespace Lide.WebApi.Extension
 {
     public static class IoC
     {
-        private static ConsoleDecorator T { get; }
-
         public static void AddLideCore(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            serviceCollection.AddSingleton<IActivatorFacade, ActivatorFacade>();
+            // Facades
             serviceCollection.AddSingleton<IConsoleFacade, ConsoleFacade>();
             serviceCollection.AddSingleton<IDateTimeFacade, DateTimeFacade>();
             serviceCollection.AddSingleton<IGuidFacade, GuidFacade>();
@@ -28,23 +27,27 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddSingleton<IRandomFacade, RandomFacade>();
             serviceCollection.AddSingleton<ISerializerFacade, SerializerFacade>();
 
+            // Core
             serviceCollection.AddSingleton<IFileWriter, FileWriter>();
             serviceCollection.AddSingleton<ITaskRunner, TaskRunner>();
 
-            serviceCollection.AddSingleton<IAssemblyPreloader, AssemblyPreloader>();
+            // Provider
             serviceCollection.AddSingleton<ICompressionProvider, CompressionProvider>();
-            serviceCollection.AddSingleton<IDecoratorContainer, DecoratorContainer>();
             serviceCollection.AddSingleton<IFileNameProvider, FileNameProvider>();
             serviceCollection.AddSingleton<IParametersSerializer, MethodParamsSerializer>();
             serviceCollection.AddSingleton<ISignatureProvider, SignatureProvider>();
 
-            serviceCollection.AddSingleton<IScopeProvider, ScopeProvider>();
-            serviceCollection.AddSingleton<ISettingsProvider, SettingsProvider>();
+            // Decorators
+            serviceCollection.AddScoped<IObjectDecorator, ConsoleDecorator>();
 
-            serviceCollection.AddSingleton<IServiceProviderPlugin, HttpClientFactoryPlugin>();
-            serviceCollection.AddSingleton<IServiceProviderPlugin, HttpClientPlugin>();
+            // Scoped?
+            serviceCollection.AddScoped<IScopeProvider, ScopeProvider>();
+            serviceCollection.AddScoped<ISettingsProvider, SettingsProvider>();
 
-            serviceCollection.AddSingleton<IHttpHeaderProcessor, HttpHeaderProcessor>();
+            // Web
+            serviceCollection.AddScoped<IServiceProviderPlugin, HttpClientFactoryPlugin>();
+            serviceCollection.AddScoped<IServiceProviderPlugin, HttpClientPlugin>();
+            serviceCollection.AddScoped<IHttpHeaderProcessor, HttpHeaderProcessor>();
 
             serviceCollection.Configure<LideAppSettings>(configuration.GetSection("LideAppSettings"));
         }

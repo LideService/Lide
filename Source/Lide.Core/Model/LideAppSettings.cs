@@ -14,7 +14,7 @@ namespace Lide.Core.Model
             AppliedDecorators = Array.Empty<string>();
         }
 
-        public bool SearchHttpBodyOrQuery { get; set; }
+        public bool SearchHttpBody { get; set; }
         public string VolatileKey { get; set; }
         public string[] ExcludedTypes { get; set; }
         public string[] ExcludedNamespaces { get; set; }

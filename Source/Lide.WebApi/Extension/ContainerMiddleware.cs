@@ -7,9 +7,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Lide.Core;
 using Lide.Core.Contract.Provider;
-using Lide.Core.Facade;
 using Lide.Core.Model;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Lide.WebApi.Extension
@@ -18,21 +18,15 @@ namespace Lide.WebApi.Extension
     {
         private readonly RequestDelegate _next;
         private readonly ICompressionProvider _compressionProvider;
-        private readonly ISettingsProvider _settingsProvider;
-        private readonly IScopeProvider _scopeProvider;
         private readonly LideAppSettings _appSettings;
 
         public ContainerMiddleware(
             RequestDelegate next,
             IOptions<LideAppSettings> settings,
-            ICompressionProvider compressionProvider,
-            ISettingsProvider settingsProvider,
-            IScopeProvider scopeProvider)
+            ICompressionProvider compressionProvider)
         {
             _next = next;
             _compressionProvider = compressionProvider;
-            _settingsProvider = settingsProvider;
-            _scopeProvider = scopeProvider;
             _appSettings = settings?.Value ?? new LideAppSettings();
         }
 
@@ -60,7 +54,7 @@ namespace Lide.WebApi.Extension
                 SetupLide(httpContext, compressionUsed, previousScopeId, settings);
             }
             else
-            if (_appSettings.SearchHttpBodyOrQuery)
+            if (_appSettings.SearchHttpBody)
             {
                 await SearchBodyForSettings(httpContext).ConfigureAwait(false);
             }
@@ -81,7 +75,7 @@ namespace Lide.WebApi.Extension
             }
 
             var jsonObject = JsonSerializer.Deserialize<Dictionary<string, object>>(strRequestBody) ?? new Dictionary<string, object>();
-            var lideEnabled = jsonObject.ContainsKey(LideProperties.LideEnabled) && Convert.ToBoolean(((JsonElement)jsonObject[LideProperties.LideEnabled]).GetString());
+            var lideEnabled = jsonObject.ContainsKey(LideProperties.LideEnabled) && ((JsonElement)jsonObject[LideProperties.LideEnabled]).GetBoolean();
             if (lideEnabled)
             {
                 var compressionUsed = jsonObject.ContainsKey(LideProperties.LideCompression) ? ((JsonElement)jsonObject[LideProperties.LideCompression]).GetString() : null;
@@ -93,12 +87,17 @@ namespace Lide.WebApi.Extension
 
         private void SetupLide(HttpContext httpContext, string compressionUsed, string previousScopeId, string settings)
         {
+            using var scope = httpContext.RequestServices.CreateScope();
+            var scopedProvider = scope.ServiceProvider;
+            var settingsProvider = scopedProvider.GetService<ISettingsProvider>();
+            var scopeProvider = scopedProvider.GetService<IScopeProvider>();
+
             var compressed = Convert.ToBoolean(compressionUsed);
             var propagateSettings = new LidePropagateSettings(compressed ? _compressionProvider.DecompressString(settings) : settings);
-            _settingsProvider.LideAppSettings = _appSettings;
-            _settingsProvider.LidePropagateSettings = propagateSettings;
-            _scopeProvider.SetPreviousScopes(previousScopeId);
-            httpContext.RequestServices = new ServiceProviderWrapper(httpContext.RequestServices);
+            settingsProvider.LideAppSettings = _appSettings;
+            settingsProvider.LidePropagateSettings = propagateSettings;
+            scopeProvider.SetPreviousScopes(previousScopeId);
+            httpContext.RequestServices = new ServiceProviderWrapper(httpContext.RequestServices, scopedProvider);
         }
     }
 }

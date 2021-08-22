@@ -17,7 +17,7 @@ namespace Lide.Core.Provider
         public LideAppSettings LideAppSettings { get; set; }
         public LidePropagateSettings LidePropagateSettings { get; set; }
 
-        public bool SearchHttpBodyOrQuery => LideAppSettings.SearchHttpBodyOrQuery;
+        public bool SearchHttpBodyOrQuery => LideAppSettings.SearchHttpBody;
         public bool AllowVolatileDecorators => LideAppSettings.VolatileKey == LidePropagateSettings.VolatileKey;
         public string[] ExcludedTypes => LideAppSettings.ExcludedTypes.Concat(LidePropagateSettings.ExcludedTypes).ToArray();
         public string[] ExcludedNamespaces => LideAppSettings.ExcludedNamespaces.Concat(LidePropagateSettings.ExcludedNamespaces).ToArray();

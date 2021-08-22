@@ -13,7 +13,10 @@ namespace Lide.Core.Provider
             var epoch = dateTimeFacade.GetUnixEpoch();
             var ticks = epoch.Ticks;
             var rLong = randomFacade.NextLong();
-            _scopeId = Convert.ToBase64String(BitConverter.GetBytes(ticks ^ rLong));
+            _scopeId = Convert.ToBase64String(BitConverter.GetBytes(ticks ^ rLong))
+                .Replace("+", "")
+                .Replace("=", "")
+                .Replace("/", "");
         }
 
         public void SetPreviousScopes(string previousScopeId)

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
 using Lide.TracingProxy;
+using Lide.TracingProxy.Contract;
 
 namespace Lide.Core
 {
@@ -12,16 +13,16 @@ namespace Lide.Core
     {
         private readonly Dictionary<object, object> _generatedProxies;
         private readonly IServiceProvider _serviceProvider;
-        private readonly IDecoratorContainer _decoratorContainer;
         private readonly ISettingsProvider _settingsProvider;
         private readonly List<IServiceProviderPlugin> _plugins;
+        private readonly List<IObjectDecorator> _decorators;
 
-        public ServiceProviderWrapper(IServiceProvider serviceProvider)
+        public ServiceProviderWrapper(IServiceProvider serviceProvider, IServiceProvider scoped)
         {
             _serviceProvider = serviceProvider;
-            _decoratorContainer = (IDecoratorContainer)serviceProvider.GetService(typeof(IDecoratorContainer)) ?? throw new Exception($"Missing service type {nameof(IDecoratorContainer)}");
-            _settingsProvider = (ISettingsProvider)_serviceProvider.GetService(typeof(ISettingsProvider)) ?? throw new Exception($"Missing service type {nameof(ISettingsProvider)}");
-            _plugins = ((IEnumerable<IServiceProviderPlugin>)_serviceProvider.GetService(typeof(IEnumerable<IServiceProviderPlugin>)))?.ToList() ?? new List<IServiceProviderPlugin>();
+            _settingsProvider = (ISettingsProvider)scoped.GetService(typeof(ISettingsProvider)) ?? throw new Exception($"Missing service type {nameof(ISettingsProvider)}");
+            _plugins = ((IEnumerable<IServiceProviderPlugin>)scoped.GetService(typeof(IEnumerable<IServiceProviderPlugin>)))?.ToList() ?? new List<IServiceProviderPlugin>();
+            _decorators = ((IEnumerable<IObjectDecorator>)scoped.GetService(typeof(IEnumerable<IObjectDecorator>)))?.ToList() ?? new List<IObjectDecorator>();
             _generatedProxies = new Dictionary<object, object>(new IdentityEqualityComparer<object>());
         }
 
@@ -57,7 +58,7 @@ namespace Lide.Core
             if (serviceType.IsInterface)
             {
                 var proxy = ProxyDecoratorFactory.CreateProxyDecorator(serviceType);
-                proxy.SetDecorators(_decoratorContainer.GetDecorators(_settingsProvider));
+                proxy.SetDecorators(GetDecorators().ToArray());
                 proxy.SetOriginalObject(originalObject);
                 var decoratedObject = proxy.GetDecoratedObject();
                 _generatedProxies.Add(originalObject, decoratedObject);
@@ -75,6 +76,13 @@ namespace Lide.Core
             var excludedByNamespace = @namespace != null && _settingsProvider.ExcludedNamespaces.Any(@namespace.StartsWith);
             var excludedByAssembly = assemblyName != null && _settingsProvider.ExcludedAssemblies.Any(assemblyName.StartsWith);
             return excludedByType || excludedByNamespace || excludedByAssembly;
+        }
+
+        private IEnumerable<IObjectDecorator> GetDecorators()
+        {
+            return _decorators
+                .Where(x => _settingsProvider.AppliedDecorators.Contains(x.Id))
+                .Where(x => !x.IsVolatile || _settingsProvider.AllowVolatileDecorators);
         }
 
         private class IdentityEqualityComparer<T> : IEqualityComparer<T>

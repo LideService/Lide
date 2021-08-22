@@ -23,6 +23,7 @@
     <ItemGroup>
         <ProjectReference PrivateAssets="all" Include="..\Lide.Core\Lide.Core.csproj" />
         <ProjectReference Include="..\Lide.Decorators\Lide.Decorators.csproj" />
+        <ProjectReference Include="..\Lide.TracingProxy\Lide.TracingProxy.csproj" />
     </ItemGroup>
 
 </Project>
