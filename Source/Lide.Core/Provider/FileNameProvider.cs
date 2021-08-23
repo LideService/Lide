@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;

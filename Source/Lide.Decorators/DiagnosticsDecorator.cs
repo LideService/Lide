@@ -29,7 +29,7 @@ namespace Lide.Decorators
             _executionTimes = new ConcurrentDictionary<int, long>();
         }
 
-        public string Id { get; } = "Lide.Diagnostics";
+        public string Id { get; } = "Lide.Diagnostic";
         public bool IsVolatile { get; } = false;
 
         public object[] ExecuteBeforeInvoke(object plainObject, MethodInfo methodInfo, object[] originalParameters, object[] editedParameters)
@@ -41,7 +41,7 @@ namespace Lide.Decorators
             return originalParameters;
         }
 
-        public ExceptionOrResult ExecuteAfterResult(object plainObject, MethodInfo methodInfo, object[] originalParameters, ExceptionOrResult originalEorR, ExceptionOrResult editedEorR)
+        public ExceptionOrResult ExecuteAfterResult(object plainObject, MethodInfo methodInfo, object[] originalParameters, object[] editedParameters, ExceptionOrResult originalEorR, ExceptionOrResult editedEorR)
         {
             var methodHash = methodInfo.GetHashCode();
             var parametersHash = originalParameters.GetHashCode();
@@ -58,7 +58,7 @@ namespace Lide.Decorators
             {
                 var scopeId = _scopeProvider.GetScopeId();
                 var signature = _signatureProvider.GetMethodSignature(methodInfo);
-                var message = $"[{scopeId}]: [{signature}] took {executionTime} ticks";
+                var message = $"[{scopeId}]: [{signature}] took {executionTime} ticks + {Environment.NewLine}";
                 return Encoding.ASCII.GetBytes(message);
             }, Id);
 

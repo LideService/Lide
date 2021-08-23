@@ -1,7 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using TaxCalculator.Services.Contracts;
-
-namespace TaxCalculator.Test
+﻿namespace TaxCalculator.Test
 {
     [TestClass]
     public class TaxCalculatorTest

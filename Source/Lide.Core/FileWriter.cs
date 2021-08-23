@@ -69,6 +69,7 @@ namespace Lide.Core
 
                     var data = queueData.Serializer();
                     await _fileHandles[queueData.DecoratorId].WriteAsync(data).ConfigureAwait(false);
+                    await _fileHandles[queueData.DecoratorId].FlushAsync().ConfigureAwait(false);
                 }
 
                 await Task.Delay(100).ConfigureAwait(false);
