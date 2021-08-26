@@ -1,12 +1,6 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Lide.Core.Contract;
-using Lide.Core.Contract.Facade;
-using Lide.Core.Contract.Provider;
 
 namespace Lide.Core
 {
@@ -16,7 +10,7 @@ namespace Lide.Core
         private readonly ConcurrentQueue<Task> _queue;
         private bool _keepAlive;
 
-        public TaskRunner(IFileNameProvider fileNameProvider)
+        public TaskRunner()
         {
             _queue = new ConcurrentQueue<Task>();
             _worker = Task.Run(Writer);

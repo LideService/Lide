@@ -5,6 +5,7 @@ using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Facade;
 using Lide.Core.Model;
+using Lide.Core.Model.Settings;
 using Lide.Core.Provider;
 using Lide.Decorators;
 using Lide.TracingProxy.Contract;
@@ -42,7 +43,7 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddScoped<IObjectDecorator, DiagnosticsDecorator>();
 
             // Scoped?
-            serviceCollection.AddScoped<IScopeProvider, ScopeProvider>();
+            serviceCollection.AddScoped<IScopeIdProvider, ScopeIdProvider>();
             serviceCollection.AddScoped<ISettingsProvider, SettingsProvider>();
 
             // Web
@@ -50,7 +51,7 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddScoped<IServiceProviderPlugin, HttpClientPlugin>();
             serviceCollection.AddScoped<IHttpHeaderProcessor, HttpHeaderProcessor>();
 
-            serviceCollection.Configure<LideAppSettings>(configuration.GetSection("LideAppSettings"));
+            serviceCollection.Configure<AppSettings>(configuration.GetSection("LideAppSettings"));
         }
     }
 }

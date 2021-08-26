@@ -1,10 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Lide.TracingProxy.Model;
 
 namespace Lide.TracingProxy.Contract
 {
-    [SuppressMessage("Stylecop", "SA1502", Justification = "Readability")]
     public interface IObjectDecorator
     {
         /// <summary>

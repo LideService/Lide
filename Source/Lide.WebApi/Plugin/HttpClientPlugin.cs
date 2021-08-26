@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using Lide.Core.Contract.Plugin;
 using Lide.WebApi.Contract;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace Lide.WebApi.Plugin
 {
@@ -15,6 +16,7 @@ namespace Lide.WebApi.Plugin
         }
 
         public Type Type => typeof(HttpClient);
+        public bool ContinueDecoration => false;
 
         public object GetService(object originalObject)
         {

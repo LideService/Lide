@@ -13,7 +13,10 @@ namespace VendingMachine.Services.Test.Helpers
                 action?.Invoke();
                 exceptionIsThrown = false;
             }
-            catch { }
+            catch (Exception)
+            {
+                // ignored
+            }
 
             Assert.AreEqual(exceptionIsThrown, false);
         }

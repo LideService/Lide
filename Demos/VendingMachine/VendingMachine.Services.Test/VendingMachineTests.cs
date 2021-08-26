@@ -14,8 +14,8 @@ namespace VendingMachine.Services.Test
         [TestMethod]
         public void When_InsertingExactCoins_That_ItemCanBeBoughtWithNoChange()
         {
-            var moqProcessorObj = new Mock<IOProcessor>(new ConsoleFacade()) { CallBase = true };
-            var moqProcessor = moqProcessorObj.As<IIOProcessor>();
+            var moqProcessorObj = new Mock<IoProcessor>(new ConsoleFacade()) { CallBase = true };
+            var moqProcessor = moqProcessorObj.As<IIoProcessor>();
 
             var item1 = new VendingItem("Item 1", 185);
             var item2 = new VendingItem("Item 2", 135);
@@ -56,21 +56,21 @@ namespace VendingMachine.Services.Test
             moqProcessor.Verify(mock => mock.WriteItemOutput(It.IsAny<VendingItem>()), Times.Once);
 
             moqProcessor.Verify(mock => mock.WriteStorageContent(It.IsAny<Dictionary<VendingItem, int>>()), Times.Never);
-            moqProcessor.Verify(mock => mock.WriteInvalidCointWorth(It.IsAny<int>()), Times.Never);
+            moqProcessor.Verify(mock => mock.WriteInvalidCoinsWorth(It.IsAny<int>()), Times.Never);
             moqProcessor.Verify(mock => mock.WriteCannotAcceptClientCoin(It.IsAny<int>()), Times.Never);
             moqProcessor.Verify(mock => mock.WriteInvalidInput(It.IsAny<string>()), Times.Never);
             moqProcessor.Verify(mock => mock.WriteInvalidItem(It.IsAny<int>()), Times.Never);
             moqProcessor.Verify(mock => mock.WriteNotEnoughChange(), Times.Never);
             moqProcessor.Verify(mock => mock.WriteNotEnoughClientAmount(It.IsAny<int>()), Times.Never);
             moqProcessor.Verify(mock => mock.WriteAcceptableCoins(It.IsAny<List<int>>()), Times.Never);
-            moqProcessor.Verify(mock => mock.WriteNotEnoughQuantiy(It.IsAny<int>()), Times.Never);
+            moqProcessor.Verify(mock => mock.WriteNotEnoughQuantity(It.IsAny<int>()), Times.Never);
         }
 
         [TestMethod]
         public void When_InsertingCoins_That_VerificationsWorks()
         {
-            var moqProcessorObj = new Mock<IOProcessor>(new ConsoleFacade()) { CallBase = true };
-            var moqProcessor = moqProcessorObj.As<IIOProcessor>();
+            var moqProcessorObj = new Mock<IoProcessor>(new ConsoleFacade()) { CallBase = true };
+            var moqProcessor = moqProcessorObj.As<IIoProcessor>();
 
             var item1 = new VendingItem("Item 1", 185);
             var item2 = new VendingItem("Item 2", 135);
@@ -110,14 +110,14 @@ namespace VendingMachine.Services.Test
             moqProcessor.Verify(mock => mock.WriteItemOutput(It.IsAny<VendingItem>()), Times.Never);
 
             moqProcessor.Verify(mock => mock.WriteStorageContent(It.IsAny<Dictionary<VendingItem, int>>()), Times.Never);
-            moqProcessor.Verify(mock => mock.WriteInvalidCointWorth(It.IsAny<int>()), Times.Exactly(2));
+            moqProcessor.Verify(mock => mock.WriteInvalidCoinsWorth(It.IsAny<int>()), Times.Exactly(2));
             moqProcessor.Verify(mock => mock.WriteCannotAcceptClientCoin(It.IsAny<int>()), Times.Never);
             moqProcessor.Verify(mock => mock.WriteInvalidInput(It.IsAny<string>()), Times.Exactly(2));
             moqProcessor.Verify(mock => mock.WriteInvalidItem(It.IsAny<int>()), Times.Once);
             moqProcessor.Verify(mock => mock.WriteNotEnoughChange(), Times.Never);
             moqProcessor.Verify(mock => mock.WriteNotEnoughClientAmount(It.IsAny<int>()), Times.Never);
             moqProcessor.Verify(mock => mock.WriteAcceptableCoins(It.IsAny<List<int>>()), Times.Never);
-            moqProcessor.Verify(mock => mock.WriteNotEnoughQuantiy(It.IsAny<int>()), Times.Never);
+            moqProcessor.Verify(mock => mock.WriteNotEnoughQuantity(It.IsAny<int>()), Times.Never);
         }
     }
 }

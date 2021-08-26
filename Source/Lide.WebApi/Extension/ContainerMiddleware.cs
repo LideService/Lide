@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Lide.Core;
 using Lide.Core.Contract.Provider;
-using Lide.Core.Model;
+using Lide.Core.Model.Settings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -18,39 +18,38 @@ namespace Lide.WebApi.Extension
     {
         private readonly RequestDelegate _next;
         private readonly ICompressionProvider _compressionProvider;
-        private readonly LideAppSettings _appSettings;
+        private readonly AppSettings _appSettings;
 
         public ContainerMiddleware(
             RequestDelegate next,
-            IOptions<LideAppSettings> settings,
+            IOptions<AppSettings> settings,
             ICompressionProvider compressionProvider)
         {
             _next = next;
             _compressionProvider = compressionProvider;
-            _appSettings = settings?.Value ?? new LideAppSettings();
+            _appSettings = settings?.Value ?? new AppSettings();
         }
 
         public async Task Invoke(HttpContext httpContext)
         {
             var headers = httpContext.Request.Headers;
             var query = httpContext.Request.Query;
-            var lideEnabledHeader = headers.ContainsKey(LideProperties.LideEnabled) && Convert.ToBoolean(headers[LideProperties.LideEnabled].FirstOrDefault() ?? "false");
-            var lideEnabledQuery = query.ContainsKey(LideProperties.LideEnabled) && Convert.ToBoolean(query[LideProperties.LideEnabled].FirstOrDefault() ?? "false");
+            var lideEnabledHeader = headers.ContainsKey(PropagateProperties.Enabled) && Convert.ToBoolean(headers[PropagateProperties.Enabled].FirstOrDefault() ?? "false");
+            var lideEnabledQuery = query.ContainsKey(PropagateProperties.Enabled) && Convert.ToBoolean(query[PropagateProperties.Enabled].FirstOrDefault() ?? "false");
 
-            ////lideEnabledHeader = true;
             if (lideEnabledHeader)
             {
-                var compressionUsed = headers.ContainsKey(LideProperties.LideCompression) ? headers[LideProperties.LideCompression].FirstOrDefault() : null;
-                var previousScopeId = headers.ContainsKey(LideProperties.LideScopeId) ? headers[LideProperties.LideScopeId].FirstOrDefault() : null;
-                var settings = headers.ContainsKey(LideProperties.LideSettings) ? headers[LideProperties.LideSettings].FirstOrDefault() : null;
+                var compressionUsed = headers.ContainsKey(PropagateProperties.Compression) ? headers[PropagateProperties.Compression].FirstOrDefault() : null;
+                var previousScopeId = headers.ContainsKey(PropagateProperties.ScopeId) ? headers[PropagateProperties.ScopeId].FirstOrDefault() : null;
+                var settings = headers.ContainsKey(PropagateProperties.Settings) ? headers[PropagateProperties.Settings].FirstOrDefault() : null;
                 SetupLide(httpContext, compressionUsed, previousScopeId, settings);
             }
             else
             if (lideEnabledQuery)
             {
-                var compressionUsed = query.ContainsKey(LideProperties.LideCompression) ? query[LideProperties.LideCompression].FirstOrDefault() : null;
-                var previousScopeId = query.ContainsKey(LideProperties.LideScopeId) ? query[LideProperties.LideScopeId].FirstOrDefault() : null;
-                var settings = query.ContainsKey(LideProperties.LideSettings) ? query[LideProperties.LideSettings].FirstOrDefault() : null;
+                var compressionUsed = query.ContainsKey(PropagateProperties.Compression) ? query[PropagateProperties.Compression].FirstOrDefault() : null;
+                var previousScopeId = query.ContainsKey(PropagateProperties.ScopeId) ? query[PropagateProperties.ScopeId].FirstOrDefault() : null;
+                var settings = query.ContainsKey(PropagateProperties.Settings) ? query[PropagateProperties.Settings].FirstOrDefault() : null;
                 SetupLide(httpContext, compressionUsed, previousScopeId, settings);
             }
             else
@@ -75,12 +74,12 @@ namespace Lide.WebApi.Extension
             }
 
             var jsonObject = JsonSerializer.Deserialize<Dictionary<string, object>>(strRequestBody) ?? new Dictionary<string, object>();
-            var lideEnabled = jsonObject.ContainsKey(LideProperties.LideEnabled) && ((JsonElement)jsonObject[LideProperties.LideEnabled]).GetBoolean();
+            var lideEnabled = jsonObject.ContainsKey(PropagateProperties.Enabled) && ((JsonElement)jsonObject[PropagateProperties.Enabled]).GetBoolean();
             if (lideEnabled)
             {
-                var compressionUsed = jsonObject.ContainsKey(LideProperties.LideCompression) ? ((JsonElement)jsonObject[LideProperties.LideCompression]).GetString() : null;
-                var previousScopeId = jsonObject.ContainsKey(LideProperties.LideScopeId) ? ((JsonElement)jsonObject[LideProperties.LideScopeId]).GetString() : null;
-                var settings = jsonObject.ContainsKey(LideProperties.LideSettings) ? ((JsonElement)jsonObject[LideProperties.LideSettings]).GetString() : null;
+                var compressionUsed = jsonObject.ContainsKey(PropagateProperties.Compression) ? ((JsonElement)jsonObject[PropagateProperties.Compression]).GetString() : null;
+                var previousScopeId = jsonObject.ContainsKey(PropagateProperties.ScopeId) ? ((JsonElement)jsonObject[PropagateProperties.ScopeId]).GetString() : null;
+                var settings = jsonObject.ContainsKey(PropagateProperties.Settings) ? ((JsonElement)jsonObject[PropagateProperties.Settings]).GetString() : null;
                 SetupLide(httpContext, compressionUsed, previousScopeId, settings);
             }
         }
@@ -89,15 +88,13 @@ namespace Lide.WebApi.Extension
         {
             using var scope = httpContext.RequestServices.CreateScope();
             var scopedProvider = scope.ServiceProvider;
-            var settingsProvider = scopedProvider.GetService<ISettingsProvider>();
-            var scopeProvider = scopedProvider.GetService<IScopeProvider>();
+            var wrapper = new ServiceProviderWrapper(scopedProvider);
+            httpContext.RequestServices = wrapper;
 
             var compressed = Convert.ToBoolean(compressionUsed);
-            var propagateSettings = new LidePropagateSettings(compressed ? _compressionProvider.DecompressString(settings) : settings);
-            settingsProvider.LideAppSettings = _appSettings;
-            settingsProvider.LidePropagateSettings = propagateSettings;
-            scopeProvider.SetPreviousScopes(previousScopeId);
-            httpContext.RequestServices = new ServiceProviderWrapper(httpContext.RequestServices, scopedProvider);
+            var propagateSettings = compressed ? _compressionProvider.DecompressString(settings) : settings;
+            wrapper.SettingsProvider.SetData(_appSettings, propagateSettings);
+            wrapper.ScopeIdProvider.SetPreviousScopes(previousScopeId);
         }
     }
 }

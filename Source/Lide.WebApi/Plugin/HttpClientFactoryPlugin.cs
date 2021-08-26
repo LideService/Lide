@@ -15,6 +15,7 @@ namespace Lide.WebApi.Plugin
         }
 
         public Type Type => typeof(IHttpClientFactory);
+        public bool ContinueDecoration => false;
 
         public object GetService(object originalObject)
         {

@@ -7,13 +7,13 @@ namespace VendingMachine.Services.Services
 {
     public class CoinsStorage : ICoinsStorageConfigurator, ICoinsStorage
     {
-        private static readonly string _invalidCoinWorth = "Invalid coin worth!";
-        private static readonly string _invalidCoinQuantity = "Invalid coin quantity!";
-        private static readonly string _notEnoughCoins = "Not enough coins to extract!";
+        private const string InvalidCoinWorth = "Invalid coin worth!";
+        private const string InvalidCoinQuantity = "Invalid coin quantity!";
+        private const string NotEnoughCoins = "Not enough coins to extract!";
 
+        private readonly HashSet<int> _acceptableCoinsWorth;
         private Dictionary<int, int> _availableCoinsQuantity;
         private Dictionary<int, int> _clientCoinsQuantity;
-        private HashSet<int> _acceptableCoinsWorth;
 
         private CoinsStorage()
         {
@@ -31,12 +31,12 @@ namespace VendingMachine.Services.Services
         {
             if (!ValidateCoinWorth(coinWorth))
             {
-                throw new Exception(_invalidCoinWorth);
+                throw new Exception(InvalidCoinWorth);
             }
 
             if (quantity <= 0)
             {
-                throw new Exception(_invalidCoinQuantity);
+                throw new Exception(InvalidCoinQuantity);
             }
 
             if (!_availableCoinsQuantity.ContainsKey(coinWorth))
@@ -52,12 +52,12 @@ namespace VendingMachine.Services.Services
         {
             if (!ValidateCoinWorth(coinWorth))
             {
-                throw new Exception(_invalidCoinWorth);
+                throw new Exception(InvalidCoinWorth);
             }
 
             if (quantity <= 0)
             {
-                throw new Exception(_invalidCoinQuantity);
+                throw new Exception(InvalidCoinQuantity);
             }
 
             if (!_availableCoinsQuantity.ContainsKey(coinWorth))
@@ -67,7 +67,7 @@ namespace VendingMachine.Services.Services
 
             if (_availableCoinsQuantity[coinWorth] < quantity)
             {
-                throw new Exception(_notEnoughCoins);
+                throw new Exception(NotEnoughCoins);
             }
 
             _availableCoinsQuantity[coinWorth] -= quantity;
@@ -75,21 +75,21 @@ namespace VendingMachine.Services.Services
             return this;
         }
 
-        public ICoinsStorageConfigurator AddAcceptableCoinWorth(int cointWorth)
+        public ICoinsStorageConfigurator AddAcceptableCoinWorth(int coinsWorth)
         {
-            if (!_acceptableCoinsWorth.Contains(cointWorth))
+            if (!_acceptableCoinsWorth.Contains(coinsWorth))
             {
-                _acceptableCoinsWorth.Add(cointWorth);
+                _acceptableCoinsWorth.Add(coinsWorth);
             }
 
             return this;
         }
 
-        public ICoinsStorageConfigurator RemoveAcceptableCoinWorth(int cointWorth)
+        public ICoinsStorageConfigurator RemoveAcceptableCoinWorth(int coinsWorth)
         {
-            if (_acceptableCoinsWorth.Contains(cointWorth))
+            if (_acceptableCoinsWorth.Contains(coinsWorth))
             {
-                _acceptableCoinsWorth.Remove(cointWorth);
+                _acceptableCoinsWorth.Remove(coinsWorth);
             }
 
             return this;
@@ -120,9 +120,9 @@ namespace VendingMachine.Services.Services
             return _acceptableCoinsWorth.ToList();
         }
 
-        public bool ValidateCoinWorth(int cointWorth)
+        public bool ValidateCoinWorth(int coinsWorth)
         {
-            return _acceptableCoinsWorth.Contains(cointWorth);
+            return _acceptableCoinsWorth.Contains(coinsWorth);
         }
 
         public List<int> GetChange()

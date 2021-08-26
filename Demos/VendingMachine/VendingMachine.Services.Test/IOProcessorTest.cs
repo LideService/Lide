@@ -14,7 +14,7 @@ namespace VendingMachine.Services.Test
         [TestMethod]
         public void When_ValidCoinInput_That_ParsedAmountIsExpected()
         {
-            var ioProcessor = new IOProcessor(new ConsoleFacade());
+            var ioProcessor = new IoProcessor(new ConsoleFacade());
 
             Assert.AreEqual(true, ioProcessor.ParseInputToPence(" £2", out int poundOutputInPence));
             Assert.AreEqual(poundOutputInPence, 200);
@@ -26,7 +26,7 @@ namespace VendingMachine.Services.Test
         [TestMethod]
         public void When_InValidCoinInput_That_ResultIsNegative()
         {
-            var ioProcessor = new IOProcessor(new ConsoleFacade());
+            var ioProcessor = new IoProcessor(new ConsoleFacade());
             Assert.AreEqual(false, ioProcessor.ParseInputToPence(" £s2", out _));
             Assert.AreEqual(false, ioProcessor.ParseInputToPence("c50p", out _));
             Assert.AreEqual(false, ioProcessor.ParseInputToPence("50.p", out _));
@@ -35,7 +35,7 @@ namespace VendingMachine.Services.Test
         [TestMethod]
         public void When_ValidItemInput_That_ParsedIdIsExpected()
         {
-            var ioProcessor = new IOProcessor(new ConsoleFacade());
+            var ioProcessor = new IoProcessor(new ConsoleFacade());
 
             Assert.AreEqual(true, ioProcessor.ParseInputToItemId("slot 13", out int itemId13));
             Assert.AreEqual(itemId13, 13);
@@ -53,7 +53,7 @@ namespace VendingMachine.Services.Test
         [TestMethod]
         public void When_InValidItemInput_That_ResultIsNegative()
         {
-            var ioProcessor = new IOProcessor(new ConsoleFacade());
+            var ioProcessor = new IoProcessor(new ConsoleFacade());
             Assert.AreEqual(false, ioProcessor.ParseInputToItemId("Slot d1", out _));
             Assert.AreEqual(false, ioProcessor.ParseInputToItemId("s lot 2", out _));
             Assert.AreEqual(false, ioProcessor.ParseInputToItemId("slot. 3", out _));
@@ -63,7 +63,7 @@ namespace VendingMachine.Services.Test
         public void When_CallingAnyWrite_That_WriteLineIsCalled()
         {
             var moqConsoleFacade = new Moq.Mock<IConsoleFacade>();
-            var ioProcessor = new IOProcessor(moqConsoleFacade.Object);
+            var ioProcessor = new IoProcessor(moqConsoleFacade.Object);
 
             ioProcessor.WriteAcceptableCoins(new List<int>() { 1 });
             moqConsoleFacade.Verify(mock => mock.WriteLine(It.IsAny<string>()), Times.Exactly(1));
@@ -74,7 +74,7 @@ namespace VendingMachine.Services.Test
             ioProcessor.WriteNotEnoughChange();
             moqConsoleFacade.Verify(mock => mock.WriteLine(It.IsAny<string>()), Times.Exactly(3));
 
-            ioProcessor.WriteNotEnoughQuantiy(1);
+            ioProcessor.WriteNotEnoughQuantity(1);
             moqConsoleFacade.Verify(mock => mock.WriteLine(It.IsAny<string>()), Times.Exactly(4));
 
             ioProcessor.WriteInvalidItem(1);
@@ -86,7 +86,7 @@ namespace VendingMachine.Services.Test
             ioProcessor.WriteCannotAcceptClientCoin(200);
             moqConsoleFacade.Verify(mock => mock.WriteLine(It.IsAny<string>()), Times.Exactly(7));
 
-            ioProcessor.WriteInvalidCointWorth(200);
+            ioProcessor.WriteInvalidCoinsWorth(200);
             moqConsoleFacade.Verify(mock => mock.WriteLine(It.IsAny<string>()), Times.Exactly(8));
 
             ioProcessor.WriteClientTotalAmount(200);

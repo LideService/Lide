@@ -1,6 +1,6 @@
 using System.Net.Http;
 using Lide.Core.Contract.Provider;
-using Lide.Core.Model;
+using Lide.Core.Model.Settings;
 using Lide.WebApi.Contract;
 
 namespace Lide.WebApi
@@ -9,27 +9,26 @@ namespace Lide.WebApi
     {
         private readonly ICompressionProvider _compressionProvider;
         private readonly ISettingsProvider _settingsProvider;
-        private readonly IScopeProvider _scopeProvider;
+        private readonly IScopeIdProvider _scopeIdProvider;
 
         public HttpHeaderProcessor(
             ICompressionProvider compressionProvider,
             ISettingsProvider settingsProvider,
-            IScopeProvider scopeProvider)
+            IScopeIdProvider scopeIdProvider)
         {
             _compressionProvider = compressionProvider;
             _settingsProvider = settingsProvider;
-            _scopeProvider = scopeProvider;
+            _scopeIdProvider = scopeIdProvider;
         }
 
         public void AddHeaders(HttpClient httpClient)
         {
-            var settings = _settingsProvider.LidePropagateSettings.ToString();
-            var compressedSettings = _compressionProvider.CompressString(settings);
-            var scopeId = _scopeProvider.GetScopeId();
-            httpClient.DefaultRequestHeaders.Add(LideProperties.LideEnabled, "true");
-            httpClient.DefaultRequestHeaders.Add(LideProperties.LideCompression, "true");
-            httpClient.DefaultRequestHeaders.Add(LideProperties.LideScopeId, scopeId);
-            httpClient.DefaultRequestHeaders.Add(LideProperties.LideSettings, compressedSettings);
+            var compressedSettings = _compressionProvider.CompressString(_settingsProvider.PropagateSettingsString);
+            var scopeId = _scopeIdProvider.GetScopeId();
+            httpClient.DefaultRequestHeaders.Add(PropagateProperties.Enabled, "true");
+            httpClient.DefaultRequestHeaders.Add(PropagateProperties.Compression, "true");
+            httpClient.DefaultRequestHeaders.Add(PropagateProperties.ScopeId, scopeId);
+            httpClient.DefaultRequestHeaders.Add(PropagateProperties.Settings, compressedSettings);
         }
     }
 }

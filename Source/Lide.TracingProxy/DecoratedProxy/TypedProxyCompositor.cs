@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Lide.TracingProxy.Contract;
 using Lide.TracingProxy.Reflection;
@@ -26,6 +27,12 @@ namespace Lide.TracingProxy.DecoratedProxy
         }
 
         public IProxyCompositorTyped<TInterface> SetDecorators(params IObjectDecorator[] decorators)
+        {
+            _decorators.AddRange(decorators.Where(x => x != null));
+            return this;
+        }
+
+        public IProxyCompositorTyped<TInterface> SetDecorators(IEnumerable<IObjectDecorator> decorators)
         {
             _decorators.AddRange(decorators.Where(x => x != null));
             return this;

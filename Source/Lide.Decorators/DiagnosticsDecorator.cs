@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
+using Lide.Core.Model;
 using Lide.TracingProxy.Contract;
 using Lide.TracingProxy.Model;
 
@@ -15,17 +16,17 @@ namespace Lide.Decorators
         private static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
         private readonly IFileWriter _fileWriter;
         private readonly ISignatureProvider _signatureProvider;
-        private readonly IScopeProvider _scopeProvider;
+        private readonly IScopeIdProvider _scopeIdProvider;
         private readonly ConcurrentDictionary<int, long> _executionTimes;
 
         public DiagnosticsDecorator(
             IFileWriter fileWriter,
             ISignatureProvider signatureProvider,
-            IScopeProvider scopeProvider)
+            IScopeIdProvider scopeIdProvider)
         {
             _fileWriter = fileWriter;
             _signatureProvider = signatureProvider;
-            _scopeProvider = scopeProvider;
+            _scopeIdProvider = scopeIdProvider;
             _executionTimes = new ConcurrentDictionary<int, long>();
         }
 
@@ -56,8 +57,8 @@ namespace Lide.Decorators
 
             _fileWriter.AddToQueue(() =>
             {
-                var scopeId = _scopeProvider.GetScopeId();
-                var signature = _signatureProvider.GetMethodSignature(methodInfo);
+                var scopeId = _scopeIdProvider.GetScopeId();
+                var signature = _signatureProvider.GetMethodSignature(methodInfo, SignatureOptions.AllSet);
                 var message = $"[{scopeId}]: [{signature}] took {executionTime} ticks + {Environment.NewLine}";
                 return Encoding.ASCII.GetBytes(message);
             }, Id);

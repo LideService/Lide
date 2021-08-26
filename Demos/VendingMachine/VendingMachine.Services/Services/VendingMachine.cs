@@ -1,16 +1,15 @@
 ﻿using VendingMachine.Services.Contracts;
-using VendingMachine.Services.Model;
 
 namespace VendingMachine.Services.Services
 {
     public class VendingMachine : IVendingMachineConfigurator, IVendingMachine
     {
-        private readonly IIOProcessor _ioProcessor;
+        private readonly IIoProcessor _ioProcessor;
         private readonly IItemsStorage _itemsStorage;
         private readonly ICoinsStorage _coinsStorage;
 
         private VendingMachine(
-            IIOProcessor ioProcessor,
+            IIoProcessor ioProcessor,
             ICoinsStorage coinsStorage,
             IItemsStorage itemsStorage)
         {
@@ -20,7 +19,7 @@ namespace VendingMachine.Services.Services
         }
 
         public static IVendingMachineConfigurator CreateVendingMachine(
-            IIOProcessor ioProcessor,
+            IIoProcessor ioProcessor,
             ICoinsStorage coinsStorage,
             IItemsStorage itemsStorage)
         {
@@ -74,7 +73,7 @@ namespace VendingMachine.Services.Services
         {
             if (!_coinsStorage.ValidateCoinWorth(coinWorth))
             {
-                _ioProcessor.WriteInvalidCointWorth(coinWorth);
+                _ioProcessor.WriteInvalidCoinsWorth(coinWorth);
                 return;
             }
 
@@ -90,7 +89,7 @@ namespace VendingMachine.Services.Services
 
         private void ProcessItemRequest(int itemId)
         {
-            if (!_itemsStorage.CheckForItem(itemId, out VendingItem vendingItem))
+            if (!_itemsStorage.CheckForItem(itemId, out var vendingItem))
             {
                 _ioProcessor.WriteInvalidItem(itemId);
                 return;
@@ -98,7 +97,7 @@ namespace VendingMachine.Services.Services
 
             if (!_itemsStorage.CheckForQuantity(vendingItem))
             {
-                _ioProcessor.WriteNotEnoughQuantiy(itemId);
+                _ioProcessor.WriteNotEnoughQuantity(itemId);
                 return;
             }
 
@@ -123,6 +122,7 @@ namespace VendingMachine.Services.Services
             {
                 _ioProcessor.WriteChange(change);
             }
+
             _ioProcessor.WriteItemOutput(vendingItem);
         }
     }

@@ -8,9 +8,9 @@ namespace VendingMachine.Services.Services
 {
     public class ItemsStorage : IItemsStorageConfigurator, IItemsStorage
     {
-        private static readonly string _cantAddNewItem = "Can't add new item. Storage is full!";
-        private static readonly string _cantConfigureItemWithNegativeQuantity = "Can't configure item to have negative quantity!";
-        private static readonly int _invalidItemId = -1;
+        private const string CantAddNewItem = "Can't add new item. Storage is full!";
+        private const string CantConfigureItemWithNegativeQuantity = "Can't configure item to have negative quantity!";
+        private const int InvalidItemId = -1;
         private readonly int _storageSize;
         private readonly Dictionary<int, VendingItem> _vendingItems;
         private readonly Dictionary<int, int> _vendingItemsQuantity;
@@ -31,7 +31,7 @@ namespace VendingMachine.Services.Services
         {
             if (!_vendingItems.ContainsKey(vendingItem.Id) && _vendingItems.Count == _storageSize)
             {
-                throw new Exception(_cantAddNewItem);
+                throw new Exception(CantAddNewItem);
             }
 
             if (!_vendingItems.ContainsKey(vendingItem.Id))
@@ -44,7 +44,7 @@ namespace VendingMachine.Services.Services
             {
                 if (quantity < 0 && !CheckForQuantity(vendingItem, quantity.Value * (-1)))
                 {
-                    throw new Exception(_cantConfigureItemWithNegativeQuantity);
+                    throw new Exception(CantConfigureItemWithNegativeQuantity);
                 }
 
                 ChangeItemQuantity(vendingItem, quantity.Value);
@@ -66,9 +66,9 @@ namespace VendingMachine.Services.Services
 
         public IItemsStorageConfigurator ChangeItemQuantity(VendingItem vendingItem, int quantity)
         {
-            if (quantity < 0 && !CheckForQuantity(vendingItem, quantity * (-1)))
+            if (quantity < 0 && !CheckForQuantity(vendingItem, -quantity))
             {
-                throw new Exception(_cantConfigureItemWithNegativeQuantity);
+                throw new Exception(CantConfigureItemWithNegativeQuantity);
             }
 
             ChangeQuantity(vendingItem.Id, quantity);
@@ -104,12 +104,12 @@ namespace VendingMachine.Services.Services
 
         public bool CheckForQuantity(VendingItem vendingItem, int quantityNeeded = 1)
         {
-            if (!CheckForItem(vendingItem?.Id ?? _invalidItemId, out VendingItem dummy))
+            if (!CheckForItem(vendingItem?.Id ?? InvalidItemId, out var dummy))
             {
                 return false;
             }
 
-            return _vendingItemsQuantity[vendingItem.Id] - quantityNeeded >= 0;
+            return _vendingItemsQuantity[vendingItem!.Id] - quantityNeeded >= 0;
         }
 
         public bool GetItemFromStorage(VendingItem vendingItem)

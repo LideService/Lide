@@ -4,11 +4,11 @@ using Lide.Core.Contract.Provider;
 
 namespace Lide.Core.Provider
 {
-    public class ScopeProvider : IScopeProvider
+    public class ScopeIdProvider : IScopeIdProvider
     {
         private string _scopeId;
 
-        public ScopeProvider(IDateTimeFacade dateTimeFacade, IRandomFacade randomFacade)
+        public ScopeIdProvider(IDateTimeFacade dateTimeFacade, IRandomFacade randomFacade)
         {
             var epoch = dateTimeFacade.GetUnixEpoch();
             var ticks = epoch.Ticks;

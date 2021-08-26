@@ -1,0 +1,25 @@
+pool:
+  vmImage: ubuntu-latest
+
+name: $(Build.DefinitionName)-1.0.0.$(rev:r)
+
+steps:
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: 'Source/**/*.csproj'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'pack'
+      packagesToPack: 'Source/**/*.csproj'
+      nobuild: true
+      includesymbols: true
+      includesource: true
+      versioningScheme: 'byBuildNumber'
+  - task: NuGetCommand@2
+    inputs:
+      command: 'push'
+      packagesToPush: '$(Build.ArtifactStagingDirectory)/**/*.nupkg;!$(Build.ArtifactStagingDirectory)/**/*.symbols.nupkg'
+      nuGetFeedType: 'internal'
+      publishVstsFeed: '31eef9a4-b857-4267-8ddf-05782d90951a/0f48340a-a5d8-40e2-a788-4613ab088e5d'
+      allowPackageConflicts: true

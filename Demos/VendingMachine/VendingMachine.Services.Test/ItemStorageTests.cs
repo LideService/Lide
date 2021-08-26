@@ -26,7 +26,7 @@ namespace VendingMachine.Services.Test
             var itemStorage = ItemsStorage.CreateItemStorage(1);
             itemStorage.ConfigureItem(vendingItem, 10);
 
-            ExceptionAssert.Throws<Exception>(() => itemStorage.ConfigureItem(vendingItem2, 10));
+            Assert.ThrowsException<Exception>(() => itemStorage.ConfigureItem(vendingItem2, 10));
         }
 
         [TestMethod]
@@ -35,11 +35,11 @@ namespace VendingMachine.Services.Test
             var vendingItem = new VendingItem("1", 10);
             var itemStorage = ItemsStorage.CreateItemStorage(1);
 
-            ExceptionAssert.Throws<Exception>(() => itemStorage.ConfigureItem(vendingItem, -10));
+            Assert.ThrowsException<Exception>(() => itemStorage.ConfigureItem(vendingItem, -10));
         }
 
         [TestMethod]
-        public void When_ChaningItemQuantityToPositive_That_NoExceptionWillBeThrown()
+        public void When_ChangingItemQuantityToPositive_That_NoExceptionWillBeThrown()
         {
             var vendingItem = new VendingItem("1", 10);
             var itemStorage = ItemsStorage.CreateItemStorage(1);
@@ -49,7 +49,7 @@ namespace VendingMachine.Services.Test
         }
 
         [TestMethod]
-        public void When_ChaningItemQuantityToPositive_That_QuantityWillChangeAccordingly()
+        public void When_ChangingItemQuantityToPositive_That_QuantityWillChangeAccordingly()
         {
             var vendingItem = new VendingItem("1", 10);
             var itemStorage = ItemsStorage.CreateItemStorage(1);
@@ -66,13 +66,13 @@ namespace VendingMachine.Services.Test
         }
 
         [TestMethod]
-        public void When_ChaningItemQuantityToNegative_That_ExceptionWillBeThrown()
+        public void When_ChangingItemQuantityToNegative_That_ExceptionWillBeThrown()
         {
             var vendingItem = new VendingItem("1", 10);
             var itemStorage = ItemsStorage.CreateItemStorage(1);
             itemStorage.ConfigureItem(vendingItem, 10);
 
-            ExceptionAssert.Throws<Exception>(() => itemStorage.ChangeItemQuantity(vendingItem, -12));
+            Assert.ThrowsException<Exception>(() => itemStorage.ChangeItemQuantity(vendingItem, -12));
         }
 
         [TestMethod]
@@ -91,7 +91,7 @@ namespace VendingMachine.Services.Test
         }
 
         [TestMethod]
-        public void When_RemovingNonExistantItem_That_NoExceptionWillBeThrown()
+        public void When_RemovingNonExistentItem_That_NoExceptionWillBeThrown()
         {
             var vendingItem = new VendingItem("1", 10);
             var itemStorage = ItemsStorage.CreateItemStorage(1);
@@ -137,7 +137,7 @@ namespace VendingMachine.Services.Test
         }
 
         [TestMethod]
-        public void When_ItemWithNotEnoughQuantity_That_CheckForQuantityIsNegatiev()
+        public void When_ItemWithNotEnoughQuantity_That_CheckForQuantityIsNegative()
         {
             var vendingItem = new VendingItem("1", 10);
             var itemStorage = ItemsStorage.CreateItemStorage(1)

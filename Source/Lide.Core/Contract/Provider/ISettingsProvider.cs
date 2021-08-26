@@ -1,19 +1,23 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Lide.Core.Model;
+using Lide.Core.Model.Settings;
 
 namespace Lide.Core.Contract.Provider
 {
-    [SuppressMessage("Microsoft", "CA1819", Justification = "Easier with array than list")]
     public interface ISettingsProvider
     {
-        public LideAppSettings LideAppSettings { get; set; }
-        public LidePropagateSettings LidePropagateSettings { get; set; }
+        AppSettings AppSettings { get; }
+        PropagateSettings PropagateSettings { get; }
+        string PropagateSettingsString { get; }
 
-        bool SearchHttpBodyOrQuery { get;  }
+        bool SearchHttpBodyOrQuery { get; }
         bool AllowVolatileDecorators { get; }
-        string[] ExcludedTypes { get; }
-        string[] ExcludedNamespaces { get; }
-        string[] ExcludedAssemblies { get; }
-        string[] AppliedDecorators { get; }
+        bool AllowEnablingDecorators { get; }
+
+        void SetData(AppSettings appSettings, string propagateSettings);
+        bool IsTypeAllowed(Type type, string decoratorId);
+        List<string> GetDecorators();
     }
 }

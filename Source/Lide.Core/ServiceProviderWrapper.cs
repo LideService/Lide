@@ -13,18 +13,22 @@ namespace Lide.Core
     {
         private readonly Dictionary<object, object> _generatedProxies;
         private readonly IServiceProvider _serviceProvider;
-        private readonly ISettingsProvider _settingsProvider;
         private readonly List<IServiceProviderPlugin> _plugins;
         private readonly List<IObjectDecorator> _decorators;
 
-        public ServiceProviderWrapper(IServiceProvider serviceProvider, IServiceProvider scoped)
+        // Might break with scoped
+        public ServiceProviderWrapper(IServiceProvider scoped)
         {
-            _serviceProvider = serviceProvider;
-            _settingsProvider = (ISettingsProvider)scoped.GetService(typeof(ISettingsProvider)) ?? throw new Exception($"Missing service type {nameof(ISettingsProvider)}");
+            _serviceProvider = scoped;
+            SettingsProvider = (ISettingsProvider)scoped.GetService(typeof(ISettingsProvider)) ?? throw new Exception($"Missing service type {nameof(ISettingsProvider)}");
+            ScopeIdProvider = (IScopeIdProvider)scoped.GetService(typeof(IScopeIdProvider)) ?? throw new Exception($"Missing service type {nameof(IScopeIdProvider)}");
             _plugins = ((IEnumerable<IServiceProviderPlugin>)scoped.GetService(typeof(IEnumerable<IServiceProviderPlugin>)))?.ToList() ?? new List<IServiceProviderPlugin>();
             _decorators = ((IEnumerable<IObjectDecorator>)scoped.GetService(typeof(IEnumerable<IObjectDecorator>)))?.ToList() ?? new List<IObjectDecorator>();
             _generatedProxies = new Dictionary<object, object>(new IdentityEqualityComparer<object>());
         }
+
+        public ISettingsProvider SettingsProvider { get; private set; }
+        public IScopeIdProvider ScopeIdProvider { get; private set; }
 
         public object GetService(Type serviceType)
         {
@@ -34,7 +38,12 @@ namespace Lide.Core
                 return null;
             }
 
-            if (IsTypeExcluded(serviceType))
+            if (!SettingsProvider.AllowEnablingDecorators)
+            {
+                return originalObject;
+            }
+
+            if (!SettingsProvider.IsTypeAllowed(serviceType, ""))
             {
                 return originalObject;
             }
@@ -47,42 +56,40 @@ namespace Lide.Core
             var plugin = _plugins.FirstOrDefault(x => x.Type == serviceType);
             if (plugin != null)
             {
-                var decoratedObject = plugin.GetService(originalObject);
-                if (decoratedObject != null)
+                var pluginObject = plugin.GetService(originalObject);
+                if (plugin.ContinueDecoration && serviceType.IsInterface)
                 {
-                    _generatedProxies.Add(originalObject, decoratedObject);
-                    return decoratedObject;
+                    pluginObject = DecorateObject(serviceType, pluginObject);
                 }
+
+                return pluginObject;
             }
 
-            if (serviceType.IsInterface)
+            if (!serviceType.IsInterface)
             {
-                var proxy = ProxyDecoratorFactory.CreateProxyDecorator(serviceType);
-                proxy.SetDecorators(GetDecorators().ToArray());
-                proxy.SetOriginalObject(originalObject);
-                var decoratedObject = proxy.GetDecoratedObject();
-                _generatedProxies.Add(originalObject, decoratedObject);
-                return decoratedObject;
+                return originalObject;
             }
 
-            return originalObject;
+            var decoratedObject = DecorateObject(serviceType, originalObject);
+            _generatedProxies.Add(originalObject, decoratedObject);
+            return decoratedObject;
         }
 
-        private bool IsTypeExcluded(Type serviceType)
+        private object DecorateObject(Type serviceType, object originalObject)
         {
-            var assemblyName = serviceType.Assembly.GetName().Name;
-            var @namespace = serviceType.Namespace;
-            var excludedByType = _settingsProvider.ExcludedTypes.Any(serviceType.Name.StartsWith);
-            var excludedByNamespace = @namespace != null && _settingsProvider.ExcludedNamespaces.Any(@namespace.StartsWith);
-            var excludedByAssembly = assemblyName != null && _settingsProvider.ExcludedAssemblies.Any(assemblyName.StartsWith);
-            return excludedByType || excludedByNamespace || excludedByAssembly;
+            var proxy = ProxyDecoratorFactory.CreateProxyDecorator(serviceType);
+            proxy.SetDecorators(GetDecorators());
+            proxy.SetOriginalObject(originalObject);
+            var decoratedObject = proxy.GetDecoratedObject();
+            _generatedProxies.Add(originalObject, decoratedObject);
+            return decoratedObject;
         }
 
         private IEnumerable<IObjectDecorator> GetDecorators()
         {
             return _decorators
-                .Where(x => _settingsProvider.AppliedDecorators.Contains(x.Id))
-                .Where(x => !x.IsVolatile || _settingsProvider.AllowVolatileDecorators);
+                .Where(x => SettingsProvider.GetDecorators().Contains(x.Id))
+                .Where(x => !x.IsVolatile || SettingsProvider.AllowVolatileDecorators);
         }
 
         private class IdentityEqualityComparer<T> : IEqualityComparer<T>

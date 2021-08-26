@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Lide.TracingProxy.Contract
 {
@@ -8,6 +9,7 @@ namespace Lide.TracingProxy.Contract
         IProxyCompositorTyped<TInterface> SetOriginalObject(TInterface originalObject);
         IProxyCompositorTyped<TInterface> SetDecorator(IObjectDecorator decorator);
         IProxyCompositorTyped<TInterface> SetDecorators(params IObjectDecorator[] decorators);
+        IProxyCompositorTyped<TInterface> SetDecorators(IEnumerable<IObjectDecorator> decorators);
         IProxyCompositorTyped<TInterface> SetDelegateMethodInfoCache(IMethodInfoCache methodInfoCache);
         IProxyCompositorTyped<TInterface> SetDelegateMethodInfoProvider(IMethodInfoProvider methodInfoProvider);
         IProxyCompositorTyped<TInterface> SetLogErrorAction(Action<string> logError);

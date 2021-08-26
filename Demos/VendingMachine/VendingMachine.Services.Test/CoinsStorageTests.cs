@@ -31,7 +31,7 @@ namespace VendingMachine.Services.Test
                 .AddAcceptableCoinWorth(5)
                 .CloseCoinsVault();
 
-            ExceptionAssert.Throws<Exception>(() =>
+            Assert.ThrowsException<Exception>(() =>
                 coinStorage.OpenCoinsVault()
                     .SupplyWithCoins(20, 2));
         }
@@ -46,10 +46,9 @@ namespace VendingMachine.Services.Test
                 .SupplyWithCoins(5, 13)
                 .CloseCoinsVault();
 
-
             ExcAssert.NotThrown(() =>
                 coinStorage.OpenCoinsVault()
-                    .ExtractCoins(10, 1)
+                    .ExtractCoins(10)
                     .ExtractCoins(5, 13));
         }
 
@@ -63,9 +62,9 @@ namespace VendingMachine.Services.Test
                 .SupplyWithCoins(5, 13)
                 .CloseCoinsVault();
 
-            ExceptionAssert.Throws<Exception>(() =>
+            Assert.ThrowsException<Exception>(() =>
                 coinStorage.OpenCoinsVault()
-                    .ExtractCoins(20, 1));
+                    .ExtractCoins(20));
         }
 
         [TestMethod]
@@ -76,7 +75,7 @@ namespace VendingMachine.Services.Test
                 .SupplyWithCoins(10, 19)
                 .CloseCoinsVault();
 
-            ExceptionAssert.Throws<Exception>(() =>
+            Assert.ThrowsException<Exception>(() =>
                 coinStorage.OpenCoinsVault()
                     .ExtractCoins(10, 24));
         }
@@ -89,7 +88,7 @@ namespace VendingMachine.Services.Test
                 .SupplyWithCoins(10, 19)
                 .CloseCoinsVault();
 
-            ExceptionAssert.Throws<Exception>(() =>
+            Assert.ThrowsException<Exception>(() =>
                 coinStorage.OpenCoinsVault()
                     .ExtractCoins(10, -5));
         }
@@ -102,7 +101,7 @@ namespace VendingMachine.Services.Test
                 .SupplyWithCoins(10, 19)
                 .CloseCoinsVault();
 
-            ExceptionAssert.Throws<Exception>(() =>
+            Assert.ThrowsException<Exception>(() =>
                 coinStorage.OpenCoinsVault()
                     .ExtractCoins(10, -5));
         }
@@ -127,10 +126,10 @@ namespace VendingMachine.Services.Test
                 .SupplyWithCoins(10, 12)
                 .CloseCoinsVault();
 
-            var afterAddingMoreTotalAmoun = coinStorage.OpenCoinsVault().ShowTotalAmountInTheVault();
+            var afterAddingMoreTotalAmount = coinStorage.OpenCoinsVault().ShowTotalAmountInTheVault();
             var afterAddingMoreTotalCoinsCount = coinStorage.OpenCoinsVault().ShowCurrentCoins().Count;
 
-            Assert.AreEqual(beforeAddingMoreTotalAmount + expectedChangeInAmount, afterAddingMoreTotalAmoun);
+            Assert.AreEqual(beforeAddingMoreTotalAmount + expectedChangeInAmount, afterAddingMoreTotalAmount);
             Assert.AreEqual(beforeAddingMoreTotalCoinsCount + expectedChangeInCount, afterAddingMoreTotalCoinsCount);
         }
 
@@ -154,10 +153,10 @@ namespace VendingMachine.Services.Test
                 .ExtractCoins(10, 12)
                 .CloseCoinsVault();
 
-            var afterAddingMoreTotalAmoun = coinStorage.OpenCoinsVault().ShowTotalAmountInTheVault();
+            var afterAddingMoreTotalAmount = coinStorage.OpenCoinsVault().ShowTotalAmountInTheVault();
             var afterAddingMoreTotalCoinsCount = coinStorage.OpenCoinsVault().ShowCurrentCoins().Count;
 
-            Assert.AreEqual(beforeAddingMoreTotalAmount + expectedChangeInAmount, afterAddingMoreTotalAmoun);
+            Assert.AreEqual(beforeAddingMoreTotalAmount + expectedChangeInAmount, afterAddingMoreTotalAmount);
             Assert.AreEqual(beforeAddingMoreTotalCoinsCount + expectedChangeInCount, afterAddingMoreTotalCoinsCount);
         }
 
@@ -184,11 +183,11 @@ namespace VendingMachine.Services.Test
             coinStorage.AddClientCoin(20);
             coinStorage.AddClientCoin(10);
 
-            var afterClientAddingTotalAmoun = coinStorage.OpenCoinsVault().ShowTotalAmountInTheVault();
+            var afterClientAddingTotalAmount = coinStorage.OpenCoinsVault().ShowTotalAmountInTheVault();
             var afterClientAddingTotalCoinsCount = coinStorage.OpenCoinsVault().ShowCurrentCoins().Count;
             var afterClientAddingTotalClientAmount = coinStorage.GetCurrentClientAmount();
 
-            Assert.AreEqual(beforeClientAddingTotalAmount, afterClientAddingTotalAmoun);
+            Assert.AreEqual(beforeClientAddingTotalAmount, afterClientAddingTotalAmount);
             Assert.AreEqual(beforeClientAddingTotalCoinsCount, afterClientAddingTotalCoinsCount);
             Assert.AreEqual(beforeClientAddingTotalClientAmount + expectedChangeInClientAmount, afterClientAddingTotalClientAmount);
         }
@@ -196,7 +195,7 @@ namespace VendingMachine.Services.Test
         [TestMethod]
         public void When_ClientInsertExactCoins_That_TheExactAmountCanBeProcessed()
         {
-            var clinetAmountAsExactRequestAmount = 90;
+            var clientAmountAsExactRequestAmount = 90;
             var coinStorage = CoinsStorage.CreateCoinsStorage()
                 .AddAcceptableCoinWorth(10)
                 .AddAcceptableCoinWorth(20)
@@ -212,10 +211,9 @@ namespace VendingMachine.Services.Test
             coinStorage.AddClientCoin(20);
             coinStorage.AddClientCoin(10);
 
-            Assert.AreEqual(true, coinStorage.CheckForChange(clinetAmountAsExactRequestAmount));
-            Assert.AreEqual(true, coinStorage.CompleteRequest(clinetAmountAsExactRequestAmount));
+            Assert.AreEqual(true, coinStorage.CheckForChange(clientAmountAsExactRequestAmount));
+            Assert.AreEqual(true, coinStorage.CompleteRequest(clientAmountAsExactRequestAmount));
         }
-
 
         [TestMethod]
         public void When_AmountIsProcessed_That_CoinsInTheVaultIncreaseAccordingly()
@@ -243,11 +241,11 @@ namespace VendingMachine.Services.Test
             coinStorage.CheckForChange(clientAmountAsExactRequestAmount);
             coinStorage.CompleteRequest(clientAmountAsExactRequestAmount);
 
-            var afterCompleteRequestTotalAmoun = coinStorage.OpenCoinsVault().ShowTotalAmountInTheVault();
+            var afterCompleteRequestTotalAmount = coinStorage.OpenCoinsVault().ShowTotalAmountInTheVault();
             var afterCompleteRequestTotalCoinsCount = coinStorage.OpenCoinsVault().ShowCurrentCoins().Count;
             var afterCompleteRequestTotalClientAmount = coinStorage.GetCurrentClientAmount();
 
-            Assert.AreEqual(beforeCompleteRequestTotalAmount + clientAmountAsExactRequestAmount, afterCompleteRequestTotalAmoun);
+            Assert.AreEqual(beforeCompleteRequestTotalAmount + clientAmountAsExactRequestAmount, afterCompleteRequestTotalAmount);
             Assert.AreEqual(beforeCompleteRequestTotalCoinsCount + clientCoinsCount, afterCompleteRequestTotalCoinsCount);
             Assert.AreEqual(afterCompleteRequestTotalClientAmount, 0);
         }

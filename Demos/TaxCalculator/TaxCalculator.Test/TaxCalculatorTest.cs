@@ -1,4 +1,10 @@
-﻿namespace TaxCalculator.Test
+﻿using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using TaxCalculator.Services;
+using TaxCalculator.Services.Contracts;
+using TaxCalculator.Services.Model;
+
+namespace TaxCalculator.Test
 {
     [TestClass]
     public class TaxCalculatorTest
@@ -14,7 +20,6 @@
 
             Assert.AreEqual(expectedAmount, netAmount);
         }
-
 
         [TestMethod]
         public void When_GrossAmount_Is_AboveBasicLevel_That_OnlyBasicTaxIsApplied()
@@ -52,12 +57,16 @@
             Assert.AreEqual(expectedAmount, netAmount);
         }
 
-        private ITaxCalculator GetDefaultCalculator()
+        private static ICalculator GetDefaultCalculator()
         {
-            return TaxCalculator.Services.Services.TaxCalculator.CreateNewTaxCalulator("Default")
-                .AddTaxLevel("Basic", 900, null, 10)
-                .AddTaxLevel("Social", 1500, 3000, 15)
-                .CompleteConfiguration();
+            var calculator = new Calculator();
+            calculator.AddTaxLevels(new List<TaxLevel>
+            {
+                new TaxLevel("Basic", 900, null, 10),
+                new TaxLevel("Social", 1500, 3000, 15),
+            });
+
+            return calculator;
         }
     }
 }

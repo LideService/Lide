@@ -13,7 +13,7 @@ namespace VendingMachine.Services.Contracts
 
         List<int> GetChange();
         List<int> GetAcceptableCoins();
-        bool ValidateCoinWorth(int cointWorth);
+        bool ValidateCoinWorth(int coinsWorth);
         int GetCurrentClientAmount();
     }
 }
