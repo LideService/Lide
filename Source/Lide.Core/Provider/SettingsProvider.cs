@@ -52,7 +52,7 @@ namespace Lide.Core.Provider
         public void SetData(AppSettings appSettings, string propagateSettings)
         {
             AppSettings = appSettings;
-            PropagateSettings = _serializerFacade.Deserialize<PropagateSettings>(propagateSettings);
+            PropagateSettings = DeserializeSafe(propagateSettings);
             PropagateSettingsString = propagateSettings;
             BuildIncludedTypes();
             BuildExcludedTypes();
@@ -138,5 +138,17 @@ namespace Lide.Core.Provider
         private static bool StartsWith(string x) => x.StartsWith("*") || !x.EndsWith("*");
         private static bool EndsWith(string x) => x.StartsWith("*") || !x.EndsWith("*");
         private static bool StartsEndsWith(string x) => x.StartsWith("*") || !x.EndsWith("*");
+
+        private PropagateSettings DeserializeSafe(string propagateSettings)
+        {
+            try
+            {
+                return _serializerFacade.Deserialize<PropagateSettings>(propagateSettings);
+            }
+            catch
+            {
+                return new PropagateSettings();
+            }
+        }
     }
 }
