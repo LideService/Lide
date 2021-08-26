@@ -9,17 +9,19 @@ using Lide.TracingProxy.Contract;
 
 namespace Lide.Core
 {
-    public class ServiceProviderWrapper : IServiceProvider
+    public class ServiceProviderWrapper : IServiceProvider, IDisposable
     {
         private readonly Dictionary<object, object> _generatedProxies;
         private readonly IServiceProvider _serviceProvider;
+        private readonly Action _disposeProvider;
         private readonly List<IServiceProviderPlugin> _plugins;
         private readonly List<IObjectDecorator> _decorators;
 
         // Might break with scoped
-        public ServiceProviderWrapper(IServiceProvider scoped)
+        public ServiceProviderWrapper(IServiceProvider scoped, Action disposeProvider)
         {
             _serviceProvider = scoped;
+            _disposeProvider = disposeProvider;
             SettingsProvider = (ISettingsProvider)scoped.GetService(typeof(ISettingsProvider)) ?? throw new Exception($"Missing service type {nameof(ISettingsProvider)}");
             ScopeIdProvider = (IScopeIdProvider)scoped.GetService(typeof(IScopeIdProvider)) ?? throw new Exception($"Missing service type {nameof(IScopeIdProvider)}");
             _plugins = ((IEnumerable<IServiceProviderPlugin>)scoped.GetService(typeof(IEnumerable<IServiceProviderPlugin>)))?.ToList() ?? new List<IServiceProviderPlugin>();
@@ -29,6 +31,12 @@ namespace Lide.Core
 
         public ISettingsProvider SettingsProvider { get; private set; }
         public IScopeIdProvider ScopeIdProvider { get; private set; }
+
+        public void Dispose()
+        {
+            _disposeProvider?.Invoke();
+            GC.SuppressFinalize(this);
+        }
 
         public object GetService(Type serviceType)
         {

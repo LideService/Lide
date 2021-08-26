@@ -86,9 +86,9 @@ namespace Lide.WebApi.Extension
 
         private void SetupLide(HttpContext httpContext, string compressionUsed, string previousScopeId, string settings)
         {
-            using var scope = httpContext.RequestServices.CreateScope();
+            var scope = httpContext.RequestServices.CreateScope();
             var scopedProvider = scope.ServiceProvider;
-            var wrapper = new ServiceProviderWrapper(scopedProvider);
+            var wrapper = new ServiceProviderWrapper(scopedProvider, scope.Dispose);
             httpContext.RequestServices = wrapper;
 
             var compressed = Convert.ToBoolean(compressionUsed);
