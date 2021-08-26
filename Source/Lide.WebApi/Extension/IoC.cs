@@ -51,7 +51,7 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddScoped<IServiceProviderPlugin, HttpClientPlugin>();
             serviceCollection.AddScoped<IHttpHeaderProcessor, HttpHeaderProcessor>();
 
-            serviceCollection.Configure<AppSettings>(configuration.GetSection("LideAppSettings"));
+            serviceCollection.Configure<AppSettings>(configuration.GetSection("LideSettings"));
         }
     }
 }

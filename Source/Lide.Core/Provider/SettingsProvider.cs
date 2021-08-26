@@ -61,24 +61,43 @@ namespace Lide.Core.Provider
 
         public List<string> GetDecorators() => _decorators;
 
-        public bool IsTypeAllowed(Type type, string decoratorId)
+        public bool IsTypeAllowed(Type type)
         {
-            var isIncluded = _includedFullname.Types.Any(x => type.Name == x)
-                             || _includedStarts.Types.Any(x => type.Name.StartsWith(x))
-                             || _includedEnds.Types.Any(x => type.Name.EndsWith(x))
-                             || _includedStartEnds.Types.Any(x => type.Name.StartsWith(x) && type.Name.EndsWith(x));
+            var isIncludedType = IsIncluded(type.Name, x => x.Types);
+            var isIncludedNamespace = IsIncluded(type.Namespace ?? string.Empty, x => x.Namespaces);
+            var isIncludedAssemblies = IsIncluded(type.Assembly.GetName().Name ?? string.Empty, x => x.Assemblies);
 
-            var isExcluded = _excludedFullname.Types.Any(x => type.Name == x)
-                             || _excludedStarts.Types.Any(x => type.Name.StartsWith(x))
-                             || _excludedEnds.Types.Any(x => type.Name.EndsWith(x))
-                             || _excludedStartEnds.Types.Any(x => type.Name.StartsWith(x) && type.Name.EndsWith(x));
+            var isExcludedType = IsExcluded(type.Name, x => x.Types);
+            var isExcludedNamespace = IsExcluded(type.Namespace ?? string.Empty, x => x.Namespaces);
+            var isExcludedAssemblies = IsExcluded(type.Assembly.GetName().Name ?? string.Empty, x => x.Assemblies);
 
-            return AppSettings.GroupsInclusion.InclusionType switch
+            var isIncluded = isIncludedType || isIncludedNamespace || isIncludedAssemblies;
+            var isExcluded = isExcludedType || isExcludedNamespace || isExcludedAssemblies;
+
+            var isAllowed = AppSettings.GroupsInclusion.InclusionType switch
             {
                 InclusionType.OnlyIncluded => isIncluded,
                 InclusionType.AllButExcluded => !isExcluded,
                 _ => !isExcluded || isIncluded
             };
+
+            return isAllowed;
+        }
+
+        private bool IsIncluded(string name, Func<TypeGroups, List<string>> selector)
+        {
+            return selector(_includedFullname).Any(x => x == name)
+                   || selector(_includedStarts).Any(name.StartsWith)
+                   || selector(_includedEnds).Any(name.EndsWith)
+                   || selector(_includedStartEnds).Any(x => name.StartsWith(x) && name.EndsWith(x));
+        }
+
+        private bool IsExcluded(string name, Func<TypeGroups, List<string>> selector)
+        {
+            return selector(_excludedFullname).Any(x => x == name)
+                   || selector(_excludedStarts).Any(name.StartsWith)
+                   || selector(_excludedEnds).Any(name.EndsWith)
+                   || selector(_excludedStartEnds).Any(x => name.StartsWith(x) && name.EndsWith(x));
         }
 
         private void BuildDecorators()
@@ -86,8 +105,10 @@ namespace Lide.Core.Provider
             _decorators = PropagateSettings.Decorators;
             if (PropagateSettings.OverrideDecorators)
             {
-                _decorators = _decorators.Union(AppSettings.Decorators).ToList();
+                return;
             }
+
+            _decorators = _decorators.Union(AppSettings.Decorators).ToList();
         }
 
         private void BuildIncludedTypes()

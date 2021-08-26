@@ -51,7 +51,7 @@ namespace Lide.Core
                 return originalObject;
             }
 
-            if (!SettingsProvider.IsTypeAllowed(serviceType, ""))
+            if (!SettingsProvider.IsTypeAllowed(serviceType))
             {
                 return originalObject;
             }
@@ -70,6 +70,7 @@ namespace Lide.Core
                     pluginObject = DecorateObject(serviceType, pluginObject);
                 }
 
+                _generatedProxies.Add(originalObject, pluginObject);
                 return pluginObject;
             }
 
@@ -89,7 +90,6 @@ namespace Lide.Core
             proxy.SetDecorators(GetDecorators());
             proxy.SetOriginalObject(originalObject);
             var decoratedObject = proxy.GetDecoratedObject();
-            _generatedProxies.Add(originalObject, decoratedObject);
             return decoratedObject;
         }
 

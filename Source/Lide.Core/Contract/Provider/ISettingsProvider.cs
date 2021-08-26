@@ -17,7 +17,7 @@ namespace Lide.Core.Contract.Provider
         bool AllowEnablingDecorators { get; }
 
         void SetData(AppSettings appSettings, string propagateSettings);
-        bool IsTypeAllowed(Type type, string decoratorId);
+        bool IsTypeAllowed(Type type);
         List<string> GetDecorators();
     }
 }

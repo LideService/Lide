@@ -4,7 +4,7 @@ namespace Lide.Core.Model.Settings
     {
         public GroupsInclusion()
         {
-            InclusionType = InclusionType.OnlyIncluded;
+            InclusionType = InclusionType.Both;
             Included = new TypeGroups();
             Excluded = new TypeGroups();
         }
