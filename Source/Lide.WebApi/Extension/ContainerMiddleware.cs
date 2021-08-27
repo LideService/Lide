@@ -32,6 +32,7 @@ namespace Lide.WebApi.Extension
 
         public async Task Invoke(HttpContext httpContext)
         {
+            // TODO: somehow allow only executing assembly namespace or so.
             var headers = httpContext.Request.Headers;
             var query = httpContext.Request.Query;
             var lideEnabledHeader = headers.ContainsKey(PropagateProperties.Enabled) && Convert.ToBoolean(headers[PropagateProperties.Enabled].FirstOrDefault() ?? "false");

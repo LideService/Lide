@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Lide.Core.Contract;
@@ -49,15 +52,17 @@ namespace Lide.Decorators
 
         public ExceptionOrResult ExecuteAfterResult(object plainObject, MethodInfo methodInfo, object[] originalParameters, object[] editedParameters, ExceptionOrResult originalEorR, ExceptionOrResult editedEorR)
         {
+            // TODO: Accessing result of IEnumerable will enumerate multiple times (possibly).
+            // What happens if the result is executable/evaluable?
             var task = new Task(() =>
             {
+                editedEorR.Result = ((IEnumerable<int>)editedEorR.Result).ToList();
                 var methodSignature = _signatureProvider.GetMethodSignature(methodInfo, SignatureOptions.OnlyBaseNamespace);
-                var parameters = _serializerFacade.Serialize(originalParameters);
-                var result = _serializerFacade.Serialize(originalEorR.Result ?? originalEorR.Exception);
+                var parameters = _serializerFacade.Serialize(editedEorR);
+                var result = _serializerFacade.Serialize(editedEorR.Result ?? originalEorR.Exception);
                 _consoleFacade.WriteLine($"[{_scopeIdProvider.GetScopeId()}] {methodSignature} - {parameters}:{result}");
             });
             _taskRunner.AddToQueue(task);
-
             return originalEorR;
         }
     }
