@@ -16,25 +16,15 @@ namespace Lide.TracingProxy.DecoratedProxy
             return this;
         }
 
-        public IProxyCompositorTyped<TInterface> SetDecorator(IObjectDecorator decorator)
+        public IProxyCompositorTyped<TInterface> SetDecorators(IEnumerable<IObjectDecoratorReadonly> readonlyDecorators)
         {
-            if (decorator != null)
-            {
-                _decorators.Add(decorator);
-            }
-
+            _readonlyDecorators.AddRange(readonlyDecorators.Where(x => x != null));
             return this;
         }
 
-        public IProxyCompositorTyped<TInterface> SetDecorators(params IObjectDecorator[] decorators)
+        public IProxyCompositorTyped<TInterface> SetDecorators(IEnumerable<IObjectDecoratorVolatile> volatileDecorators)
         {
-            _decorators.AddRange(decorators.Where(x => x != null));
-            return this;
-        }
-
-        public IProxyCompositorTyped<TInterface> SetDecorators(IEnumerable<IObjectDecorator> decorators)
-        {
-            _decorators.AddRange(decorators.Where(x => x != null));
+            _volatileDecorators.AddRange(volatileDecorators.Where(x => x != null));
             return this;
         }
 
@@ -61,7 +51,7 @@ namespace Lide.TracingProxy.DecoratedProxy
             _methodInfoCache ??= CacheMethodInfoInvoke.Singleton;
             _methodInfoProvider ??= ProviderMethodInfoInvoke.Singleton;
 
-            if (_originalObject == null || _decorators.Count == 0)
+            if (_originalObject == null || (_readonlyDecorators.Count == 0 && _volatileDecorators.Count == 0))
             {
                 return _originalObject;
             }

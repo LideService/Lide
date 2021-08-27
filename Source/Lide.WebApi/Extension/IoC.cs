@@ -39,8 +39,8 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddSingleton<ISignatureProvider, SignatureProvider>();
 
             // Decorators
-            serviceCollection.AddScoped<IObjectDecorator, ConsoleDecorator>();
-            serviceCollection.AddScoped<IObjectDecorator, DiagnosticsDecorator>();
+            serviceCollection.AddScoped<IObjectDecoratorReadonly, ConsoleDecorator>();
+            serviceCollection.AddScoped<IObjectDecoratorReadonly, DiagnosticsDecorator>();
 
             // Scoped?
             serviceCollection.AddScoped<IScopeIdProvider, ScopeIdProvider>();

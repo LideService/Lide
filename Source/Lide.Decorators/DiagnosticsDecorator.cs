@@ -11,7 +11,7 @@ using Lide.TracingProxy.Model;
 
 namespace Lide.Decorators
 {
-    public class DiagnosticsDecorator : IObjectDecorator
+    public class DiagnosticsDecorator : IObjectDecoratorReadonly
     {
         private static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
         private readonly IFileWriter _fileWriter;
@@ -31,21 +31,19 @@ namespace Lide.Decorators
         }
 
         public string Id { get; } = "Lide.Diagnostic";
-        public bool IsVolatile { get; } = false;
 
-        public object[] ExecuteBeforeInvoke(object plainObject, MethodInfo methodInfo, object[] originalParameters, object[] editedParameters)
+        public void ExecuteBeforeInvoke(MethodMetadata methodMetadata)
         {
-            var methodHash = methodInfo.GetHashCode();
-            var parametersHash = originalParameters.GetHashCode();
+            var methodHash = methodMetadata.MethodInfo.GetHashCode();
+            var parametersHash = methodMetadata.ParametersMetadata.GetOriginalParameters().GetHashCode();
             var signatureHash = HashCode.Combine(methodHash, parametersHash);
             _executionTimes[signatureHash] = Stopwatch.ElapsedTicks;
-            return originalParameters;
         }
 
-        public ExceptionOrResult ExecuteAfterResult(object plainObject, MethodInfo methodInfo, object[] originalParameters, object[] editedParameters, ExceptionOrResult originalEorR, ExceptionOrResult editedEorR)
+        public void ExecuteAfterResult(MethodMetadata methodMetadata)
         {
-            var methodHash = methodInfo.GetHashCode();
-            var parametersHash = originalParameters.GetHashCode();
+            var methodHash = methodMetadata.MethodInfo.GetHashCode();
+            var parametersHash = methodMetadata.ParametersMetadata.GetOriginalParameters().GetHashCode();
             var signatureHash = HashCode.Combine(methodHash, parametersHash);
             long executionTime = -1;
 
@@ -58,12 +56,10 @@ namespace Lide.Decorators
             _fileWriter.AddToQueue(() =>
             {
                 var scopeId = _scopeIdProvider.GetScopeId();
-                var signature = _signatureProvider.GetMethodSignature(methodInfo, SignatureOptions.AllSet);
+                var signature = _signatureProvider.GetMethodSignature(methodMetadata.MethodInfo, SignatureOptions.AllSet);
                 var message = $"[{scopeId}]: [{signature}] took {executionTime} ticks + {Environment.NewLine}";
                 return Encoding.ASCII.GetBytes(message);
             }, Id);
-
-            return originalEorR;
         }
     }
 }

@@ -7,9 +7,8 @@ namespace Lide.TracingProxy.Contract
         where TInterface : class
     {
         IProxyCompositorTyped<TInterface> SetOriginalObject(TInterface originalObject);
-        IProxyCompositorTyped<TInterface> SetDecorator(IObjectDecorator decorator);
-        IProxyCompositorTyped<TInterface> SetDecorators(params IObjectDecorator[] decorators);
-        IProxyCompositorTyped<TInterface> SetDecorators(IEnumerable<IObjectDecorator> decorators);
+        IProxyCompositorTyped<TInterface> SetDecorators(IEnumerable<IObjectDecoratorReadonly> readonlyDecorators);
+        IProxyCompositorTyped<TInterface> SetDecorators(IEnumerable<IObjectDecoratorVolatile> volatileDecorators);
         IProxyCompositorTyped<TInterface> SetDelegateMethodInfoCache(IMethodInfoCache methodInfoCache);
         IProxyCompositorTyped<TInterface> SetDelegateMethodInfoProvider(IMethodInfoProvider methodInfoProvider);
         IProxyCompositorTyped<TInterface> SetLogErrorAction(Action<string> logError);

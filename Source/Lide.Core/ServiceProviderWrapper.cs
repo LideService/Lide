@@ -15,7 +15,8 @@ namespace Lide.Core
         private readonly IServiceProvider _serviceProvider;
         private readonly Action _disposeProvider;
         private readonly List<IServiceProviderPlugin> _plugins;
-        private readonly List<IObjectDecorator> _decorators;
+        private readonly List<IObjectDecoratorReadonly> _readonlyDecorators;
+        private readonly List<IObjectDecoratorVolatile> _volatileDecorators;
 
         // Might break with scoped
         public ServiceProviderWrapper(IServiceProvider scoped, Action disposeProvider)
@@ -25,7 +26,8 @@ namespace Lide.Core
             SettingsProvider = (ISettingsProvider)scoped.GetService(typeof(ISettingsProvider)) ?? throw new Exception($"Missing service type {nameof(ISettingsProvider)}");
             ScopeIdProvider = (IScopeIdProvider)scoped.GetService(typeof(IScopeIdProvider)) ?? throw new Exception($"Missing service type {nameof(IScopeIdProvider)}");
             _plugins = ((IEnumerable<IServiceProviderPlugin>)scoped.GetService(typeof(IEnumerable<IServiceProviderPlugin>)))?.ToList() ?? new List<IServiceProviderPlugin>();
-            _decorators = ((IEnumerable<IObjectDecorator>)scoped.GetService(typeof(IEnumerable<IObjectDecorator>)))?.ToList() ?? new List<IObjectDecorator>();
+            _readonlyDecorators = ((IEnumerable<IObjectDecoratorReadonly>)scoped.GetService(typeof(IEnumerable<IObjectDecoratorReadonly>)))?.ToList() ?? new List<IObjectDecoratorReadonly>();
+            _volatileDecorators = ((IEnumerable<IObjectDecoratorVolatile>)scoped.GetService(typeof(IEnumerable<IObjectDecoratorVolatile>)))?.ToList() ?? new List<IObjectDecoratorVolatile>();
             _generatedProxies = new Dictionary<object, object>(new IdentityEqualityComparer<object>());
         }
 
@@ -87,17 +89,11 @@ namespace Lide.Core
         private object DecorateObject(Type serviceType, object originalObject)
         {
             var proxy = ProxyDecoratorFactory.CreateProxyDecorator(serviceType);
-            proxy.SetDecorators(GetDecorators());
+            proxy.SetDecorators(_readonlyDecorators.Where(x => SettingsProvider.GetDecorators().Contains(x.Id)));
+            proxy.SetDecorators(_volatileDecorators.Where(x => SettingsProvider.AllowVolatileDecorators && SettingsProvider.GetDecorators().Contains(x.Id)));
             proxy.SetOriginalObject(originalObject);
             var decoratedObject = proxy.GetDecoratedObject();
             return decoratedObject;
-        }
-
-        private IEnumerable<IObjectDecorator> GetDecorators()
-        {
-            return _decorators
-                .Where(x => SettingsProvider.GetDecorators().Contains(x.Id))
-                .Where(x => !x.IsVolatile || SettingsProvider.AllowVolatileDecorators);
         }
 
         private class IdentityEqualityComparer<T> : IEqualityComparer<T>

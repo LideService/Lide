@@ -6,7 +6,7 @@ using Lide.TracingProxy.Model;
 
 namespace Lide.Decorators
 {
-    public class SubstituteRecordDecorator : IObjectDecorator
+    public class SubstituteRecordDecorator : IObjectDecoratorReadonly
     {
         private readonly IFileWriter _fileWriter;
         private readonly ICompressionProvider _compressionProvider;
@@ -26,16 +26,5 @@ namespace Lide.Decorators
         }
 
         public string Id { get; } = "Lide.Substitute.Record";
-        public bool IsVolatile { get; } = false;
-
-        public object[] ExecuteBeforeInvoke(object plainObject, MethodInfo methodInfo, object[] originalParameters, object[] editedParameters)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public ExceptionOrResult ExecuteAfterResult(object plainObject, MethodInfo methodInfo, object[] originalParameters, object[] editedParameters, ExceptionOrResult originalEorR, ExceptionOrResult editedEorR)
-        {
-            throw new System.NotImplementedException();
-        }
     }
 }
