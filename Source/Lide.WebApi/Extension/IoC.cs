@@ -1,10 +1,8 @@
-using Lide.Core;
 using Lide.Core.Contract;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Facade;
-using Lide.Core.Model;
 using Lide.Core.Model.Settings;
 using Lide.Core.Provider;
 using Lide.Decorators;
@@ -27,20 +25,19 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddSingleton<ILoggerFacade, LoggerFacade>();
             serviceCollection.AddSingleton<IRandomFacade, RandomFacade>();
             serviceCollection.AddSingleton<ISerializerFacade, SerializerFacade>();
-
-            // Core
-            serviceCollection.AddSingleton<IFileWriter, FileWriter>();
-            serviceCollection.AddSingleton<ITaskRunner, TaskRunner>();
+            serviceCollection.AddSingleton<IFileFacade, FileFacade>();
+            serviceCollection.AddSingleton<IPathFacade, PathFacade>();
 
             // Provider
             serviceCollection.AddSingleton<ICompressionProvider, CompressionProvider>();
-            serviceCollection.AddSingleton<IFileNameProvider, FileNameProvider>();
             serviceCollection.AddSingleton<IParametersSerializer, MethodParamsSerializer>();
             serviceCollection.AddSingleton<ISignatureProvider, SignatureProvider>();
 
             // Decorators
             serviceCollection.AddScoped<IObjectDecoratorReadonly, ConsoleDecorator>();
             serviceCollection.AddScoped<IObjectDecoratorReadonly, DiagnosticsDecorator>();
+            serviceCollection.AddScoped<IObjectDecoratorReadonly, SubstituteRecordDecorator>();
+            serviceCollection.AddScoped<IObjectDecoratorVolatile, SubstituteReplayDecorator>();
 
             // Scoped?
             serviceCollection.AddScoped<IScopeIdProvider, ScopeIdProvider>();

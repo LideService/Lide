@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model.Settings;
@@ -23,12 +24,9 @@ namespace Lide.WebApi
 
         public void AddHeaders(HttpClient httpClient)
         {
-            var compressedSettings = _compressionProvider.CompressString(_settingsProvider.PropagateSettingsString);
-            var scopeId = _scopeIdProvider.GetScopeId();
             httpClient.DefaultRequestHeaders.Add(PropagateProperties.Enabled, "true");
-            httpClient.DefaultRequestHeaders.Add(PropagateProperties.Compression, "true");
-            httpClient.DefaultRequestHeaders.Add(PropagateProperties.ScopeId, scopeId);
-            httpClient.DefaultRequestHeaders.Add(PropagateProperties.Settings, compressedSettings);
+            httpClient.DefaultRequestHeaders.Add(PropagateProperties.RootScopeId, _scopeIdProvider.GetRootScopeId());
+            httpClient.DefaultRequestHeaders.Add(PropagateProperties.Settings, _settingsProvider.PropagateSettingsString);
         }
     }
 }

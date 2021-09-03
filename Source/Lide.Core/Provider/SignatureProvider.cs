@@ -14,11 +14,10 @@ namespace Lide.Core.Provider
         // 1. ExtractCallerInformation
         // 2. Proxy invocation
         private const int InitialFramesToSkip = 2;
-        private static readonly List<string> ExcludeNamespaces = new () { "System", "Microsoft" };
+        private static readonly List<string> ExcludeNamespaces = new () { "System", "Microsoft", "Lide" };
 
         public string GetCallerSignature()
         {
-            var skipFirst = false;
             StackTrace stackTrace = new (true);
             for (var i = InitialFramesToSkip; i < stackTrace.FrameCount; i++)
             {
@@ -38,12 +37,6 @@ namespace Lide.Core.Provider
                     || string.IsNullOrEmpty(frameFileName)
                     || frameLineNumber == 0)
                 {
-                    continue;
-                }
-
-                if (!skipFirst)
-                {
-                    skipFirst = true;
                     continue;
                 }
 

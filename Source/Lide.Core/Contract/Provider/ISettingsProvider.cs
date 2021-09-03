@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using Lide.Core.Model;
 using Lide.Core.Model.Settings;
 
 namespace Lide.Core.Contract.Provider
@@ -12,9 +10,9 @@ namespace Lide.Core.Contract.Provider
         PropagateSettings PropagateSettings { get; }
         string PropagateSettingsString { get; }
 
-        bool SearchHttpBodyOrQuery { get; }
+        bool SearchHttpBody { get; }
         bool AllowVolatileDecorators { get; }
-        bool AllowEnablingDecorators { get; }
+        bool AllowDecoratorsKeyMatch { get; }
 
         void SetData(AppSettings appSettings, string propagateSettings);
         bool IsTypeAllowed(Type type);

@@ -10,7 +10,9 @@ namespace Lide.Core.Model.Settings
             GroupsInclusion = new GroupsInclusion();
         }
 
+        public bool RecordRequestBody { get; set; }
         public bool SearchHttpBody { get; set; }
+        public bool DisableOnlyExecutingAssemblyAlike { get; set; }
         public string VolatileKey { get; set; }
         public string EnabledKey { get; set; }
         public GroupsInclusion GroupsInclusion { get; set; }

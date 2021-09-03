@@ -131,7 +131,7 @@ namespace Lide.TracingProxy.DecoratedProxy
                 }
                 catch (Exception e)
                 {
-                    _logError?.Invoke($"Decorator {decorator.Id} has encountered an error {e}");
+                    _logError?.Invoke($"[Lide] Decorator {decorator.Id} has encountered an error {e}");
                 }
             }
         }

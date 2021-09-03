@@ -19,12 +19,12 @@ namespace Lide.Core.Provider
             _typesCache = new ConcurrentDictionary<string, Type>();
         }
 
-        public string Serialize(object[] methodParams)
+        public byte[] Serialize(object[] methodParams)
         {
             var result = methodParams.Select(param =>
             {
                 var type = param.GetType();
-                var typeName = param.GetType().Name;
+                var typeName = param.GetType().FullName;
                 _typesCache.TryAdd(typeName, type);
 
                 return new SerializedParameter
@@ -37,7 +37,7 @@ namespace Lide.Core.Provider
             return _serializerFacade.Serialize(result);
         }
 
-        public object[] Deserialize(string serialized)
+        public object[] Deserialize(byte[] serialized)
         {
             var serializedParams = _serializerFacade.Deserialize<List<SerializedParameter>>(serialized);
             var result = serializedParams.Select(param =>
@@ -48,6 +48,27 @@ namespace Lide.Core.Provider
             }).ToArray();
 
             return result;
+        }
+
+        public byte[] SerializeSingle(object methodParams)
+        {
+            var type = methodParams.GetType();
+            var typeName = methodParams.GetType().FullName;
+            _typesCache.TryAdd(typeName, type);
+
+            return _serializerFacade.Serialize(new SerializedParameter
+            {
+                TypeName = typeName,
+                Data = _serializerFacade.Serialize(methodParams),
+            });
+        }
+
+        public object DeserializeSingle(byte[] serialized)
+        {
+            var serializedParam = _serializerFacade.Deserialize<SerializedParameter>(serialized);
+            var type = _typesCache.GetOrAdd(serializedParam.TypeName, Type.GetType);
+            var data = _serializerFacade.Deserialize(serializedParam.Data, type);
+            return data;
         }
     }
 }

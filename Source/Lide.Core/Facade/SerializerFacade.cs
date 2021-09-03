@@ -6,17 +6,22 @@ namespace Lide.Core.Facade
 {
     public class SerializerFacade : ISerializerFacade
     {
-        public string Serialize<T>(T data)
+        public byte[] Serialize<T>(T data)
+        {
+            return JsonSerializer.SerializeToUtf8Bytes(data);
+        }
+
+        public string SerializeString<T>(T data)
         {
             return JsonSerializer.Serialize(data);
         }
 
-        public T Deserialize<T>(string data)
+        public T Deserialize<T>(byte[] data)
         {
             return JsonSerializer.Deserialize<T>(data);
         }
 
-        public object Deserialize(string data, Type type)
+        public object Deserialize(byte[] data, Type type)
         {
             return JsonSerializer.Deserialize(data, type);
         }

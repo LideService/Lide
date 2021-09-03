@@ -2,7 +2,6 @@ using System;
 using System.Net.Http;
 using Lide.Core.Contract.Plugin;
 using Lide.WebApi.Contract;
-using Microsoft.AspNetCore.Http.Features;
 
 namespace Lide.WebApi.Plugin
 {

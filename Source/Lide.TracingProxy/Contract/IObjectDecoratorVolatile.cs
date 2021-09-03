@@ -1,4 +1,3 @@
-using System.Reflection;
 using Lide.TracingProxy.Model;
 
 namespace Lide.TracingProxy.Contract

@@ -1,5 +1,3 @@
-using System.ComponentModel;
-
 namespace Lide.TracingProxy.Model
 {
     public class ParametersMetadataVolatile

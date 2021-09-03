@@ -6,7 +6,8 @@ namespace Lide.Core.Provider
 {
     public class ScopeIdProvider : IScopeIdProvider
     {
-        private string _scopeId;
+        private readonly string _scopeId;
+        private string _rootScopeId;
 
         public ScopeIdProvider(IDateTimeFacade dateTimeFacade, IRandomFacade randomFacade)
         {
@@ -19,14 +20,12 @@ namespace Lide.Core.Provider
                 .Replace("/", "");
         }
 
-        public void SetPreviousScopes(string previousScopeId)
+        public void SetRootScopeId(string rootScopeId)
         {
-            if (!string.IsNullOrEmpty(previousScopeId))
-            {
-                _scopeId = $"{previousScopeId}-{_scopeId}";
-            }
+            _rootScopeId = rootScopeId;
         }
 
-        public string GetScopeId() => _scopeId;
+        public string GetRootScopeId() => _rootScopeId;
+        public string GetCurrentScopeId() => _rootScopeId ?? _scopeId;
     }
 }

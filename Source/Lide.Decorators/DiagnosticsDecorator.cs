@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
+using Lide.Core.Contract;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model;
@@ -14,20 +15,28 @@ namespace Lide.Decorators
     public class DiagnosticsDecorator : IObjectDecoratorReadonly
     {
         private static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
-        private readonly IFileWriter _fileWriter;
+        private readonly IFileFacade _fileFacade;
         private readonly ISignatureProvider _signatureProvider;
         private readonly IScopeIdProvider _scopeIdProvider;
         private readonly ConcurrentDictionary<int, long> _executionTimes;
+        private readonly string _filePath;
 
         public DiagnosticsDecorator(
-            IFileWriter fileWriter,
+            IFileFacade fileFacade,
             ISignatureProvider signatureProvider,
-            IScopeIdProvider scopeIdProvider)
+            IScopeIdProvider scopeIdProvider,
+            IPathFacade pathFacade,
+            IDateTimeFacade dateTimeFacade)
         {
-            _fileWriter = fileWriter;
+            _fileFacade = fileFacade;
             _signatureProvider = signatureProvider;
             _scopeIdProvider = scopeIdProvider;
             _executionTimes = new ConcurrentDictionary<int, long>();
+
+            var tmpPath = pathFacade.GetTempPath();
+            var date = dateTimeFacade.GetDateNow().ToString("yyyyMMddHHmmss");
+            var fileName = $"{scopeIdProvider.GetRootScopeId()}.{Id}.{date}";
+            _filePath = pathFacade.Combine(tmpPath, fileName);
         }
 
         public string Id { get; } = "Lide.Diagnostic";
@@ -53,13 +62,11 @@ namespace Lide.Decorators
                 executionTime = Stopwatch.ElapsedTicks - startTime;
             }
 
-            _fileWriter.AddToQueue(() =>
-            {
-                var scopeId = _scopeIdProvider.GetScopeId();
-                var signature = _signatureProvider.GetMethodSignature(methodMetadata.MethodInfo, SignatureOptions.AllSet);
-                var message = $"[{scopeId}]: [{signature}] took {executionTime} ticks + {Environment.NewLine}";
-                return Encoding.ASCII.GetBytes(message);
-            }, Id);
+            var scopeId = $"[{_scopeIdProvider.GetRootScopeId()}.{_scopeIdProvider.GetCurrentScopeId()}]";
+            var signature = _signatureProvider.GetMethodSignature(methodMetadata.MethodInfo, SignatureOptions.OnlyBaseNamespace);
+            var message = $"{scopeId}: [{signature}] took {executionTime} ticks + {Environment.NewLine}";
+            var data = Encoding.ASCII.GetBytes(message);
+            _fileFacade.WriteToFile(_filePath, data);
         }
     }
 }

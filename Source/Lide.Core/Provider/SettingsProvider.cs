@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model.Settings;
@@ -10,6 +11,7 @@ namespace Lide.Core.Provider
     public class SettingsProvider : ISettingsProvider
     {
         private readonly ISerializerFacade _serializerFacade;
+        private readonly ICompressionProvider _compressionProvider;
         private readonly TypeGroups _includedFullname;
         private readonly TypeGroups _includedStarts;
         private readonly TypeGroups _includedEnds;
@@ -25,11 +27,15 @@ namespace Lide.Core.Provider
         {
             "Lide.",
             "Microsoft.",
+            "System.",
         };
 
-        public SettingsProvider(ISerializerFacade serializerFacade)
+        public SettingsProvider(
+            ISerializerFacade serializerFacade,
+            ICompressionProvider compressionProvider)
         {
             _serializerFacade = serializerFacade;
+            _compressionProvider = compressionProvider;
             _includedFullname = new TypeGroups();
             _includedStarts = new TypeGroups();
             _includedEnds = new TypeGroups();
@@ -45,15 +51,17 @@ namespace Lide.Core.Provider
         public PropagateSettings PropagateSettings { get; private set; }
         public string PropagateSettingsString { get; private set; }
 
-        public bool SearchHttpBodyOrQuery => AppSettings.SearchHttpBody;
+        public bool SearchHttpBody => AppSettings.SearchHttpBody;
         public bool AllowVolatileDecorators => string.IsNullOrEmpty(AppSettings.EnabledKey) || AppSettings.VolatileKey == PropagateSettings.VolatileKey;
-        public bool AllowEnablingDecorators => string.IsNullOrEmpty(AppSettings.EnabledKey) || AppSettings.EnabledKey == PropagateSettings.EnabledKey;
+        public bool AllowDecoratorsKeyMatch => string.IsNullOrEmpty(AppSettings.EnabledKey) || AppSettings.EnabledKey == PropagateSettings.EnabledKey;
 
         public void SetData(AppSettings appSettings, string propagateSettings)
         {
             AppSettings = appSettings;
             PropagateSettings = DeserializeSafe(propagateSettings);
-            PropagateSettingsString = propagateSettings;
+            var serialized = _serializerFacade.Serialize(PropagateSettings);
+            var compressed = _compressionProvider.Compress(serialized);
+            PropagateSettingsString = Convert.ToBase64String(compressed);
             BuildIncludedTypes();
             BuildExcludedTypes();
             BuildDecorators();
@@ -160,15 +168,25 @@ namespace Lide.Core.Provider
         private static bool EndsWith(string x) => x.StartsWith("*") || !x.EndsWith("*");
         private static bool StartsEndsWith(string x) => x.StartsWith("*") || !x.EndsWith("*");
 
-        private PropagateSettings DeserializeSafe(string propagateSettings)
+        private PropagateSettings DeserializeSafe(string propagateSettings, bool useCompression = false, bool returnDefault = false)
         {
             try
             {
-                return _serializerFacade.Deserialize<PropagateSettings>(propagateSettings);
+                if (useCompression)
+                {
+                    var compressed = Convert.FromBase64String(propagateSettings);
+                    var decompressed = _compressionProvider.Decompress(compressed);
+                    return _serializerFacade.Deserialize<PropagateSettings>(decompressed);
+                }
+
+                var data = Encoding.UTF8.GetBytes(propagateSettings);
+                return _serializerFacade.Deserialize<PropagateSettings>(data);
             }
             catch
             {
-                return new PropagateSettings();
+                return returnDefault
+                    ? new PropagateSettings()
+                    : DeserializeSafe(propagateSettings, true, true);
             }
         }
     }
