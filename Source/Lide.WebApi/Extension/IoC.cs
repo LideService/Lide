@@ -19,9 +19,7 @@ namespace Lide.WebApi.Extension
         public static void AddLideCore(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
             // Facades
-            serviceCollection.AddSingleton<IConsoleFacade, ConsoleFacade>();
             serviceCollection.AddSingleton<IDateTimeFacade, DateTimeFacade>();
-            serviceCollection.AddSingleton<IGuidFacade, GuidFacade>();
             serviceCollection.AddSingleton<ILoggerFacade, LoggerFacade>();
             serviceCollection.AddSingleton<IRandomFacade, RandomFacade>();
             serviceCollection.AddSingleton<ISerializerFacade, SerializerFacade>();

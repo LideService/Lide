@@ -10,8 +10,10 @@ namespace Lide.TracingProxy.Model
             MethodInfo = methodMetadataVolatile.MethodInfo;
             ParametersMetadata = parametersMetadata;
             ReturnMetadata = returnMetadata;
+            CallId = methodMetadataVolatile.CallId;
         }
 
+        public int CallId { get; }
         public object PlainObject { get; }
         public MethodInfo MethodInfo { get; }
         public ParametersMetadata ParametersMetadata { get; }

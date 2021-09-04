@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 using Lide.TracingProxy.Contract;
 using Lide.TracingProxy.Model;
@@ -18,7 +19,7 @@ namespace Lide.TracingProxy.DecoratedProxy
         {
             var parametersMetadataVolatile = new ParametersMetadataVolatile(originalParameters);
             var returnMetadataVolatile = new ReturnMetadataVolatile(null, null);
-            var metadataVolatile = new MethodMetadataVolatile(_originalObject, methodInfo, parametersMetadataVolatile, returnMetadataVolatile);
+            var metadataVolatile = new MethodMetadataVolatile(_originalObject, methodInfo, parametersMetadataVolatile, returnMetadataVolatile, Interlocked.Increment(ref _callId));
             ExecuteDecorators<IObjectDecoratorVolatile, MethodMetadataVolatile>(_volatileDecorators, decorator => decorator.ExecuteBeforeInvoke(metadataVolatile));
 
             var parametersMetadata = new ParametersMetadata(metadataVolatile.ParametersMetadataVolatile);

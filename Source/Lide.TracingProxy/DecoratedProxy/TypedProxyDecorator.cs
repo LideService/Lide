@@ -17,6 +17,7 @@ namespace Lide.TracingProxy.DecoratedProxy
         private TInterface _originalObject;
         private Type _originalObjectType;
         private Action<string> _logError;
+        private int _callId;
 
         public override object Invoke(MethodInfo methodInfo, object[] originalParameters)
         {

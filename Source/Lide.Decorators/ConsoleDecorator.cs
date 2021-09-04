@@ -11,18 +11,18 @@ namespace Lide.Decorators
 {
     public class ConsoleDecorator : IObjectDecoratorReadonly
     {
-        private readonly IConsoleFacade _consoleFacade;
+        private readonly ILoggerFacade _loggerFacade;
         private readonly ISignatureProvider _signatureProvider;
         private readonly ISerializerFacade _serializerFacade;
         private readonly IScopeIdProvider _scopeIdProvider;
 
         public ConsoleDecorator(
-            IConsoleFacade consoleFacade,
+            ILoggerFacade loggerFacade,
             ISignatureProvider signatureProvider,
             ISerializerFacade serializerFacade,
             IScopeIdProvider scopeIdProvider)
         {
-            _consoleFacade = consoleFacade;
+            _loggerFacade = loggerFacade;
             _signatureProvider = signatureProvider;
             _serializerFacade = serializerFacade;
             _scopeIdProvider = scopeIdProvider;
@@ -36,7 +36,7 @@ namespace Lide.Decorators
             var editedParameters = methodMetadata.ParametersMetadata.GetEditedParameters();
             var methodSignature = _signatureProvider.GetMethodSignature(methodInfo, SignatureOptions.OnlyBaseNamespace);
             var parameters = _serializerFacade.Serialize(editedParameters);
-            _consoleFacade.WriteLine($"[{_scopeIdProvider.GetRootScopeId()}][{_scopeIdProvider.GetCurrentScopeId()}] {methodSignature} - {parameters}");
+            _loggerFacade.Log($"[{_scopeIdProvider.GetRootScopeId()}][{_scopeIdProvider.GetCurrentScopeId()}] {methodSignature} - {parameters}");
         }
 
         public void ExecuteAfterResult(MethodMetadata methodMetadata)
@@ -46,9 +46,9 @@ namespace Lide.Decorators
             var methodInfo = methodMetadata.MethodInfo;
             var editedParameters = methodMetadata.ParametersMetadata.GetEditedParameters();
             var methodSignature = _signatureProvider.GetMethodSignature(methodInfo, SignatureOptions.OnlyBaseNamespace);
-            var parameters = _serializerFacade.SerializeString(editedParameters);
-            var result = _serializerFacade.SerializeString(methodMetadata.ReturnMetadata.GetEditedException() ?? methodMetadata.ReturnMetadata.GetEditedResult());
-            _consoleFacade.WriteLine($"[{_scopeIdProvider.GetRootScopeId()}][{_scopeIdProvider.GetCurrentScopeId()}] {methodSignature} - {parameters}:{result}");
+            var parameters = _serializerFacade.SerializeToString(editedParameters);
+            var result = _serializerFacade.SerializeToString(methodMetadata.ReturnMetadata.GetEditedException() ?? methodMetadata.ReturnMetadata.GetEditedResult());
+            _loggerFacade.Log($"[{_scopeIdProvider.GetRootScopeId()}][{_scopeIdProvider.GetCurrentScopeId()}] {methodSignature} - {parameters}:{result}");
         }
     }
 }

@@ -1,11 +1,17 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
+using Lide.Core.Provider;
+using MessagePack;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace TaxCalculator.WebApi
 {
@@ -13,14 +19,59 @@ namespace TaxCalculator.WebApi
     {
         public static async Task Main(string[] args)
         {
+            var m = new MethodDependencies();
             var mi = typeof(Test).GetMethods()[0];
-            Console.WriteLine(Parser.DumpMethod(mi));
+            m.GetDependencies(mi).ForEach(Console.WriteLine);
             //CreateHostBuilder(args).Build().Run();
+            
+
+            // var s1d = new T() { E = 18 };
+            // var s1 = new State(13){A = 7,B = 9};
+            // s1.D = s1d;
+            // var s2 = new State(14){A = 3,B = 4, D = new T() {E=19}};
+            //
+            // var settings = new JsonSerializerSettings() { ContractResolver = new MyContractResolver() };
+            // var s_s2 = JsonConvert.SerializeObject(s2, settings);
+            // JsonConvert.PopulateObject(s_s2, s1, settings);
+            // Console.WriteLine(object.ReferenceEquals(s1d, s1.D));
+            Console.Read();
+        }
+        
+        public class MyContractResolver : Newtonsoft.Json.Serialization.DefaultContractResolver
+        {
+            protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
+            {
+                var props = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                    .Select(p => base.CreateProperty(p, memberSerialization))
+                    .Union(type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                        .Select(f => base.CreateProperty(f, memberSerialization)))
+                    .ToList();
+                props.ForEach(p => { p.Writable = true; p.Readable = true; });
+                return props;
+            }
         }
 
         private static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+    }
+
+    public class State
+    {
+        public int A { get; set; }
+        public int B;
+        public T D { get; set; }
+        private int _c;
+
+        public State(int c)
+        {
+            _c = c;
+        }
+    }
+
+    public class T
+    {
+        public int E { get; set; }
     }
 
     public class Test
@@ -196,8 +247,7 @@ namespace TaxCalculator.WebApi
             return sb.ToString();
         }
     }
-
-        public static class Ext
+    public static class Ext
         {
             public static FieldInfo SafeResolveField(this Module m, int token)
             {

@@ -4,30 +4,32 @@ namespace Lide.TracingProxy.Model
 {
     public class MethodMetadataVolatile
     {
-        public MethodMetadataVolatile(object plainObject, MethodInfo methodInfo, ParametersMetadataVolatile parametersMetadataVolatile, ReturnMetadataVolatile returnMetadataVolatile)
+        public MethodMetadataVolatile(
+            object plainObject,
+            MethodInfo methodInfo,
+            ParametersMetadataVolatile parametersMetadataVolatile,
+            ReturnMetadataVolatile returnMetadataVolatile,
+            int callId)
         {
             PlainObject = plainObject;
             MethodInfo = methodInfo;
             ParametersMetadataVolatile = parametersMetadataVolatile;
             ReturnMetadataVolatile = returnMetadataVolatile;
+            CallId = callId;
         }
 
-        public MethodMetadataVolatile(MethodMetadataVolatile methodMetadataVolatile, ParametersMetadataVolatile parametersMetadataVolatile, ReturnMetadataVolatile returnMetadataVolatile)
-        {
-            PlainObject = methodMetadataVolatile.PlainObject;
-            MethodInfo = methodMetadataVolatile.MethodInfo;
-            ParametersMetadataVolatile = parametersMetadataVolatile;
-            ReturnMetadataVolatile = returnMetadataVolatile;
-        }
-
-        public MethodMetadataVolatile(MethodMetadataVolatile methodMetadataVolatile, ReturnMetadataVolatile returnMetadataVolatile)
+        public MethodMetadataVolatile(
+            MethodMetadataVolatile methodMetadataVolatile,
+            ReturnMetadataVolatile returnMetadataVolatile)
         {
             PlainObject = methodMetadataVolatile.PlainObject;
             MethodInfo = methodMetadataVolatile.MethodInfo;
             ParametersMetadataVolatile = methodMetadataVolatile.ParametersMetadataVolatile;
             ReturnMetadataVolatile = returnMetadataVolatile;
+            CallId = methodMetadataVolatile.CallId;
         }
 
+        public int CallId { get; }
         public object PlainObject { get; }
         public MethodInfo MethodInfo { get; }
         public ParametersMetadataVolatile ParametersMetadataVolatile { get; }
