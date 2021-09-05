@@ -2,9 +2,8 @@ namespace Lide.Core.Model
 {
     public class SubstituteBefore
     {
-        public int Id { get; set; }
-        public string MethodSignature { get; set; }
-        public string CallerSignature { get; set; }
-        public byte[] InputParameters { get; set; }
+        public long CallId { get; init; }
+        public string MethodSignature { get; init; }
+        public byte[] InputParameters { get; init; }
     }
 }

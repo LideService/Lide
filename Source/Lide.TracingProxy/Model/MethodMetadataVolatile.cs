@@ -9,7 +9,7 @@ namespace Lide.TracingProxy.Model
             MethodInfo methodInfo,
             ParametersMetadataVolatile parametersMetadataVolatile,
             ReturnMetadataVolatile returnMetadataVolatile,
-            int callId)
+            long callId)
         {
             PlainObject = plainObject;
             MethodInfo = methodInfo;
@@ -29,7 +29,7 @@ namespace Lide.TracingProxy.Model
             CallId = methodMetadataVolatile.CallId;
         }
 
-        public int CallId { get; }
+        public long CallId { get; }
         public object PlainObject { get; }
         public MethodInfo MethodInfo { get; }
         public ParametersMetadataVolatile ParametersMetadataVolatile { get; }

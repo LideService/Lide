@@ -23,6 +23,11 @@ namespace Lide.Core.Provider
         {
             var result = methodParams.Select(param =>
             {
+                if (param == null)
+                {
+                    return SerializedParameter.Null;
+                }
+
                 var type = param.GetType();
                 var typeName = param.GetType().FullName;
                 _typesCache.TryAdd(typeName, type);
@@ -42,6 +47,11 @@ namespace Lide.Core.Provider
             var serializedParams = _serializerFacade.Deserialize<List<SerializedParameter>>(serialized);
             var result = serializedParams.Select(param =>
             {
+                if (param.TypeName == null || string.IsNullOrEmpty(param.TypeName))
+                {
+                    return null;
+                }
+
                 var type = _typesCache.GetOrAdd(param.TypeName, Type.GetType);
                 var data = _serializerFacade.Deserialize(param.Data, type);
                 return data;
@@ -52,6 +62,11 @@ namespace Lide.Core.Provider
 
         public byte[] SerializeSingle(object methodParams)
         {
+            if (methodParams == null)
+            {
+                return null;
+            }
+
             var type = methodParams.GetType();
             var typeName = methodParams.GetType().FullName;
             _typesCache.TryAdd(typeName, type);
@@ -65,6 +80,11 @@ namespace Lide.Core.Provider
 
         public object DeserializeSingle(byte[] serialized)
         {
+            if (serialized == null || serialized.Length == 0)
+            {
+                return null;
+            }
+
             var serializedParam = _serializerFacade.Deserialize<SerializedParameter>(serialized);
             var type = _typesCache.GetOrAdd(serializedParam.TypeName, Type.GetType);
             var data = _serializerFacade.Deserialize(serializedParam.Data, type);

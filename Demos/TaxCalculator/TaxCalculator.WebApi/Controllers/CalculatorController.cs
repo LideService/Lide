@@ -1,32 +1,35 @@
 using Microsoft.AspNetCore.Mvc;
 using TaxCalculator.Services.Contracts;
+using TaxCalculator.Services.Model;
 
 namespace TaxCalculator.WebApi.Controllers
 {
     [ApiController]
     public class CalculatorController
     {
-        private readonly ICalculatorProvider _calculatorProvider;
+        private readonly ITaxLevelsState _taxLevelsState;
+        private readonly ICalculator _calculator;
 
-        public CalculatorController(ICalculatorProvider calculatorProvider)
+        public CalculatorController(
+            ITaxLevelsState taxLevelsState,
+            ICalculator calculator)
         {
-            _calculatorProvider = calculatorProvider;
+            _taxLevelsState = taxLevelsState;
+            _calculator = calculator;
         }
-
-        [HttpGet]
+        
+        [HttpPost]
         [Route("api/calculate")]
-        public decimal Calculate(string name, decimal amount)
+        public decimal Calculate(InputAmount input)
         {
-            var calculator = _calculatorProvider.GetCalculator(name);
-            return calculator?.CalculateAfterTax(amount) ?? -1;
+            var taxes  = _taxLevelsState.GetTaxes();
+            var result = _calculator.CalculateAfterTax(input.Amount, taxes);
+            return result;
         }
+    }
 
-        [HttpGet]
-        [Route("api/info")]
-        public string GetInfo(string name)
-        {
-            var calculator = _calculatorProvider.GetCalculator(name);
-            return calculator?.GetInfo() ?? "Missing calculator!";
-        }
+    public class InputAmount
+    {
+        public decimal Amount { get; set; }
     }
 }

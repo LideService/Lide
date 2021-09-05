@@ -1,4 +1,3 @@
-using Lide.Core.Contract;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
@@ -30,6 +29,7 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddSingleton<ICompressionProvider, CompressionProvider>();
             serviceCollection.AddSingleton<IParametersSerializer, MethodParamsSerializer>();
             serviceCollection.AddSingleton<ISignatureProvider, SignatureProvider>();
+            serviceCollection.AddSingleton<ITaskRunner, TaskRunner>();
 
             // Decorators
             serviceCollection.AddScoped<IObjectDecoratorReadonly, ConsoleDecorator>();

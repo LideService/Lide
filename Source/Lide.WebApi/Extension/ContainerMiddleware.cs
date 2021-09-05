@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Lide.Core;
-using Lide.Core.Contract.Provider;
 using Lide.Core.Model.Settings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,16 +16,11 @@ namespace Lide.WebApi.Extension
     public class ContainerMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ICompressionProvider _compressionProvider;
         private readonly AppSettings _appSettings;
 
-        public ContainerMiddleware(
-            RequestDelegate next,
-            IOptions<AppSettings> settings,
-            ICompressionProvider compressionProvider)
+        public ContainerMiddleware(RequestDelegate next, IOptions<AppSettings> settings)
         {
             _next = next;
-            _compressionProvider = compressionProvider;
             _appSettings = settings?.Value ?? new AppSettings();
         }
 

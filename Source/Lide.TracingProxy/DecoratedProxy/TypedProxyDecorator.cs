@@ -10,6 +10,7 @@ namespace Lide.TracingProxy.DecoratedProxy
     public partial class ProxyDecoratorTyped<TInterface> : DispatchProxyAsync
         where TInterface : class
     {
+        private static long CallId;
         private readonly List<IObjectDecoratorReadonly> _readonlyDecorators = new ();
         private readonly List<IObjectDecoratorVolatile> _volatileDecorators = new ();
         private IMethodInfoCache _methodInfoCache;
@@ -17,7 +18,6 @@ namespace Lide.TracingProxy.DecoratedProxy
         private TInterface _originalObject;
         private Type _originalObjectType;
         private Action<string> _logError;
-        private int _callId;
 
         public override object Invoke(MethodInfo methodInfo, object[] originalParameters)
         {

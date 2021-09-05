@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Lide.Core.Contract.Facade;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Bson;
 using Newtonsoft.Json.Serialization;
 
 namespace Lide.Core.Facade
@@ -17,15 +16,17 @@ namespace Lide.Core.Facade
             ContractResolver = new MyContractResolver(),
             NullValueHandling = NullValueHandling.Include,
         };
-        private static readonly JsonSerializer FullSerializer = JsonSerializer.Create(Settings);
+        ////private static readonly JsonSerializer FullSerializer = JsonSerializer.Create(Settings);
 
         public byte[] Serialize<T>(T data)
         {
-            using var ms = new MemoryStream();
-            using var writer = new BsonDataWriter(ms);
-            FullSerializer.Serialize(writer, data);
-
-            return ms.ToArray();
+            var serialized = JsonConvert.SerializeObject(data, Settings);
+            var bytes = Encoding.UTF8.GetBytes(serialized);
+            return bytes;
+            ////using var ms = new MemoryStream();
+            ////using var writer = new BsonDataWriter(ms);
+            ////FullSerializer.Serialize(writer, data);
+            ////return ms.ToArray();
         }
 
         public string SerializeToString<T>(T data)
@@ -35,23 +36,31 @@ namespace Lide.Core.Facade
 
         public T Deserialize<T>(byte[] data)
         {
-            using var ms = new MemoryStream(data);
-            using var reader = new BsonDataReader(ms);
-            return FullSerializer.Deserialize<T>(reader);
+            var serialized = Encoding.UTF8.GetString(data);
+            var result = JsonConvert.DeserializeObject<T>(serialized, Settings);
+            return result;
+            ////using var ms = new MemoryStream(data);
+            ////using var reader = new BsonDataReader(ms);
+            ////return FullSerializer.Deserialize<T>(reader);
         }
 
         public object Deserialize(byte[] data, Type type)
         {
-            using var ms = new MemoryStream(data);
-            using var reader = new BsonDataReader(ms);
-            return FullSerializer.Deserialize(reader, type);
+            var serialized = Encoding.UTF8.GetString(data);
+            var result = JsonConvert.DeserializeObject(serialized, type, Settings);
+            return result;
+            ////using var ms = new MemoryStream(data);
+            ////using var reader = new BsonDataReader(ms);
+            ////return FullSerializer.Deserialize(reader, type);
         }
 
         public void PopulateObject(byte[] data, object target)
         {
-            using var ms = new MemoryStream(data);
-            using var reader = new BsonDataReader(ms);
-            FullSerializer.Populate(reader, target);
+            var serialized = Encoding.UTF8.GetString(data);
+            JsonConvert.PopulateObject(serialized, target);
+            ////using var ms = new MemoryStream(data);
+            ////using var reader = new BsonDataReader(ms);
+            ////FullSerializer.Populate(serialized, target);
         }
 
         public void PopulateObject(object source, object target)

@@ -17,9 +17,10 @@ namespace Lide.TracingProxy.DecoratedProxy
     {
         private MethodMetadataVolatile ExecuteBefore(MethodInfo methodInfo, object[] originalParameters)
         {
+            var callId = Interlocked.Increment(ref CallId);
             var parametersMetadataVolatile = new ParametersMetadataVolatile(originalParameters);
             var returnMetadataVolatile = new ReturnMetadataVolatile(null, null);
-            var metadataVolatile = new MethodMetadataVolatile(_originalObject, methodInfo, parametersMetadataVolatile, returnMetadataVolatile, Interlocked.Increment(ref _callId));
+            var metadataVolatile = new MethodMetadataVolatile(_originalObject, methodInfo, parametersMetadataVolatile, returnMetadataVolatile, callId);
             ExecuteDecorators<IObjectDecoratorVolatile, MethodMetadataVolatile>(_volatileDecorators, decorator => decorator.ExecuteBeforeInvoke(metadataVolatile));
 
             var parametersMetadata = new ParametersMetadata(metadataVolatile.ParametersMetadataVolatile);

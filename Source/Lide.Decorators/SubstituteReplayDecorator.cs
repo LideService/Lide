@@ -17,8 +17,8 @@ namespace Lide.Decorators
         private readonly ISerializerFacade _serializerFacade;
         private readonly ISignatureProvider _signatureProvider;
         private readonly List<SubstituteBefore> _befores;
-        private readonly Dictionary<int, SubstituteAfter> _afters;
-        private readonly Dictionary<int, int> _ids;
+        private readonly Dictionary<long, SubstituteAfter> _afters;
+        private readonly Dictionary<long, long> _ids;
         private bool _loaded;
 
         public SubstituteReplayDecorator(
@@ -34,8 +34,8 @@ namespace Lide.Decorators
             _signatureProvider = signatureProvider;
             _parametersSerializer = parametersSerializer;
             _befores = new List<SubstituteBefore>();
-            _afters = new Dictionary<int, SubstituteAfter>();
-            _ids = new Dictionary<int, int>();
+            _afters = new Dictionary<long, SubstituteAfter>();
+            _ids = new Dictionary<long, long>();
         }
 
         public string Id => "Lide.Substitute.Replay";
@@ -43,16 +43,12 @@ namespace Lide.Decorators
         public void ExecuteBeforeInvoke(MethodMetadataVolatile methodMetadata)
         {
             Load();
-            var methodSignature = _signatureProvider.GetMethodSignature(methodMetadata.MethodInfo, SignatureOptions.OnlyBaseNamespace);
-            var callerSignature = _signatureProvider.GetCallerSignature();
-            var input = _befores.First(x => x.MethodSignature == methodSignature && x.CallerSignature == callerSignature);
-            _befores.Remove(input);
+            var methodSignature = _signatureProvider.GetMethodSignature(methodMetadata.MethodInfo, SignatureOptions.AllSet);
+            var before = _befores.First(x => x.MethodSignature == methodSignature);
+            _befores.Remove(before);
 
-            var parameters = _parametersSerializer.Deserialize(input.InputParameters);
-            var methodHash = methodMetadata.MethodInfo.GetHashCode();
-            var parametersHash = parameters.GetHashCode();
-            var signatureHash = HashCode.Combine(methodHash, parametersHash);
-            _ids.TryAdd(signatureHash, input.Id);
+            var parameters = _parametersSerializer.Deserialize(before.InputParameters);
+            _ids[methodMetadata.CallId] = before.CallId;
 
             methodMetadata.ParametersMetadataVolatile.SetParameters(parameters);
         }
@@ -60,12 +56,10 @@ namespace Lide.Decorators
         public void ExecuteAfterResult(MethodMetadataVolatile methodMetadata)
         {
             Load();
-            var methodHash = methodMetadata.MethodInfo.GetHashCode();
-            var parametersHash = methodMetadata.ParametersMetadataVolatile.GetEditedParameters().GetHashCode();
-            var signatureHash = HashCode.Combine(methodHash, parametersHash);
-            var id = _ids[signatureHash];
+            var id = _ids[methodMetadata.CallId];
             var after = _afters[id];
-            var result = _parametersSerializer.DeserializeSingle(after.Data);
+            var result = _parametersSerializer.DeserializeSingle(after.OutputData);
+            var input = _parametersSerializer.Deserialize(after.InputParameters);
             if (after.IsException)
             {
                 methodMetadata.ReturnMetadataVolatile.SetException((Exception)result);
@@ -73,6 +67,19 @@ namespace Lide.Decorators
             else
             {
                 methodMetadata.ReturnMetadataVolatile.SetResult(result);
+            }
+
+            // Must no be done like this, but .. eehhh whatever
+            var objects = methodMetadata.ParametersMetadataVolatile.GetOriginalParameters();
+            for (var index = 0; index < objects.Length; index++)
+            {
+                if (input[index].GetType().IsValueType)
+                {
+                    input[index] = objects[index];
+                    continue;
+                }
+
+                _serializerFacade.PopulateObject(input[index], objects[index]);
             }
         }
 
@@ -85,31 +92,31 @@ namespace Lide.Decorators
 
             _loaded = true;
             var filePath = "/home/nikola.gamzakov/substitute";
-            (byte[] data, int endPosition) nextBatch = (null, 0);
-            do
+            var nextBatch = new BinaryFileBatch();
+            while (true)
             {
-                nextBatch = _fileFacade.ReadNextBatch(filePath, nextBatch.endPosition).Result;
-                if (nextBatch.endPosition == -1)
+                nextBatch = _fileFacade.ReadNextBatch(filePath, nextBatch.EndPosition).Result;
+                var typeBytes = nextBatch.Data;
+                if (nextBatch.EndPosition == -1)
                 {
                     break;
                 }
 
-                var decompressed = _compressionProvider.Decompress(nextBatch.data);
-                var type = BitConverter.ToInt32(decompressed.Take(4).ToArray());
-                var data = decompressed.Skip(4).ToArray();
-                if (type == 0)
+                nextBatch = _fileFacade.ReadNextBatch(filePath, nextBatch.EndPosition).Result;
+                var dataBytes = nextBatch.Data;
+                var type = (SubstituteType)BitConverter.ToInt32(typeBytes);
+                var data = _compressionProvider.Decompress(dataBytes);
+                switch (type)
                 {
-                    var input = _serializerFacade.Deserialize<SubstituteBefore>(data);
-                    _befores.Add(input);
-                }
-
-                if (type == 1)
-                {
-                    var result = _serializerFacade.Deserialize<SubstituteAfter>(data);
-                    _afters.TryAdd(result.Id, result);
+                    case SubstituteType.Before:
+                        _befores.Add(_serializerFacade.Deserialize<SubstituteBefore>(data));
+                        break;
+                    case SubstituteType.After:
+                        var result = _serializerFacade.Deserialize<SubstituteAfter>(data);
+                        _afters.TryAdd(result.CallId, result);
+                        break;
                 }
             }
-            while (nextBatch.endPosition != -1);
         }
     }
 }

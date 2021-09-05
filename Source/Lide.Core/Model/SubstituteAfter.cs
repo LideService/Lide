@@ -2,8 +2,9 @@ namespace Lide.Core.Model
 {
     public class SubstituteAfter
     {
-        public int Id { get; set; }
-        public bool IsException { get; set; }
-        public byte[] Data { get; init; }
+        public long CallId { get; init; }
+        public bool IsException { get; init; }
+        public byte[] OutputData { get; init; }
+        public byte[] InputParameters { get; set; }
     }
 }
