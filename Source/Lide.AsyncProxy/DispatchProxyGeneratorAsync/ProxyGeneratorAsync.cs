@@ -30,7 +30,7 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             }
             catch (Exception e)
             {
-                ExceptionDispatchInfo.Capture(e).Throw();
+                ExceptionDispatchInfo.Capture(e.InnerException ?? e).Throw();
                 throw;
             }
         }
@@ -44,7 +44,7 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             }
             catch (Exception e)
             {
-                ExceptionDispatchInfo.Capture(e).Throw();
+                ExceptionDispatchInfo.Capture(e.InnerException ?? e).Throw();
                 throw;
             }
         }
@@ -57,9 +57,9 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
                 var genericMethod = DispatchProxyInvokeAsyncTMethod.MakeGenericMethod(typeof(T));
                 return (Task<T>)genericMethod.Invoke(context.Packed.DispatchProxy, new object[] { context.Method, context.Packed.GetArgs() });
             }
-            catch (Exception tie)
+            catch (Exception e)
             {
-                ExceptionDispatchInfo.Capture(tie).Throw();
+                ExceptionDispatchInfo.Capture(e.InnerException ?? e).Throw();
                 throw;
             }
         }
