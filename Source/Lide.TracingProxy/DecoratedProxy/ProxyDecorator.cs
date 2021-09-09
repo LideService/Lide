@@ -7,14 +7,11 @@ using Lide.TracingProxy.Contract;
 
 namespace Lide.TracingProxy.DecoratedProxy
 {
-    public partial class ProxyDecoratorTyped<TInterface> : DispatchProxyAsync
+    public partial class ProxyDecorator<TInterface> : DispatchProxyAsync
         where TInterface : class
     {
-        private static long CallId;
         private readonly List<IObjectDecoratorReadonly> _readonlyDecorators = new ();
         private readonly List<IObjectDecoratorVolatile> _volatileDecorators = new ();
-        private IMethodInfoCache _methodInfoCache;
-        private IMethodInfoProvider _methodInfoProvider;
         private TInterface _originalObject;
         private Type _originalObjectType;
         private Action<string> _logError;

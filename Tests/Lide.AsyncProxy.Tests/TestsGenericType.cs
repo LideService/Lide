@@ -10,7 +10,7 @@ namespace Lide.AsyncProxy.Tests
         [TestMethod]
         public void That_GenericType_CanBeProxied()
         {
-            var proxyData = Helpers.GetProxy<ITestGenericType<Poco>, TestGenericType<Poco>, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterGenericType<Poco>, TesterGenericType<Poco>, DefferedFunctionProxy>();
             var targetProxy = proxyData.TargetProxy;
             var poco = new Poco();
             var handlerIsCalled = false;
@@ -22,7 +22,7 @@ namespace Lide.AsyncProxy.Tests
 
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.ValueProperty = poco, null, poco);
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy[poco] = poco, null, poco, poco);
-            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event += Handler, null, (TestGenericHandler<Poco>)Handler);
+            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event += Handler, null, (TesterGenericHandler<Poco>)Handler);
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.RaiseEvent(poco), poco, poco);
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Method(poco), poco, poco);
             Assert.IsTrue(handlerIsCalled);

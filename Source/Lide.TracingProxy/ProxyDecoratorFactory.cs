@@ -7,15 +7,15 @@ namespace Lide.TracingProxy
 {
     public static class ProxyDecoratorFactory
     {
-        public static IProxyCompositorTyped<TInterface> CreateProxyDecorator<TInterface>()
+        public static IProxyCompositor<TInterface> CreateProxyDecorator<TInterface>()
             where TInterface : class
         {
-            return (ProxyDecoratorTyped<TInterface>)(object)DispatchProxyAsyncFactory.Create<TInterface, ProxyDecoratorTyped<TInterface>>();
+            return (ProxyDecorator<TInterface>)(object)DispatchProxyAsyncFactory.Create<TInterface, ProxyDecorator<TInterface>>();
         }
 
-        public static IProxyCompositorTyped<object> CreateProxyDecorator(Type tInterface)
+        public static IProxyCompositor<object> CreateProxyDecorator(Type tInterface)
         {
-            return (ProxyDecoratorTyped<object>)DispatchProxyAsyncFactory.Create(tInterface, typeof(ProxyDecoratorTyped<object>));
+            return (ProxyDecorator<object>)DispatchProxyAsyncFactory.Create(tInterface, typeof(ProxyDecorator<object>));
         }
     }
 }

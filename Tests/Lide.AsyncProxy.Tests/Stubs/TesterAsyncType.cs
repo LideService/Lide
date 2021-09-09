@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 
 namespace Lide.AsyncProxy.Tests.Stubs
 {
-    public class TestAsyncType : ITestAsyncType
+    public class TesterAsyncType : ITesterAsyncType
     {
         public Task Method1()
         {

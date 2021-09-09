@@ -1,6 +1,6 @@
 namespace Lide.AsyncProxy.Tests.Stubs
 {
-    public class TestGenericType<TType> : ITestGenericType<TType>
+    public class TesterGenericType<TType> : ITesterGenericType<TType>
         where TType : class
     {        
         private TType _indexer;
@@ -12,7 +12,7 @@ namespace Lide.AsyncProxy.Tests.Stubs
             set => _indexer = value;
         }
         
-        public event TestGenericHandler<TType> Event;
+        public event TesterGenericHandler<TType> Event;
 
         public TType RaiseEvent(TType data)
         {

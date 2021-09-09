@@ -1,21 +1,21 @@
 namespace Lide.AsyncProxy.Tests.Stubs
 {
-    public interface ITestUnsupportedOutParam
+    public interface ITesterUnsupportedOutParam
     {
         void Method(out string data1);
     }
 
-    public interface ITestUnsupportedRefParam
+    public interface ITesterUnsupportedRefParam
     {
         void Method(ref string data1);
     }
     
-    public interface ITestUnsupportedRefReturn
+    public interface ITesterUnsupportedRefReturn
     {
         ref string Method();
     }
 
-    public class TestUnsupportedOutParam : ITestUnsupportedOutParam
+    public class TesterUnsupportedOutParam : ITesterUnsupportedOutParam
     {
         public void Method(out string data1)
         {
@@ -23,7 +23,7 @@ namespace Lide.AsyncProxy.Tests.Stubs
         }
     }
 
-    public class TestUnsupportedRefParam : ITestUnsupportedRefParam
+    public class TesterUnsupportedRefParam : ITesterUnsupportedRefParam
     {
         public void Method(ref string data1)
         {
@@ -31,7 +31,7 @@ namespace Lide.AsyncProxy.Tests.Stubs
         }
     }
 
-    public class TestUnsupportedRefReturn : ITestUnsupportedRefReturn
+    public class TesterUnsupportedRefReturn : ITesterUnsupportedRefReturn
     {
         private string _value = "NotWorking";
         public ref string Method()

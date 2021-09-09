@@ -11,7 +11,7 @@ namespace Lide.AsyncProxy.Tests
         [TestMethod]
         public async Task That_AsyncMethods_AreProxied()
         {
-            var proxyData = Helpers.GetProxy<ITestAsyncType, TestAsyncType, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterAsyncType, TesterAsyncType, DefferedFunctionProxy>();
             var targetProxy = proxyData.TargetProxy;
             var sourceProxy = proxyData.SourceProxy;
             var handlerIsCalled = false;

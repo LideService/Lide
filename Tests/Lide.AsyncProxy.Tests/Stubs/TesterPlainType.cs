@@ -3,7 +3,7 @@ using System.Runtime.ExceptionServices;
 
 namespace Lide.AsyncProxy.Tests.Stubs
 {
-    public class TestPlainType : ITestPlainType
+    public class TesterPlainType : ITesterPlainType
     {
         private object _getterSetterValue;
         private long _longIndexer;
@@ -68,9 +68,9 @@ namespace Lide.AsyncProxy.Tests.Stubs
         #endregion
 
         #region events
-        public event TestHandler Event1;
-        public event TestHandlerValue Event2;
-        public event TestHandlerReference Event3;
+        public event TesterHandler Event1;
+        public event TesterHandlerValue Event2;
+        public event TesterHandlerReference Event3;
         public void RaiseEvent1()
         {
             Event1?.Invoke();

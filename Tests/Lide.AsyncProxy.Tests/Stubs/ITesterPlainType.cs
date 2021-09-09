@@ -2,26 +2,26 @@ using System;
 
 namespace Lide.AsyncProxy.Tests.Stubs
 {
-    public delegate void TestHandler();
-    public delegate int TestHandlerValue(int data);
-    public delegate Poco TestHandlerReference(Poco data);
+    public delegate void TesterHandler();
+    public delegate int TesterHandlerValue(int data);
+    public delegate Poco TesterHandlerReference(Poco data);
     
-    public interface ITestInheritedBase1
+    public interface ITesterInheritedBase1
     {
         int BaseField1 { get; set; }
     }
 
-    public interface ITestInheritedBase2 : ITestInheritedBase1
+    public interface ITesterInheritedBase2 : ITesterInheritedBase1
     {
         int BaseField2 { get; set; }
     }
 
-    public interface ITestInheritedBase3
+    public interface ITesterInheritedBase3
     {
         int BaseField3 { get; set; }
     }
 
-    public interface ITestPlainType : ITestInheritedBase2, ITestInheritedBase3
+    public interface ITesterPlainType : ITesterInheritedBase2, ITesterInheritedBase3
     {
         int IntProperty { get; set; }
         decimal DecimalProperty { get; set; }
@@ -33,9 +33,9 @@ namespace Lide.AsyncProxy.Tests.Stubs
         int this [int index] { get; }
         Poco this [Poco index] { set; }
         
-        event TestHandler Event1;
-        event TestHandlerValue Event2;
-        event TestHandlerReference Event3;
+        event TesterHandler Event1;
+        event TesterHandlerValue Event2;
+        event TesterHandlerReference Event3;
         void RaiseEvent1();
         int RaiseEvent2(int data);
         Poco RaiseEvent3(Poco data);

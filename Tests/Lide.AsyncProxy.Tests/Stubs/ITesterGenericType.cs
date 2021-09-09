@@ -1,14 +1,14 @@
 namespace Lide.AsyncProxy.Tests.Stubs
 {
-    public delegate TType TestGenericHandler<TType>(TType input)
+    public delegate TType TesterGenericHandler<TType>(TType input)
         where TType : class;
     
-    public interface ITestGenericType<TType>
+    public interface ITesterGenericType<TType>
         where TType : class
     {
         TType ValueProperty { get; set; }
         TType this [TType index] { get; set; }
-        event TestGenericHandler<TType> Event;
+        event TesterGenericHandler<TType> Event;
         TType RaiseEvent(TType data);
         TType Method(TType data);
     }

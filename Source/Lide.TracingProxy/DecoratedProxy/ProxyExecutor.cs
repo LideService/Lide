@@ -12,12 +12,12 @@ namespace Lide.TracingProxy.DecoratedProxy
 {
     [SuppressMessage("Exception", "CA1031", Justification = "Never throws for any reason")]
     [SuppressMessage("ReSharper", "UnusedTypeParameter", Justification = "Partial class")]
-    public partial class ProxyDecoratorTyped<TInterface>
+    public partial class ProxyDecorator<TInterface>
         where TInterface : class
     {
         private MethodMetadataVolatile ExecuteBefore(MethodInfo methodInfo, object[] originalParameters)
         {
-            var callId = Interlocked.Increment(ref CallId);
+            var callId = Interlocked.Increment(ref CallCounter.CallId);
             var parametersMetadataVolatile = new ParametersMetadataVolatile(originalParameters);
             var returnMetadataVolatile = new ReturnMetadataVolatile(null, null);
             var metadataVolatile = new MethodMetadataVolatile(_originalObject, methodInfo, parametersMetadataVolatile, returnMetadataVolatile, callId);
@@ -43,10 +43,9 @@ namespace Lide.TracingProxy.DecoratedProxy
             {
                 var methodInfo = executeBeforeMetadata.MethodInfo;
                 var editedParameters = executeBeforeMetadata.ParametersMetadataVolatile.GetEditedParameters();
-                var executableMethodInfo = _methodInfoCache.GetOrAdd(_originalObjectType, methodInfo, () => _methodInfoProvider.GetMethodInfoCompiled(methodInfo));
-                var result = executableMethodInfo.Invoke(_originalObject, editedParameters);
+                var result = methodInfo.Invoke(_originalObject, editedParameters);
 
-                var returnMetadataVolatile = new ReturnMetadataVolatile(null, result is VoidReturn ? null : result);
+                var returnMetadataVolatile = new ReturnMetadataVolatile(null, result);
                 var methodMetadataVolatile = new MethodMetadataVolatile(executeBeforeMetadata, returnMetadataVolatile);
                 return methodMetadataVolatile;
             }

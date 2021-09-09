@@ -10,11 +10,11 @@ namespace Lide.AsyncProxy.Tests
         [TestMethod]
         public void That_Properties_AreProxied()
         {
-            var proxyData = Helpers.GetProxy<ITestPlainType, TestPlainType, DefferedFunctionProxy>();
-            Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITestInheritedBase1));
-            Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITestInheritedBase2));
-            Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITestInheritedBase3));
-            Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITestPlainType));
+            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DefferedFunctionProxy>();
+            Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITesterInheritedBase1));
+            Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITesterInheritedBase2));
+            Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITesterInheritedBase3));
+            Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITesterPlainType));
             
             var targetProxy = proxyData.TargetProxy;
             var dataField = new object();
@@ -38,7 +38,7 @@ namespace Lide.AsyncProxy.Tests
         [TestMethod]
         public void That_Indexers_AreProxied()
         {
-            var proxyData = Helpers.GetProxy<ITestPlainType, TestPlainType, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DefferedFunctionProxy>();
             var targetProxy = proxyData.TargetProxy;
             var dataFiled1 = new Poco() { StringField = "Poco1", IntField = -29 };
             var dataFiled2 = new Poco() { StringField = "Poco2", IntField = -48 };
@@ -53,7 +53,7 @@ namespace Lide.AsyncProxy.Tests
         [TestMethod]
         public void That_Events_AreProxied()
         {
-            var proxyData = Helpers.GetProxy<ITestPlainType, TestPlainType, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DefferedFunctionProxy>();
             var targetProxy = proxyData.TargetProxy;
             var handlerIsCalled = false;
             var poco = new Poco { StringField = "Poco3", IntField = 7 };
@@ -62,17 +62,17 @@ namespace Lide.AsyncProxy.Tests
             Poco Handler3(Poco data) { handlerIsCalled = true; return data; }
             void AssertHandler(bool isCalled = true) { Assert.AreEqual(isCalled, handlerIsCalled); handlerIsCalled = false; }
 
-            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event1 += Handler1, null, (TestHandler)Handler1);
-            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event2 += Handler2, null, (TestHandlerValue)Handler2);
-            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event3 += Handler3, null, (TestHandlerReference)Handler3);
+            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event1 += Handler1, null, (TesterHandler)Handler1);
+            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event2 += Handler2, null, (TesterHandlerValue)Handler2);
+            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event3 += Handler3, null, (TesterHandlerReference)Handler3);
 
             Helpers.AssertExecuteOnInvoke(proxyData, () => { targetProxy.RaiseEvent1(); AssertHandler(); }, null);
             Helpers.AssertExecuteOnInvoke(proxyData, () => { targetProxy.RaiseEvent2(13); AssertHandler(); }, 13, 13);
             Helpers.AssertExecuteOnInvoke(proxyData, () => { targetProxy.RaiseEvent3(poco); AssertHandler(); }, poco, poco);
 
-            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event1 -= Handler1, null, (TestHandler)Handler1);
-            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event2 -= Handler2, null, (TestHandlerValue)Handler2);
-            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event3 -= Handler3, null, (TestHandlerReference)Handler3);
+            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event1 -= Handler1, null, (TesterHandler)Handler1);
+            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event2 -= Handler2, null, (TesterHandlerValue)Handler2);
+            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Event3 -= Handler3, null, (TesterHandlerReference)Handler3);
 
             Helpers.AssertExecuteOnInvoke(proxyData, () => { targetProxy.RaiseEvent1(); AssertHandler(false); }, null);
             Helpers.AssertExecuteOnInvoke(proxyData, () => { targetProxy.RaiseEvent2(13); AssertHandler(false); }, -1, 13);
@@ -82,7 +82,7 @@ namespace Lide.AsyncProxy.Tests
         [TestMethod]
         public void That_Methods_AreProxied()
         {
-            var proxyData = Helpers.GetProxy<ITestPlainType, TestPlainType, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DefferedFunctionProxy>();
             var targetProxy = proxyData.TargetProxy;
             var poco = new Poco { StringField = "Poco4", IntField = 9 };
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.PlainMethod(9, poco), poco, 9 , poco);
@@ -95,7 +95,7 @@ namespace Lide.AsyncProxy.Tests
         [TestMethod]
         public void That_Methods_CanThrowProperException()
         {
-            var proxyData = Helpers.GetProxy<ITestPlainType, TestPlainType, BaseObjectProxy>();
+            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, BaseObjectProxy>();
             var targetProxy = proxyData.TargetProxy;
             proxyData.SourceProxy.BaseObject = proxyData.BaseObject;
 
