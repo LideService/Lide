@@ -1,6 +1,5 @@
-using System;
 using System.Threading.Tasks;
-using Lide.AsyncProxy.Tests.Stubs;
+using Lide.AsyncProxy.Tests.Proxy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Lide.AsyncProxy.Tests
@@ -28,17 +27,17 @@ namespace Lide.AsyncProxy.Tests
                 handlerAsyncIsCalled = true;
                 return (Task)info.Invoke(proxyData.BaseObject, objects);
             };
-            sourceProxy.SetCallOnInvokeAsyncT<Poco>((info, objects) =>
+            sourceProxy.SetCallOnInvokeAsyncT((info, objects) =>
             {
                 handlerAsyncTIsCalled = true;
                 return (Task<Poco>)info.Invoke(proxyData.BaseObject, objects);
             });
 
-            targetProxy.Method1();
+            targetProxy.Method1().Wait();
             AssertAndReset(false, ref handlerIsCalled);
             AssertAndReset(true, ref handlerAsyncIsCalled);
             AssertAndReset(false, ref handlerAsyncTIsCalled);
-            targetProxy.Method2(new Poco());
+            targetProxy.Method2(new Poco()).Wait();
             AssertAndReset(false, ref handlerIsCalled);
             AssertAndReset(false, ref handlerAsyncIsCalled);
             AssertAndReset(true, ref handlerAsyncTIsCalled);
@@ -57,6 +56,38 @@ namespace Lide.AsyncProxy.Tests
         {
             Assert.AreEqual(expected, value);
             value = false;
+        }
+
+        private interface ITesterAsyncType
+        {
+            Task Method1();
+            Task<Poco> Method2(Poco data);
+            Task AsyncMethod1();
+            Task<Poco> AsyncMethod2(Poco data);
+        }
+
+        private class TesterAsyncType : ITesterAsyncType
+        {
+            public Task Method1()
+            {
+                return Task.CompletedTask;
+            }
+
+            public Task<Poco> Method2(Poco data)
+            {
+                return Task.FromResult(data);
+            }
+
+            public async Task AsyncMethod1()
+            {
+                await Task.Delay(1);
+            }
+
+            public async Task<Poco> AsyncMethod2(Poco data)
+            {
+                await Task.Delay(1);
+                return data;
+            }
         }
     }
 }

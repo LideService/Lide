@@ -1,5 +1,6 @@
 using System;
-using Lide.AsyncProxy.Tests.Stubs;
+using System.Runtime.ExceptionServices;
+using Lide.AsyncProxy.Tests.Proxy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Lide.AsyncProxy.Tests
@@ -101,6 +102,140 @@ namespace Lide.AsyncProxy.Tests
 
             var exception = new Exception("Thrown");
             Assert.ThrowsException<Exception>(() => targetProxy.ThrowMethod(exception), exception.Message);
+        }
+        
+        private delegate void TesterHandler();
+        private delegate int TesterHandlerValue(int data);
+        private delegate Poco TesterHandlerReference(Poco data);
+        
+        private interface ITesterInheritedBase1
+        {
+            int BaseField1 { get; set; }
+        }
+
+        private interface ITesterInheritedBase2 : ITesterInheritedBase1
+        {
+            int BaseField2 { get; set; }
+        }
+
+        private interface ITesterInheritedBase3
+        {
+            int BaseField3 { get; set; }
+        }
+
+        private interface ITesterPlainType : ITesterInheritedBase2, ITesterInheritedBase3
+        {
+            int IntProperty { get; set; }
+            decimal DecimalProperty { get; set; }
+            string StringProperty { get; set; }
+            object GetterOnly { get; }
+            object SetterOnly { set; }
+            
+            long this [long index] { get; set; }
+            int this [int index] { get; }
+            Poco this [Poco index] { set; }
+            
+            event TesterHandler Event1;
+            event TesterHandlerValue Event2;
+            event TesterHandlerReference Event3;
+            void RaiseEvent1();
+            int RaiseEvent2(int data);
+            Poco RaiseEvent3(Poco data);
+            
+            Poco PlainMethod(int number, Poco data);
+            int ParamsMethod(int data1, params object[] dataParams);
+            int OptionalMethod(int data1, int data2 = -1); 
+            int ImplementedMethod(int data1, int data2)
+            {
+                return data1 + data2;
+            }
+            
+            void ThrowMethod(Exception e);
+        }
+        
+        private class TesterPlainType : ITesterPlainType
+        {
+            private object _getterSetterValue;
+            private long _longIndexer;
+            private int _intIndexer;
+
+            #region inheritance
+            public int BaseField1 { get; set; }
+            public int BaseField2 { get; set; }
+            public int BaseField3 { get; set; }
+            #endregion
+            
+            #region properties
+            public int IntProperty { get; set; }
+            public decimal DecimalProperty { get; set; }
+            public string StringProperty { get; set; }
+            public object GetterOnly => _getterSetterValue;
+            public object SetterOnly
+            {
+                set => _getterSetterValue = value;
+            }
+            #endregion
+            
+            #region indexers
+            public long this[long index]
+            {
+                get => _longIndexer;
+                set => _longIndexer = value;
+            }
+
+            public int this[int index] => _intIndexer + index;
+
+            public Poco this[Poco index]
+            {
+                set => _intIndexer = index.IntField + value.IntField;
+            }
+
+
+            #endregion
+            
+            #region methods
+            public Poco PlainMethod(int number, Poco data)
+            {
+                data.IntField = data.IntField + number;
+                data.StringField = $"{data.StringField}.{number}";
+                return data;
+            }
+
+            public int ParamsMethod(int data1, params object[] dataParams)
+            {
+                return data1 + dataParams.Length;
+            }
+
+            public int OptionalMethod(int data1, int data2 = -1)
+            {
+                return data1 + data2;
+            }
+
+            public void ThrowMethod(Exception e)
+            {
+                ExceptionDispatchInfo.Capture(e).Throw();
+            }
+            #endregion
+
+            #region events
+            public event TesterHandler Event1;
+            public event TesterHandlerValue Event2;
+            public event TesterHandlerReference Event3;
+            public void RaiseEvent1()
+            {
+                Event1?.Invoke();
+            }
+            
+            public int RaiseEvent2(int data)
+            {
+                return Event2?.Invoke(data) ?? -1;
+            }
+
+            public Poco RaiseEvent3(Poco data)
+            {
+                return Event3?.Invoke(data);
+            }
+            #endregion
         }
     }
 }

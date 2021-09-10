@@ -1,4 +1,4 @@
-namespace Lide.AsyncProxy.Tests.Stubs
+namespace Lide.AsyncProxy.Tests
 {
     public class Poco
     {

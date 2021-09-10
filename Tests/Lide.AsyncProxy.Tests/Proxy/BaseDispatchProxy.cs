@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Lide.AsyncProxy.Tests.Stubs
+namespace Lide.AsyncProxy.Tests.Proxy
 {
     public interface ICallOnInvoke
     {

@@ -9,6 +9,7 @@ namespace Lide.Core.Provider
     public class MethodDependencies
     {
         private readonly List<OpCode> _opCodes;
+
         public MethodDependencies()
         {
             var opCodeFields = typeof(OpCodes).GetFields();
@@ -23,19 +24,24 @@ namespace Lide.Core.Provider
         public List<Type> GetDependencies(MethodInfo mi)
         {
             var result = new HashSet<Type>();
-            GetDependenciesInternal(mi, result);
+            GetDependenciesInternal(mi, result, 0);
             return result.ToList();
         }
 
         public List<Type> GetDependencies(MethodBase mi)
         {
             var result = new HashSet<Type>();
-            GetDependenciesInternal(mi, result);
+            GetDependenciesInternal(mi, result, 0);
             return result.ToList();
         }
 
-        private void GetDependenciesInternal(MethodBase mi, ISet<Type> dependencies)
+        private void GetDependenciesInternal(MethodBase mi, ISet<Type> dependencies, int level)
         {
+            if (level > 10)
+            {
+                return;
+            }
+
             var mb = mi?.GetMethodBody();
             var il = mb?.GetILAsByteArray();
 
@@ -64,10 +70,9 @@ namespace Lide.Core.Provider
 
                 if (resMethod.DeclaringType == mi.DeclaringType)
                 {
-                    GetDependenciesInternal(resMethod, dependencies);
+                    GetDependenciesInternal(resMethod, dependencies, level + 1);
                 }
-                else
-                if (resMethod.DeclaringType != null)
+                else if (resMethod.DeclaringType != null)
                 {
                     dependencies.Add(resMethod.DeclaringType);
                 }

@@ -9,7 +9,7 @@ using Lide.Core.Contract.Provider;
 using Lide.TracingProxy;
 using Lide.TracingProxy.Contract;
 
-namespace Lide.Core
+namespace Lide.WebApi
 {
     public class ServiceProviderWrapper : IServiceProvider, IDisposable
     {

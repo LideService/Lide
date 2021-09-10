@@ -1,9 +1,8 @@
 using System;
 using System.Reflection;
-using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
-namespace Lide.AsyncProxy.Tests.Stubs
+namespace Lide.AsyncProxy.Tests.Proxy
 {
     public class DefferedFunctionProxy : DispatchProxyAsync, ICallOnInvoke
     {

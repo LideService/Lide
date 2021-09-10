@@ -21,9 +21,29 @@ namespace Lide.TracingProxy.DecoratedProxy
             return this;
         }
 
+        public IProxyCompositor<TInterface> SetDecorator(IObjectDecoratorReadonly readonlyDecorator)
+        {
+            if (readonlyDecorator != null)
+            {
+                _readonlyDecorators.Add(readonlyDecorator);
+            }
+
+            return this;
+        }
+
         public IProxyCompositor<TInterface> SetDecorators(IEnumerable<IObjectDecoratorVolatile> volatileDecorators)
         {
             _volatileDecorators.AddRange(volatileDecorators.Where(x => x != null));
+            return this;
+        }
+
+        public IProxyCompositor<TInterface> SetDecorator(IObjectDecoratorVolatile volatileDecorator)
+        {
+            if (volatileDecorator != null)
+            {
+                _volatileDecorators.Add(volatileDecorator);
+            }
+
             return this;
         }
 

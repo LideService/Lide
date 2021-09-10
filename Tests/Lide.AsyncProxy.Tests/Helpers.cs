@@ -1,5 +1,5 @@
 using System;
-using Lide.AsyncProxy.Tests.Stubs;
+using Lide.AsyncProxy.Tests.Proxy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Lide.AsyncProxy.Tests

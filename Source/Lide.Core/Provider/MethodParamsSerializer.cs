@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model;
 
@@ -10,12 +9,12 @@ namespace Lide.Core.Provider
 {
     public class MethodParamsSerializer : IParametersSerializer
     {
-        private readonly ISerializerFacade _serializerFacade;
+        private readonly ISerializeProvider _serializeProvider;
         private readonly ConcurrentDictionary<string, Type> _typesCache;
 
-        public MethodParamsSerializer(ISerializerFacade serializerFacade)
+        public MethodParamsSerializer(ISerializeProvider serializeProvider)
         {
-            _serializerFacade = serializerFacade;
+            _serializeProvider = serializeProvider;
             _typesCache = new ConcurrentDictionary<string, Type>();
         }
 
@@ -35,16 +34,16 @@ namespace Lide.Core.Provider
                 return new SerializedParameter
                 {
                     TypeName = typeName,
-                    Data = _serializerFacade.Serialize(param),
+                    Data = _serializeProvider.Serialize(param),
                 };
             }).ToList();
 
-            return _serializerFacade.Serialize(result);
+            return _serializeProvider.Serialize(result);
         }
 
         public object[] Deserialize(byte[] serialized)
         {
-            var serializedParams = _serializerFacade.Deserialize<List<SerializedParameter>>(serialized);
+            var serializedParams = _serializeProvider.Deserialize<List<SerializedParameter>>(serialized);
             var result = serializedParams.Select(param =>
             {
                 if (param.TypeName == null || string.IsNullOrEmpty(param.TypeName))
@@ -53,7 +52,7 @@ namespace Lide.Core.Provider
                 }
 
                 var type = _typesCache.GetOrAdd(param.TypeName, Type.GetType);
-                var data = _serializerFacade.Deserialize(param.Data, type);
+                var data = _serializeProvider.Deserialize(type, param.Data);
                 return data;
             }).ToArray();
 
@@ -71,10 +70,10 @@ namespace Lide.Core.Provider
             var typeName = methodParams.GetType().FullName;
             _typesCache.TryAdd(typeName, type);
 
-            return _serializerFacade.Serialize(new SerializedParameter
+            return _serializeProvider.Serialize(new SerializedParameter
             {
                 TypeName = typeName,
-                Data = _serializerFacade.Serialize(methodParams),
+                Data = _serializeProvider.Serialize(methodParams),
             });
         }
 
@@ -85,9 +84,9 @@ namespace Lide.Core.Provider
                 return null;
             }
 
-            var serializedParam = _serializerFacade.Deserialize<SerializedParameter>(serialized);
+            var serializedParam = _serializeProvider.Deserialize<SerializedParameter>(serialized);
             var type = _typesCache.GetOrAdd(serializedParam.TypeName, Type.GetType);
-            var data = _serializerFacade.Deserialize(serializedParam.Data, type);
+            var data = _serializeProvider.Deserialize(type, serializedParam.Data);
             return data;
         }
     }

@@ -46,8 +46,8 @@ namespace Lide.Decorators
             var methodInfo = methodMetadata.MethodInfo;
             var editedParameters = methodMetadata.ParametersMetadata.GetEditedParameters();
             var methodSignature = _signatureProvider.GetMethodSignature(methodInfo, SignatureOptions.OnlyBaseNamespace);
-            var parameters = _serializerFacade.SerializeToString(editedParameters);
-            var result = _serializerFacade.SerializeToString(methodMetadata.ReturnMetadata.GetEditedException() ?? methodMetadata.ReturnMetadata.GetEditedResult());
+            var parameters = _serializerFacade.Serialize(editedParameters);
+            var result = _serializerFacade.Serialize(methodMetadata.ReturnMetadata.GetEditedException() ?? methodMetadata.ReturnMetadata.GetEditedResult());
             _loggerFacade.Log($"[{_scopeIdProvider.GetRootScopeId()}][{_scopeIdProvider.GetCurrentScopeId()}] {methodSignature} - {parameters}:{result}");
         }
     }

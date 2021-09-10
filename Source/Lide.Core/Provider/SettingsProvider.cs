@@ -1,16 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model.Settings;
 
 namespace Lide.Core.Provider
 {
+    // TODO
     public class SettingsProvider : ISettingsProvider
     {
-        private readonly ISerializerFacade _serializerFacade;
+        private readonly ISerializeProvider _serializeProvider;
         private readonly ICompressionProvider _compressionProvider;
         private readonly TypeGroups _includedFullname;
         private readonly TypeGroups _includedStarts;
@@ -31,10 +31,10 @@ namespace Lide.Core.Provider
         };
 
         public SettingsProvider(
-            ISerializerFacade serializerFacade,
+            ISerializeProvider serializeProvider,
             ICompressionProvider compressionProvider)
         {
-            _serializerFacade = serializerFacade;
+            _serializeProvider = serializeProvider;
             _compressionProvider = compressionProvider;
             _includedFullname = new TypeGroups();
             _includedStarts = new TypeGroups();
@@ -59,9 +59,9 @@ namespace Lide.Core.Provider
         {
             AppSettings = appSettings;
             PropagateSettings = DeserializeSafe(propagateSettings);
-            var serialized = _serializerFacade.Serialize(PropagateSettings);
-            var compressed = _compressionProvider.Compress(serialized);
-            PropagateSettingsString = Convert.ToBase64String(compressed);
+            ////var serialized = _serializerFacade.Serialize(PropagateSettings);
+            ////var compressed = _compressionProvider.Compress(serialized);
+            ////PropagateSettingsString = Convert.ToBase64String(compressed);
             BuildIncludedTypes();
             BuildExcludedTypes();
             BuildDecorators();
@@ -170,24 +170,25 @@ namespace Lide.Core.Provider
 
         private PropagateSettings DeserializeSafe(string propagateSettings, bool useCompression = false, bool returnDefault = false)
         {
-            try
-            {
-                if (useCompression)
-                {
-                    var compressed = Convert.FromBase64String(propagateSettings);
-                    var decompressed = _compressionProvider.Decompress(compressed);
-                    return _serializerFacade.Deserialize<PropagateSettings>(decompressed);
-                }
-
-                var data = Encoding.UTF8.GetBytes(propagateSettings);
-                return _serializerFacade.Deserialize<PropagateSettings>(data);
-            }
-            catch
-            {
-                return returnDefault
-                    ? new PropagateSettings()
-                    : DeserializeSafe(propagateSettings, true, true);
-            }
+            return new PropagateSettings();
+            ////try
+            ////{
+            ////    if (useCompression)
+            ////    {
+            ////        var compressed = Convert.FromBase64String(propagateSettings);
+            ////        var decompressed = _compressionProvider.Decompress(compressed);
+            ////        return _serializerFacade.Deserialize<PropagateSettings>(decompressed);
+            ////    }
+            ////
+            ////    var data = Encoding.UTF8.GetBytes(propagateSettings);
+            ////    return _serializerFacade.Deserialize<PropagateSettings>(data);
+            ////}
+            ////catch
+            ////{
+            ////    return returnDefault
+            ////        ? new PropagateSettings()
+            ////        : DeserializeSafe(propagateSettings, true, true);
+            ////}
         }
     }
 }

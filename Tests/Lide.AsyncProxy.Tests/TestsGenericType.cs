@@ -1,5 +1,4 @@
-using System;
-using Lide.AsyncProxy.Tests.Stubs;
+using Lide.AsyncProxy.Tests.Proxy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Lide.AsyncProxy.Tests
@@ -26,6 +25,44 @@ namespace Lide.AsyncProxy.Tests
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.RaiseEvent(poco), poco, poco);
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.Method(poco), poco, poco);
             Assert.IsTrue(handlerIsCalled);
+        }
+
+        private delegate TType TesterGenericHandler<TType>(TType input)
+            where TType : class;
+
+        private interface ITesterGenericType<TType>
+            where TType : class
+        {
+            TType ValueProperty { get; set; }
+            TType this [TType index] { get; set; }
+            event TesterGenericHandler<TType> Event;
+            TType RaiseEvent(TType data);
+            TType Method(TType data);
+        }
+        
+        private class TesterGenericType<TType> : ITesterGenericType<TType>
+            where TType : class
+        {        
+            private TType _indexer;
+            public TType ValueProperty { get; set; }
+        
+            public TType this [TType index]
+            {
+                get => _indexer;
+                set => _indexer = value;
+            }
+        
+            public event TesterGenericHandler<TType> Event;
+
+            public TType RaiseEvent(TType data)
+            {
+                return Event?.Invoke(data);
+            }
+
+            public TType Method(TType data)
+            {
+                return data;
+            }
         }
     }
 }

@@ -20,8 +20,6 @@ namespace Lide.WebApi.Extension
             // Facades
             serviceCollection.AddSingleton<IDateTimeFacade, DateTimeFacade>();
             serviceCollection.AddSingleton<ILoggerFacade, LoggerFacade>();
-            serviceCollection.AddSingleton<IRandomFacade, RandomFacade>();
-            serviceCollection.AddSingleton<ISerializerFacade, SerializerFacade>();
             serviceCollection.AddSingleton<IFileFacade, FileFacade>();
             serviceCollection.AddSingleton<IPathFacade, PathFacade>();
 
@@ -30,6 +28,8 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddSingleton<IParametersSerializer, MethodParamsSerializer>();
             serviceCollection.AddSingleton<ISignatureProvider, SignatureProvider>();
             serviceCollection.AddSingleton<ITaskRunner, TaskRunner>();
+            serviceCollection.AddSingleton<IRandomFacade, RandomFacade>();
+            serviceCollection.AddSingleton<ISerializeProvider, SerializeProvider>();
 
             // Decorators
             serviceCollection.AddScoped<IObjectDecoratorReadonly, ConsoleDecorator>();

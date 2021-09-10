@@ -1,7 +1,5 @@
-using System;
 using System.IO;
 using System.IO.Compression;
-using System.Text;
 using Lide.Core.Contract.Provider;
 
 namespace Lide.Core.Provider
