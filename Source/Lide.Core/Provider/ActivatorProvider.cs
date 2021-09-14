@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,8 +9,7 @@ namespace Lide.Core.Provider
 {
     public class ActivatorProvider : IActivatorProvider
     {
-        private readonly Dictionary<Type, Action<object, object>> _cachedCloning = new ();
-        private readonly BindingFlags _flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+        private readonly BindingFlags _flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
 
         public object CreateObject(Type targetType)
         {
@@ -22,6 +22,8 @@ namespace Lide.Core.Provider
 
             var parameters = shortest.GetParameters();
             var input = new List<object>();
+
+            // ReSharper disable once LoopCanBeConvertedToQuery for readability
             foreach (var parameter in parameters)
             {
                 var value = parameter.ParameterType.IsValueType
@@ -31,6 +33,17 @@ namespace Lide.Core.Provider
             }
 
             return shortest.Invoke(input.ToArray());
+        }
+
+        public bool DeepCopyIntoTarget(object source, ref object target)
+        {
+            if (source == null && target == null)
+            {
+                return false;
+            }
+
+            target ??= CreateObject(source!.GetType());
+            return DeepCopyIntoExistingObject(source, target);
         }
 
         public bool DeepCopyIntoExistingObject(object source, object target)
@@ -47,65 +60,108 @@ namespace Lide.Core.Provider
                 return false;
             }
 
-            if (!_cachedCloning.ContainsKey(sourceType))
-            {
-                GenerateCopyActions(sourceType);
-            }
-
-            _cachedCloning[sourceType](source, target);
+            CopyReferenceFields(source, target);
             return true;
         }
 
-        private Action<object, object> GenerateCopyActions(Type type)
+        private void CopyReferenceFields(object source, object target)
         {
-            if (_cachedCloning.ContainsKey(type))
+            var members = source.GetType().GetFields(_flags).ToList();
+            foreach (var member in members)
             {
-                return _cachedCloning[type];
+                if (IsValueType(member.FieldType))
+                {
+                    CopyValueField(member, source, target);
+                }
+                else if (member.FieldType.IsArray)
+                {
+                    CopyArrayField(member, source, target);
+                }
+                else
+                {
+                    CopyReferenceField(member, source, target);
+                }
+            }
+        }
+
+        // ReSharper disable once MemberCanBeMadeStatic.Local for consistency
+        private bool IsValueType(Type type)
+        {
+            return (type.IsPrimitive && type.IsValueType) || type == typeof(string) || type == typeof(decimal);
+        }
+
+        private void CopyReferenceField(FieldInfo member, object source, object target)
+        {
+            var sourceValue = member.GetValue(source);
+            if (sourceValue == null)
+            {
+                member.SetValue(target, null);
+                return;
             }
 
-            var actions = new List<Action<object, object>>();
-            var members = type.GetFields(_flags).ToList();
-            for (var index = 0; index < members.Count; index++)
+            var actualSourceType = sourceValue.GetType();
+            var targetValue = member.GetValue(target);
+            if (targetValue == null)
             {
-                var member = members[index];
-                if (member.FieldType.IsValueType || member.FieldType == typeof(string))
-                {
-                    actions.Add((source, target) =>
-                    {
-                        var value = member.GetValue(source);
-                        member.SetValue(target, value);
-                    });
+                targetValue = CreateObject(actualSourceType);
+                member.SetValue(target, targetValue);
+            }
 
-                    continue;
+            CopyReferenceFields(sourceValue, targetValue);
+        }
+
+        // ReSharper disable once MemberCanBeMadeStatic.Local for consistency
+        private void CopyValueField(FieldInfo member, object source, object target)
+        {
+            var value = member.GetValue(source);
+            member.SetValue(target, value);
+        }
+
+        private void CopyArrayField(FieldInfo member, object source, object target)
+        {
+            var elementType = member.FieldType.GetElementType();
+            var isArrayValueType = IsValueType(elementType);
+            var sourceArray = (IList)(Array)member.GetValue(source);
+
+            if (sourceArray == null)
+            {
+                member.SetValue(target, null);
+                return;
+            }
+
+            // Always reset array reference as the original reference cant be resized.
+            var targetArray = (IList)Array.CreateInstance(elementType!, sourceArray.Count);
+            member.SetValue(target, targetArray);
+            if (isArrayValueType)
+            {
+                for (var index = 0; index < sourceArray.Count; index++)
+                {
+                    var arrayValue = sourceArray[index];
+                    targetArray[index] = arrayValue;
                 }
-
-                actions.Add((source, target) =>
+            }
+            else
+            {
+                for (var index = 0; index < sourceArray.Count; index++)
                 {
-                    var sourceValue = member.GetValue(source);
-                    var targetValue = member.GetValue(target);
+                    var sourceValue = sourceArray[index];
                     if (sourceValue == null)
                     {
-                        member.SetValue(target, null);
-                        return;
+                        targetArray[index] = null;
+                        continue;
                     }
 
+                    var actualSourceType = sourceValue.GetType();
+                    var targetValue = targetArray[index];
                     if (targetValue == null)
                     {
-                        targetValue = CreateObject(member.FieldType);
-                        member.SetValue(target, targetValue);
+                        targetValue = CreateObject(actualSourceType);
+                        targetArray[index] = targetValue;
                     }
 
-                    GenerateCopyActions(member.FieldType)(sourceValue, targetValue);
-                });
+                    CopyReferenceFields(sourceValue, targetValue);
+                }
             }
-
-            void TypeCopier(object source, object target)
-            {
-                actions.ForEach(x => x(source, target));
-            }
-
-            _cachedCloning.TryAdd(type, TypeCopier);
-            return _cachedCloning[type];
         }
     }
 }

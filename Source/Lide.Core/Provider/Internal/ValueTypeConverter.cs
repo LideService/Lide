@@ -16,19 +16,20 @@ namespace Lide.Core.Provider.Internal
             GenerateGetObject();
         }
 
+        // ReSharper disable once MemberCanBeMadeStatic.Global for consistency
         public bool IsValueType(Type type)
         {
-            return (type.IsPrimitive && type.IsValueType) || type == typeof(string);
+            return (type.IsPrimitive && type.IsValueType) || type == typeof(string) || type == typeof(decimal);
         }
 
-        public Func<object, byte[]> GetBytes(Type type)
+        public byte[] GetBytes(Type type, object data)
         {
-            return _cachedGetBytes[type];
+            return _cachedGetBytes[type](data);
         }
 
-        public Func<byte[], object> GetObject(Type type)
+        public object GetObject(Type type, byte[] data)
         {
-            return _cachedGetObject[type];
+            return _cachedGetObject[type](data);
         }
 
         private void GenerateGetObject()

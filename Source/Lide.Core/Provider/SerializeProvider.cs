@@ -6,11 +6,11 @@ namespace Lide.Core.Provider
 {
     public class SerializeProvider : ISerializeProvider
     {
-        private readonly TypeConverterProvider _converter;
+        private readonly ObjectConverter _typeConverter;
 
         public SerializeProvider()
         {
-            _converter = new TypeConverterProvider();
+            _typeConverter = new ObjectConverter();
         }
 
         public string SerializeToString(object data)
@@ -20,20 +20,17 @@ namespace Lide.Core.Provider
 
         public byte[] Serialize(object data)
         {
-            var converter = _converter.GenerateReadAction(data.GetType());
-            return converter(data);
+            return _typeConverter.Serialize(data);
         }
 
-        public object Deserialize(Type type, byte[] data)
+        public object Deserialize(byte[] data)
         {
-            var converter = _converter.GenerateWriteAction(type);
-            return converter(data);
+            return _typeConverter.Deserialize(data);
         }
 
         public T Deserialize<T>(byte[] data)
         {
-            var converter = _converter.GenerateWriteAction(typeof(T));
-            return (T)converter(data);
+            return (T)_typeConverter.Deserialize(data);
         }
     }
 }

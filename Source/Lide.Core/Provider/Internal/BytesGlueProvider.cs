@@ -5,9 +5,9 @@ using System.Runtime.CompilerServices;
 
 namespace Lide.Core.Provider.Internal
 {
-    internal class FieldsDataConverter
+    internal class BytesGlueProvider
     {
-        public byte[] ConcatFieldsData(IReadOnlyCollection<byte[]> fields)
+        public byte[] ConcatBytes(IReadOnlyCollection<byte[]> fields)
         {
             var totalLength = fields.Sum(x => x.Length) + fields.Count * sizeof(int);
             var outputBytes = new byte[totalLength];
@@ -24,7 +24,7 @@ namespace Lide.Core.Provider.Internal
             return outputBytes;
         }
 
-        public IReadOnlyCollection<byte[]> SplitFieldsData(byte[] data)
+        public IReadOnlyCollection<byte[]> SplitBytes(byte[] data)
         {
             var result = new List<byte[]>();
 

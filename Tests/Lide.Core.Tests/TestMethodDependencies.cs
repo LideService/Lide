@@ -23,16 +23,15 @@ namespace Lide.Core.Tests
             CollectionAssert.Contains(dependencies, typeof(Encoding));
         }
         
-        [TestMethod, Ignore("Need to figure out delegates IL parsing")]
+        [TestMethod]
         public void That_ListWithAllDependencies_When_DelegateIsUsed()
         {
             var methodInfo = typeof(TesterBroken).GetMethods().FirstOrDefault(x => x.Name == "Method");
             var provider = new MethodDependencies();
             
             var dependencies = provider.GetDependencies(methodInfo).Where(x => x != null).ToList();
-            //dependencies.ForEach(Console.WriteLine);
             Assert.AreEqual(1, dependencies.Count);
-            CollectionAssert.Contains(dependencies, typeof(Console));
+            CollectionAssert.Contains(dependencies, typeof(System.Action<string>));
         }
 
         private class TesterBroken

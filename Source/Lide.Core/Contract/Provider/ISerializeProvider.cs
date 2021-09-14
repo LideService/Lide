@@ -6,7 +6,7 @@ namespace Lide.Core.Contract.Provider
     {
         string SerializeToString(object data);
         byte[] Serialize(object data);
-        object Deserialize(Type type, byte[] data);
+        object Deserialize(byte[] data);
         T Deserialize<T>(byte[] data);
     }
 }

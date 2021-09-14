@@ -25,7 +25,6 @@ namespace Lide.WebApi.Extension
 
             // Provider
             serviceCollection.AddSingleton<ICompressionProvider, CompressionProvider>();
-            serviceCollection.AddSingleton<IParametersSerializer, MethodParamsSerializer>();
             serviceCollection.AddSingleton<ISignatureProvider, SignatureProvider>();
             serviceCollection.AddSingleton<ITaskRunner, TaskRunner>();
             serviceCollection.AddSingleton<IRandomFacade, RandomFacade>();
