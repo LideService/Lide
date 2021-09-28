@@ -1,34 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Lide.Core.Contract.Facade;
+using System.Text.RegularExpressions;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model.Settings;
 
 namespace Lide.Core.Provider
 {
-    // TODO
     public class SettingsProvider : ISettingsProvider
     {
+        private const string ExcludedByDefault = "-Lide.*-Microsoft.*-System.*";
         private readonly ISerializeProvider _serializeProvider;
         private readonly ICompressionProvider _compressionProvider;
-        private readonly TypeGroups _includedFullname;
-        private readonly TypeGroups _includedStarts;
-        private readonly TypeGroups _includedEnds;
-        private readonly TypeGroups _includedStartEnds;
-
-        private readonly TypeGroups _excludedFullname;
-        private readonly TypeGroups _excludedStarts;
-        private readonly TypeGroups _excludedEnds;
-        private readonly TypeGroups _excludedStartEnds;
-        private List<string> _decorators;
-
-        private static readonly string[] ExcludeAssemblies = new[]
-        {
-            "Lide.",
-            "Microsoft.",
-            "System.",
-        };
+        private readonly List<(bool inclusion, string pattern)> _globalPatterns = new ();
+        private readonly List<(bool inclusion, string pattern)> _defaultPatterns = new ();
+        private readonly Dictionary<string, List<(bool inclusion, string pattern)>> _decoratorPatterns = new ();
+        private PropagateSettings _propagateSettings;
 
         public SettingsProvider(
             ISerializeProvider serializeProvider,
@@ -36,159 +23,143 @@ namespace Lide.Core.Provider
         {
             _serializeProvider = serializeProvider;
             _compressionProvider = compressionProvider;
-            _includedFullname = new TypeGroups();
-            _includedStarts = new TypeGroups();
-            _includedEnds = new TypeGroups();
-            _includedStartEnds = new TypeGroups();
-
-            _excludedFullname = new TypeGroups();
-            _excludedStarts = new TypeGroups();
-            _excludedEnds = new TypeGroups();
-            _excludedStartEnds = new TypeGroups();
         }
 
         public AppSettings AppSettings { get; private set; }
-        public PropagateSettings PropagateSettings { get; private set; }
         public string PropagateSettingsString { get; private set; }
+        public bool AllowVolatileDecorators => AllowReadonlyDecorators && (string.IsNullOrEmpty(AppSettings.VolatileKey) || AppSettings.VolatileKey == _propagateSettings.VolatileKey);
+        public bool AllowReadonlyDecorators => string.IsNullOrEmpty(AppSettings.EnabledKey) || AppSettings.EnabledKey == _propagateSettings.EnabledKey;
 
-        public bool SearchHttpBody => AppSettings.SearchHttpBody;
-        public bool AllowVolatileDecorators => string.IsNullOrEmpty(AppSettings.EnabledKey) || AppSettings.VolatileKey == PropagateSettings.VolatileKey;
-        public bool AllowDecoratorsKeyMatch => string.IsNullOrEmpty(AppSettings.EnabledKey) || AppSettings.EnabledKey == PropagateSettings.EnabledKey;
-
-        public void SetData(AppSettings appSettings, string propagateSettings)
+        public void Initialize(AppSettings appSettings, string propagateSettings)
         {
             AppSettings = appSettings;
-            PropagateSettings = DeserializeSafe(propagateSettings);
-            ////var serialized = _serializerFacade.Serialize(PropagateSettings);
-            ////var compressed = _compressionProvider.Compress(serialized);
-            ////PropagateSettingsString = Convert.ToBase64String(compressed);
-            BuildIncludedTypes();
-            BuildExcludedTypes();
-            BuildDecorators();
+            PreparePropagateSettings(propagateSettings);
+            PreparePatterns();
         }
 
-        public List<string> GetDecorators() => _decorators;
-
-        public bool IsTypeAllowed(Type type)
+        public List<string> GetDecorators(Type type)
         {
-            var isIncludedType = IsIncluded(type.Name, x => x.Types);
-            var isIncludedNamespace = IsIncluded(type.Namespace ?? string.Empty, x => x.Namespaces);
-            var isIncludedAssemblies = IsIncluded(type.Assembly.GetName().Name ?? string.Empty, x => x.Assemblies);
-
-            var isExcludedType = IsExcluded(type.Name, x => x.Types);
-            var isExcludedNamespace = IsExcluded(type.Namespace ?? string.Empty, x => x.Namespaces);
-            var isExcludedAssemblies = IsExcluded(type.Assembly.GetName().Name ?? string.Empty, x => x.Assemblies);
-
-            var isIncluded = isIncludedType || isIncludedNamespace || isIncludedAssemblies;
-            var isExcluded = isExcludedType || isExcludedNamespace || isExcludedAssemblies;
-
-            var isAllowed = AppSettings.GroupsInclusion.InclusionType switch
+            var result = new List<string>();
+            var globalInclusion = IsIncludedInPattern(type, _globalPatterns);
+            var defaultInclusion = IsIncludedInPattern(type, _defaultPatterns);
+            if (defaultInclusion.HasValue && !defaultInclusion.Value)
             {
-                InclusionType.OnlyIncluded => isIncluded,
-                InclusionType.AllButExcluded => !isExcluded,
-                _ => !isExcluded || isIncluded
-            };
-
-            return isAllowed;
-        }
-
-        private bool IsIncluded(string name, Func<TypeGroups, List<string>> selector)
-        {
-            return selector(_includedFullname).Any(x => x == name)
-                   || selector(_includedStarts).Any(name.StartsWith)
-                   || selector(_includedEnds).Any(name.EndsWith)
-                   || selector(_includedStartEnds).Any(x => name.StartsWith(x) && name.EndsWith(x));
-        }
-
-        private bool IsExcluded(string name, Func<TypeGroups, List<string>> selector)
-        {
-            return selector(_excludedFullname).Any(x => x == name)
-                   || selector(_excludedStarts).Any(name.StartsWith)
-                   || selector(_excludedEnds).Any(name.EndsWith)
-                   || selector(_excludedStartEnds).Any(x => name.StartsWith(x) && name.EndsWith(x));
-        }
-
-        private void BuildDecorators()
-        {
-            _decorators = PropagateSettings.Decorators;
-            if (PropagateSettings.OverrideDecorators)
-            {
-                return;
+                return result;
             }
 
-            _decorators = _decorators.Union(AppSettings.Decorators).ToList();
-        }
-
-        private void BuildIncludedTypes()
-        {
-            FilterOut(_includedFullname, PropagateSettings.GroupsInclusion.Included, IsFullName);
-            FilterOut(_includedStarts, PropagateSettings.GroupsInclusion.Included, EndsWith); // ends with after must start with
-            FilterOut(_includedEnds, PropagateSettings.GroupsInclusion.Included, StartsWith); // start with after must end with
-            FilterOut(_includedStartEnds, PropagateSettings.GroupsInclusion.Included, StartsEndsWith);
-
-            if (PropagateSettings.OverrideGroupInclusions)
+            foreach (var (decoratorName, decoratorPatterns) in _decoratorPatterns)
             {
-                return;
+                var decoratorInclusion = IsIncludedInPattern(type, decoratorPatterns);
+                if (decoratorInclusion ?? globalInclusion ?? false)
+                {
+                    result.Add(decoratorName);
+                }
             }
 
-            FilterOut(_includedFullname, AppSettings.GroupsInclusion.Included, IsFullName);
-            FilterOut(_includedStarts, AppSettings.GroupsInclusion.Included, EndsWith); // ends with after must start with
-            FilterOut(_includedEnds, AppSettings.GroupsInclusion.Included, StartsWith); // start with after must end with
-            FilterOut(_includedStartEnds, AppSettings.GroupsInclusion.Included, StartsEndsWith);
+            return result;
         }
 
-        private void BuildExcludedTypes()
+        private bool? IsIncludedInPattern(Type type, List<(bool inclusion, string pattern)> inclusionPatterns)
         {
-            _excludedStarts.Assemblies.AddRange(ExcludeAssemblies);
-            FilterOut(_excludedFullname, PropagateSettings.GroupsInclusion.Excluded, IsFullName);
-            FilterOut(_excludedStarts, PropagateSettings.GroupsInclusion.Excluded, EndsWith); // ends with after must start with
-            FilterOut(_excludedEnds, PropagateSettings.GroupsInclusion.Excluded, StartsWith); // start with after must end with
-            FilterOut(_excludedStartEnds, PropagateSettings.GroupsInclusion.Excluded, StartsEndsWith);
-
-            if (PropagateSettings.OverrideGroupInclusions)
+            bool? included = null;
+            var typeFullname = type.FullName ?? string.Empty;
+            var typeNamespace = type.Namespace ?? string.Empty;
+            var typeAssembly = type.Assembly.GetName().Name ?? string.Empty;
+            foreach (var (inclusion, pattern) in inclusionPatterns)
             {
-                return;
+                if (included == inclusion)
+                {
+                    continue;
+                }
+
+                if (Regex.IsMatch(type.Name, pattern) || Regex.IsMatch(typeFullname, pattern)
+                    || Regex.IsMatch(typeNamespace, pattern) || Regex.IsMatch(typeAssembly, pattern))
+                {
+                    included = inclusion;
+                }
             }
 
-            FilterOut(_excludedFullname, AppSettings.GroupsInclusion.Excluded, IsFullName);
-            FilterOut(_excludedStarts, AppSettings.GroupsInclusion.Excluded, EndsWith); // ends with after must start with
-            FilterOut(_excludedEnds, AppSettings.GroupsInclusion.Excluded, StartsWith); // start with after must end with
-            FilterOut(_excludedStartEnds, AppSettings.GroupsInclusion.Excluded, StartsEndsWith);
+            return included;
         }
 
-        private static void FilterOut(TypeGroups destination, TypeGroups source, Func<string, bool> filter)
+        private void PreparePropagateSettings(string propagateSettings)
         {
-            destination.Types = destination.Types.Union(source.Types.Where(filter).Select(x => x.Replace("*", ""))).ToList();
-            destination.Namespaces = destination.Namespaces.Union(source.Namespaces.Where(filter).Select(x => x.Replace("*", ""))).ToList();
-            destination.Assemblies = destination.Assemblies.Union(source.Assemblies.Where(filter).Select(x => x.Replace("*", ""))).ToList();
+            try
+            {
+                var fromBase64 = Convert.FromBase64String(propagateSettings);
+                var decompressed = _compressionProvider.Decompress(fromBase64);
+                var deserialized = _serializeProvider.Deserialize<PropagateSettings>(decompressed);
+                _propagateSettings = deserialized;
+                PropagateSettingsString = propagateSettings;
+            }
+            catch
+            {
+                try
+                {
+                    _propagateSettings = _serializeProvider.DeserializeFromString<PropagateSettings>(propagateSettings);
+                }
+                catch
+                {
+                    _propagateSettings = new PropagateSettings();
+                }
+
+                var serialized = _serializeProvider.Serialize(_propagateSettings);
+                var compressed = _compressionProvider.Compress(serialized);
+                var toBase64 = Convert.ToBase64String(compressed);
+                PropagateSettingsString = toBase64;
+            }
         }
 
-        private static bool IsFullName(string x) => x.StartsWith("*") || !x.EndsWith("*");
-        private static bool StartsWith(string x) => x.StartsWith("*") || !x.EndsWith("*");
-        private static bool EndsWith(string x) => x.StartsWith("*") || !x.EndsWith("*");
-        private static bool StartsEndsWith(string x) => x.StartsWith("*") || !x.EndsWith("*");
-
-        private PropagateSettings DeserializeSafe(string propagateSettings, bool useCompression = false, bool returnDefault = false)
+        private void PreparePatterns()
         {
-            return new PropagateSettings();
-            ////try
-            ////{
-            ////    if (useCompression)
-            ////    {
-            ////        var compressed = Convert.FromBase64String(propagateSettings);
-            ////        var decompressed = _compressionProvider.Decompress(compressed);
-            ////        return _serializerFacade.Deserialize<PropagateSettings>(decompressed);
-            ////    }
-            ////
-            ////    var data = Encoding.UTF8.GetBytes(propagateSettings);
-            ////    return _serializerFacade.Deserialize<PropagateSettings>(data);
-            ////}
-            ////catch
-            ////{
-            ////    return returnDefault
-            ////        ? new PropagateSettings()
-            ////        : DeserializeSafe(propagateSettings, true, true);
-            ////}
+            _defaultPatterns.AddRange(GetInclusionPatterns(ExcludedByDefault).Item2);
+            if (!_propagateSettings.OverrideInclusionPattern)
+            {
+                _globalPatterns.AddRange(GetInclusionPatterns(AppSettings.InclusionPattern).Item2);
+            }
+
+            _globalPatterns.AddRange(GetInclusionPatterns(_propagateSettings.InclusionPattern).Item2);
+
+            if (!_propagateSettings.OverrideDecoratorsWithPattern)
+            {
+                foreach (var decoratorWithPattern in AppSettings.DecoratorsWithPattern.Where(x => x.Length > 0))
+                {
+                    var (name, patterns) = GetInclusionPatterns(decoratorWithPattern);
+                    _decoratorPatterns.TryAdd(name, new List<(bool, string)>());
+                    _decoratorPatterns[name].AddRange(patterns);
+                }
+            }
+
+            foreach (var decoratorWithPattern in _propagateSettings.DecoratorsWithPattern.Where(x => x.Length > 0))
+            {
+                var (name, patterns) = GetInclusionPatterns(decoratorWithPattern);
+                _decoratorPatterns.TryAdd(name, new List<(bool, string)>());
+                _decoratorPatterns[name].AddRange(patterns);
+            }
+        }
+
+        private (string, List<(bool, string)>) GetInclusionPatterns(string inclusionPattern)
+        {
+            var result = new List<(bool, string)>();
+            var globalInclusionNames = Regex.Matches(inclusionPattern, "([-+]?[^+-]*)")
+                .Select(x => x.Value)
+                .Where(x => !string.IsNullOrEmpty(x))
+                .ToList();
+
+            var first = globalInclusionNames.FirstOrDefault(x => !x.StartsWith('+') && !x.StartsWith('-'));
+            foreach (var inclusionName in globalInclusionNames.Where(x => x.StartsWith('+') || x.StartsWith('-')))
+            {
+                var inclusion = inclusionName.StartsWith('+');
+                var pattern = WildCardToRegex(inclusionName[1..]);
+                result.Add((inclusion, pattern));
+            }
+
+            return (first, result);
+        }
+
+        private static string WildCardToRegex(string value)
+        {
+            return "^" + Regex.Escape(value).Replace("\\?", ".").Replace("\\*", ".*") + "$";
         }
     }
 }

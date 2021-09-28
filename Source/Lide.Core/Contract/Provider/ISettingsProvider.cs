@@ -7,15 +7,11 @@ namespace Lide.Core.Contract.Provider
     public interface ISettingsProvider
     {
         AppSettings AppSettings { get; }
-        PropagateSettings PropagateSettings { get; }
         string PropagateSettingsString { get; }
-
-        bool SearchHttpBody { get; }
         bool AllowVolatileDecorators { get; }
-        bool AllowDecoratorsKeyMatch { get; }
+        bool AllowReadonlyDecorators { get; }
 
-        void SetData(AppSettings appSettings, string propagateSettings);
-        bool IsTypeAllowed(Type type);
-        List<string> GetDecorators();
+        void Initialize(AppSettings appSettings, string propagateSettings);
+        List<string> GetDecorators(Type type);
     }
 }

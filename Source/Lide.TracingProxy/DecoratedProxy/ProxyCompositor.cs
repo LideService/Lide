@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Lide.Core.Contract.Provider;
+using Lide.Core.Provider;
 using Lide.TracingProxy.Contract;
 
 namespace Lide.TracingProxy.DecoratedProxy
@@ -47,6 +49,12 @@ namespace Lide.TracingProxy.DecoratedProxy
             return this;
         }
 
+        public IProxyCompositor<TInterface> SetActivatorProvider(IActivatorProvider activatorProvider)
+        {
+            _activatorProvider = activatorProvider;
+            return this;
+        }
+
         public IProxyCompositor<TInterface> SetLogErrorAction(Action<string> logError)
         {
             _logError = logError;
@@ -60,6 +68,7 @@ namespace Lide.TracingProxy.DecoratedProxy
                 return _originalObject;
             }
 
+            _activatorProvider ??= new ActivatorProvider();
             return (TInterface)(object)this;
         }
     }

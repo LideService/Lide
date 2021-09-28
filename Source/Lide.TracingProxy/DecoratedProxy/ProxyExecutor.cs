@@ -34,9 +34,14 @@ namespace Lide.TracingProxy.DecoratedProxy
         private MethodMetadataVolatile ExecuteMethodInfo(MethodMetadataVolatile executeBeforeMetadata)
         {
             ShouldThrow(executeBeforeMetadata);
-            if (executeBeforeMetadata.ReturnMetadataVolatile.ShouldReturn())
+            if (executeBeforeMetadata.ReturnMetadataVolatile.IsResultEdited())
             {
-                return executeBeforeMetadata;
+                var editedType = executeBeforeMetadata.ReturnMetadataVolatile.GetEditedResult().GetType();
+                var returnType = executeBeforeMetadata.MethodInfo.ReturnType;
+                if (editedType == returnType || editedType.IsSubclassOf(returnType))
+                {
+                    return executeBeforeMetadata;
+                }
             }
 
             try
@@ -66,8 +71,13 @@ namespace Lide.TracingProxy.DecoratedProxy
             var metadata = new MethodMetadata(invokeMetadata, parametersMetadata, returnMetadata);
             ExecuteDecorators<IObjectDecoratorReadonly, MethodMetadata>(_readonlyDecorators, decorator => decorator.ExecuteAfterResult(metadata));
 
+            RepopulateOriginalParameters(invokeMetadata);
             ShouldThrow(invokeMetadata);
-            return invokeMetadata.ReturnMetadataVolatile.GetEditedResult();
+            var editedType = invokeMetadata.ReturnMetadataVolatile.GetEditedResult().GetType();
+            var returnType = invokeMetadata.MethodInfo.ReturnType;
+            return editedType == returnType || editedType.IsSubclassOf(returnType)
+                ? invokeMetadata.ReturnMetadataVolatile.GetEditedResult()
+                : invokeMetadata.ReturnMetadataVolatile.GetOriginalResult();
         }
 
         private Task ExecuteAfterAsync(MethodMetadataVolatile invokeMetadata)
@@ -84,6 +94,7 @@ namespace Lide.TracingProxy.DecoratedProxy
                 var metadata = new MethodMetadata(invokeMetadata, parametersMetadata, returnMetadata);
                 ExecuteDecorators<IObjectDecoratorReadonly, MethodMetadata>(_readonlyDecorators, decorator => decorator.ExecuteAfterResult(metadata));
 
+                RepopulateOriginalParameters(invokeMetadata);
                 ShouldThrow(invokeMetadata);
             });
 
@@ -104,6 +115,7 @@ namespace Lide.TracingProxy.DecoratedProxy
                 var metadata = new MethodMetadata(invokeMetadata, parametersMetadata, returnMetadata);
                 ExecuteDecorators<IObjectDecoratorReadonly, MethodMetadata>(_readonlyDecorators, decorator => decorator.ExecuteAfterResult(metadata));
 
+                RepopulateOriginalParameters(invokeMetadata);
                 ShouldThrow(invokeMetadata);
                 return (TReturnType)metadataVolatile.ReturnMetadataVolatile.GetEditedResult();
             });
@@ -111,13 +123,30 @@ namespace Lide.TracingProxy.DecoratedProxy
             return returnTask;
         }
 
+        private void RepopulateOriginalParameters(MethodMetadataVolatile invokeMetadata)
+        {
+            if (!invokeMetadata.ParametersMetadataVolatile.AreParametersEdited())
+            {
+                return;
+            }
+
+            var originalParameters = invokeMetadata.ParametersMetadataVolatile.GetOriginalParameters();
+            var editedParameters = invokeMetadata.ParametersMetadataVolatile.GetEditedParameters();
+            var length = originalParameters.Length;
+            for (var i = 0; i < length; i++)
+            {
+                _activatorProvider.DeepCopyIntoExistingObject(editedParameters[i], originalParameters[i]);
+            }
+        }
+
         private static void ShouldThrow(MethodMetadataVolatile metadataVolatile)
         {
             var editedException = metadataVolatile.ReturnMetadataVolatile.GetEditedException();
-            var shouldThrow = metadataVolatile.ReturnMetadataVolatile.ShouldThrow();
-            if (shouldThrow && editedException != null)
+            var isResultEdited = metadataVolatile.ReturnMetadataVolatile.IsResultEdited();
+
+            if (!isResultEdited && editedException != null)
             {
-                ExceptionDispatchInfo.Capture(editedException).Throw();
+                ExceptionDispatchInfo.Capture(editedException.InnerException ?? editedException).Throw();
             }
         }
 

@@ -12,10 +12,5 @@ namespace Lide.TracingProxy
         {
             return (ProxyDecorator<TInterface>)(object)DispatchProxyAsyncFactory.Create<TInterface, ProxyDecorator<TInterface>>();
         }
-
-        public static IProxyCompositor<object> CreateProxyDecorator(Type tInterface)
-        {
-            return (ProxyDecorator<object>)DispatchProxyAsyncFactory.Create(tInterface, typeof(ProxyDecorator<object>));
-        }
     }
 }

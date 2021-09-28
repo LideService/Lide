@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Lide.AsyncProxy;
+using Lide.Core.Contract.Provider;
 using Lide.TracingProxy.Contract;
 
 namespace Lide.TracingProxy.DecoratedProxy
@@ -12,6 +13,7 @@ namespace Lide.TracingProxy.DecoratedProxy
     {
         private readonly List<IObjectDecoratorReadonly> _readonlyDecorators = new ();
         private readonly List<IObjectDecoratorVolatile> _volatileDecorators = new ();
+        private IActivatorProvider _activatorProvider;
         private TInterface _originalObject;
         private Type _originalObjectType;
         private Action<string> _logError;

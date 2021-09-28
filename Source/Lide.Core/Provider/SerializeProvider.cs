@@ -18,6 +18,11 @@ namespace Lide.Core.Provider
             return System.Text.Json.JsonSerializer.Serialize(data);
         }
 
+        public T DeserializeFromString<T>(string data)
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<T>(data);
+        }
+
         public byte[] Serialize(object data)
         {
             return _typeConverter.Serialize(data);
