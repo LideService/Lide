@@ -33,7 +33,7 @@ namespace Lide.Core.Facade
             return new BinaryFileBatch
             {
                 Data = data,
-                EndPosition = sizeof(int) + (data?.Length ?? 0) + startPosition,
+                EndPosition = sizeof(int) + data.Length + startPosition,
             };
         }
 

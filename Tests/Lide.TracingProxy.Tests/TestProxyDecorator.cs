@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using Lide.TracingProxy.Contract;
 using Lide.TracingProxy.Model;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

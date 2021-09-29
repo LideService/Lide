@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model;
@@ -15,8 +14,7 @@ namespace Lide.Decorators
 
         private readonly ICompressionProvider _compressionProvider;
         private readonly ISignatureProvider _signatureProvider;
-        private readonly IParametersSerializer _parametersSerializer;
-        private readonly ISerializerFacade _serializerFacade;
+        private readonly IBinarySerializeProvider _binarySerializeProvider;
         private readonly IFileFacade _fileFacade;
         private readonly ITaskRunner _taskRunner;
         private readonly string _filePath;
@@ -24,63 +22,56 @@ namespace Lide.Decorators
         public SubstituteRecordDecorator(
             ICompressionProvider compressionProvider,
             ISignatureProvider signatureProvider,
-            IParametersSerializer parametersSerializer,
-            ISerializerFacade serializerFacade,
+            IBinarySerializeProvider binarySerializeProvider,
             IFileFacade fileFacade,
+            IPathProvider pathProvider,
             ITaskRunner taskRunner)
         {
             _compressionProvider = compressionProvider;
             _signatureProvider = signatureProvider;
-            _parametersSerializer = parametersSerializer;
-            _serializerFacade = serializerFacade;
+            _binarySerializeProvider = binarySerializeProvider;
             _fileFacade = fileFacade;
             _taskRunner = taskRunner;
 
+            _filePath = pathProvider.GetDecoratorFilePath(Id, true);
             _filePath = "/home/nikola.gamzakov/substitute";
-            ////_fileFacade.DeleteFile(_filePath);
+            _fileFacade.DeleteFile(_filePath);
         }
 
-        public string Id { get; } = "Lide.Substitute.Record";
+        public string Id => "Lide.Substitute.Record";
 
         public void ExecuteBeforeInvoke(MethodMetadata methodMetadata)
         {
             var methodSignature = _signatureProvider.GetMethodSignature(methodMetadata.MethodInfo, SignatureOptions.AllSet);
-            var inputParameters = _parametersSerializer.Serialize(methodMetadata.ParametersMetadata.GetOriginalParameters());
+            var inputParameters = _binarySerializeProvider.Serialize(methodMetadata.ParametersMetadata.GetOriginalParameters());
             var before = new SubstituteBefore
             {
                 CallId = methodMetadata.CallId,
                 MethodSignature = methodSignature,
                 InputParameters = inputParameters,
             };
-
-            _taskRunner.AddToQueue(new Task<Task>(async () =>
-            {
-                var data = _serializerFacade.Serialize(before);
-                var compressed = _compressionProvider.Compress(data);
-                await _fileFacade.WriteToFile(_filePath, BeforeBytes).ConfigureAwait(false);
-                await _fileFacade.WriteToFile(_filePath, compressed).ConfigureAwait(false);
-            }));
+            var data = _binarySerializeProvider.Serialize(before);
+            var compressed = _compressionProvider.Compress(data);
+            _taskRunner.AddToQueue(_fileFacade.WriteToFile(_filePath, BeforeBytes));
+            _taskRunner.AddToQueue(_fileFacade.WriteToFile(_filePath, compressed));
         }
 
         public void ExecuteAfterResult(MethodMetadata methodMetadata)
         {
             var result = methodMetadata.ReturnMetadata.GetOriginalException() ?? methodMetadata.ReturnMetadata.GetOriginalResult();
-            var inputParameters = _parametersSerializer.Serialize(methodMetadata.ParametersMetadata.GetOriginalParameters());
+            var inputParameters = _binarySerializeProvider.Serialize(methodMetadata.ParametersMetadata.GetOriginalParameters());
             var after = new SubstituteAfter()
             {
                 CallId = methodMetadata.CallId,
                 IsException = methodMetadata.ReturnMetadata.GetOriginalException() != null,
-                OutputData = _parametersSerializer.SerializeSingle(result),
+                OutputData = _binarySerializeProvider.Serialize(result),
                 InputParameters = inputParameters,
             };
 
-            _taskRunner.AddToQueue(new Task<Task>(async () =>
-            {
-                var data = _serializerFacade.Serialize(after);
-                var compressed = _compressionProvider.Compress(data);
-                await _fileFacade.WriteToFile(_filePath, AfterBytes).ConfigureAwait(false);
-                await _fileFacade.WriteToFile(_filePath, compressed).ConfigureAwait(false);
-            }));
+            var data = _binarySerializeProvider.Serialize(after);
+            var compressed = _compressionProvider.Compress(data);
+            _taskRunner.AddToQueue(_fileFacade.WriteToFile(_filePath, AfterBytes));
+            _taskRunner.AddToQueue(_fileFacade.WriteToFile(_filePath, compressed));
         }
     }
 }

@@ -34,6 +34,7 @@ namespace Lide.Core.Provider.Internal
 
         private void GenerateGetObject()
         {
+            _cachedGetObject.Add(typeof(byte), (data) => data[0]);
             _cachedGetObject.Add(typeof(string), Encoding.UTF8.GetString);
             _cachedGetObject.Add(typeof(decimal), (data) => ToDecimal(data));
             var convertors = typeof(BitConverter).GetMethods()
@@ -54,6 +55,7 @@ namespace Lide.Core.Provider.Internal
 
         private void GenerateGetBytes()
         {
+            _cachedGetBytes.Add(typeof(byte), (data) => new byte[] { (byte)data });
             _cachedGetBytes.Add(typeof(string), (data) => data == null ? Array.Empty<byte>() : Encoding.UTF8.GetBytes((string)data));
             _cachedGetBytes.Add(typeof(decimal), (data) => GetBytes((decimal)data));
 

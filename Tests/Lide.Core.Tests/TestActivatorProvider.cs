@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using Lide.Core.Provider;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

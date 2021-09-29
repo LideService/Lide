@@ -2,8 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
-using System.Threading.Tasks;
-using Lide.Core.Contract;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model;
@@ -25,18 +23,13 @@ namespace Lide.Decorators
             IFileFacade fileFacade,
             ISignatureProvider signatureProvider,
             IScopeIdProvider scopeIdProvider,
-            IPathFacade pathFacade,
-            IDateTimeFacade dateTimeFacade)
+            IPathProvider pathProvider)
         {
             _fileFacade = fileFacade;
             _signatureProvider = signatureProvider;
             _scopeIdProvider = scopeIdProvider;
             _executionTimes = new ConcurrentDictionary<int, long>();
-
-            var tmpPath = pathFacade.GetTempPath();
-            var date = dateTimeFacade.GetDateNow().ToString("yyyyMMddHHmmss");
-            var fileName = $"{scopeIdProvider.GetRootScopeId()}.{Id}.{date}";
-            _filePath = pathFacade.Combine(tmpPath, fileName);
+            _filePath = pathProvider.GetDecoratorFilePath(Id, true);
         }
 
         public string Id { get; } = "Lide.Diagnostic";

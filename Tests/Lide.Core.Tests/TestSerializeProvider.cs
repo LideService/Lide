@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Lide.Core.Model;
 using Lide.Core.Provider;
 using Lide.Core.Provider.Internal;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -80,7 +81,7 @@ namespace Lide.Core.Tests
         [TestMethod]
         public void That_SerializeAndDeserializeProduceOriginalValue()
         {
-            var provider = new SerializeProvider();
+            var provider = new BinarySerializeProvider();
             var data = new Tester()
             {
                 Field1 = 7,
@@ -104,7 +105,7 @@ namespace Lide.Core.Tests
         [TestMethod]
         public void That_SerializeAndDeserializeProduceOriginalValue_WhenAnonymousArray()
         {
-            var provider = new SerializeProvider();
+            var provider = new BinarySerializeProvider();
             var tester = new Tester()
             {
                 Field1 = 7,
@@ -134,6 +135,39 @@ namespace Lide.Core.Tests
             Assert.IsFalse(ReferenceEquals(tester.Inner, endTester.Inner));
             Assert.IsFalse(ReferenceEquals(tester.Field3, endTester.Field3));
             CollectionAssert.AreEqual(tester.Field3, endTester.Field3);
+        }
+        
+        [TestMethod]
+        public void That_SerializeAndDeserialize_OnBeforeAndAfterWorks()
+        {
+            var provider = new BinarySerializeProvider();
+            var tester1 = new SubstituteBefore()
+            {
+                CallId = 13,
+                MethodSignature = "ValidateThis",
+                InputParameters = new byte[] {1, 3, 2, 56, 2, 6, 7, 2, 7, 3},
+            };
+            var tester2 = new SubstituteAfter()
+            {
+                CallId = 13,
+                InputParameters = new byte[] {1, 3, 2, 56, 2, 6, 7, 2, 7, 3},
+                IsException = true,
+                OutputData = new byte[] {8, 23,5, 123, 9, 2},
+            };
+            
+            var serialized1 = provider.Serialize(tester1);
+            var deserialized1 = provider.Deserialize<SubstituteBefore>(serialized1);
+            
+            Assert.AreEqual(tester1.CallId, deserialized1.CallId);
+            Assert.AreEqual(tester1.MethodSignature, deserialized1.MethodSignature);
+            CollectionAssert.AreEqual(tester1.InputParameters, deserialized1.InputParameters);
+            
+            var serialized2 = provider.Serialize(tester2);
+            var deserialized2 = provider.Deserialize<SubstituteAfter>(serialized2);
+            Assert.AreEqual(tester2.CallId, deserialized2.CallId);
+            Assert.AreEqual(tester2.IsException, deserialized2.IsException);
+            CollectionAssert.AreEqual(tester2.InputParameters, deserialized2.InputParameters);
+            CollectionAssert.AreEqual(tester2.OutputData, deserialized2.OutputData);
         }
 
         private class Tester

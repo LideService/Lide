@@ -1,4 +1,3 @@
-using System;
 using Lide.AsyncProxy;
 using Lide.TracingProxy.Contract;
 using Lide.TracingProxy.DecoratedProxy;

@@ -1,26 +1,15 @@
-using System;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Provider.Internal;
 
 namespace Lide.Core.Provider
 {
-    public class SerializeProvider : ISerializeProvider
+    public class BinarySerializeProvider : IBinarySerializeProvider
     {
         private readonly ObjectConverter _typeConverter;
 
-        public SerializeProvider()
+        public BinarySerializeProvider()
         {
             _typeConverter = new ObjectConverter();
-        }
-
-        public string SerializeToString(object data)
-        {
-            return System.Text.Json.JsonSerializer.Serialize(data);
-        }
-
-        public T DeserializeFromString<T>(string data)
-        {
-            return System.Text.Json.JsonSerializer.Deserialize<T>(data);
         }
 
         public byte[] Serialize(object data)

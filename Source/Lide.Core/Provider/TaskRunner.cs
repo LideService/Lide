@@ -39,10 +39,6 @@ namespace Lide.Core.Provider
                 {
                     task.Start();
                     await task.ConfigureAwait(false);
-                    if (task is Task<Task> result)
-                    {
-                        await result.Result.ConfigureAwait(false);
-                    }
                 }
 
                 await Task.Delay(100).ConfigureAwait(false);

@@ -10,7 +10,8 @@ namespace Lide.Core.Provider
     public class SettingsProvider : ISettingsProvider
     {
         private const string ExcludedByDefault = "-Lide.*-Microsoft.*-System.*";
-        private readonly ISerializeProvider _serializeProvider;
+        private readonly IBinarySerializeProvider _binarySerializeProvider;
+        private readonly IJsonSerializeProvider _jsonSerializeProvider;
         private readonly ICompressionProvider _compressionProvider;
         private readonly List<(bool inclusion, string pattern)> _globalPatterns = new ();
         private readonly List<(bool inclusion, string pattern)> _defaultPatterns = new ();
@@ -18,10 +19,12 @@ namespace Lide.Core.Provider
         private PropagateSettings _propagateSettings;
 
         public SettingsProvider(
-            ISerializeProvider serializeProvider,
+            IBinarySerializeProvider binarySerializeProvider,
+            IJsonSerializeProvider jsonSerializeProvider,
             ICompressionProvider compressionProvider)
         {
-            _serializeProvider = serializeProvider;
+            _binarySerializeProvider = binarySerializeProvider;
+            _jsonSerializeProvider = jsonSerializeProvider;
             _compressionProvider = compressionProvider;
         }
 
@@ -88,7 +91,7 @@ namespace Lide.Core.Provider
             {
                 var fromBase64 = Convert.FromBase64String(propagateSettings);
                 var decompressed = _compressionProvider.Decompress(fromBase64);
-                var deserialized = _serializeProvider.Deserialize<PropagateSettings>(decompressed);
+                var deserialized = _binarySerializeProvider.Deserialize<PropagateSettings>(decompressed);
                 _propagateSettings = deserialized;
                 PropagateSettingsString = propagateSettings;
             }
@@ -96,14 +99,14 @@ namespace Lide.Core.Provider
             {
                 try
                 {
-                    _propagateSettings = _serializeProvider.DeserializeFromString<PropagateSettings>(propagateSettings);
+                    _propagateSettings = _jsonSerializeProvider.Deserialize<PropagateSettings>(propagateSettings);
                 }
                 catch
                 {
                     _propagateSettings = new PropagateSettings();
                 }
 
-                var serialized = _serializeProvider.Serialize(_propagateSettings);
+                var serialized = _binarySerializeProvider.Serialize(_propagateSettings);
                 var compressed = _compressionProvider.Compress(serialized);
                 var toBase64 = Convert.ToBase64String(compressed);
                 PropagateSettingsString = toBase64;

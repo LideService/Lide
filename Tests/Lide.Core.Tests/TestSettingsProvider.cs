@@ -12,7 +12,7 @@ namespace Lide.Core.Tests
         [TestMethod]
         public void That_CanInitialize_When_JsonPropagateSettings()
         {
-            var settingsProvider = new SettingsProvider(new SerializeProvider(), new CompressionProvider());
+            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
             var propagateSettings = new PropagateSettings()
             {
                 InclusionPattern = "Test1",
@@ -28,7 +28,7 @@ namespace Lide.Core.Tests
         [TestMethod]
         public void That_CanInitialize_When_CompressedPropagateSettings()
         {
-            var settingsProvider = new SettingsProvider(new SerializeProvider(), new CompressionProvider());
+            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
             var propagateSettings = new PropagateSettings()
             {
                 InclusionPattern = "Test1",
@@ -44,7 +44,7 @@ namespace Lide.Core.Tests
         [TestMethod]
         public void That_CanInitialize_When_NoPropagateSettings()
         {
-            var settingsProvider = new SettingsProvider(new SerializeProvider(), new CompressionProvider());
+            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
             settingsProvider.Initialize(new AppSettings(), null);
 
             Assert.AreEqual(ToBase64(new PropagateSettings()), settingsProvider.PropagateSettingsString);
@@ -53,7 +53,7 @@ namespace Lide.Core.Tests
         [TestMethod]
         public void That_AllowReadonlyDecorators_IsTrue_WhenBothEnabledKeysMatch()
         {
-            var settingsProvider = new SettingsProvider(new SerializeProvider(), new CompressionProvider());
+            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
 
             void AssertAllowReadonlyWithKeys(bool expected, string appEnabledKey, string propagateEnabledKey)
             {
@@ -71,7 +71,7 @@ namespace Lide.Core.Tests
         [TestMethod]
         public void That_AllowVolatileDecorators_IsTrue_WhenAllKeysMatch()
         {
-            var settingsProvider = new SettingsProvider(new SerializeProvider(), new CompressionProvider());
+            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
 
             void AssertAllowReadonlyWithKeys(bool expected, string appEnabledKey, string propagateEnabledKey, string appVolatileKey, string propagateVolatileKey)
             {
@@ -92,7 +92,7 @@ namespace Lide.Core.Tests
         [TestMethod]
         public void That_GetDecorators_ReturnProperSet_When_DifferentPatterns()
         {
-            var settingsProvider = new SettingsProvider(new SerializeProvider(), new CompressionProvider());
+            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
             var appSettings = new AppSettings() { DecoratorsWithPattern = new List<string> { "Decorator1" } };
             settingsProvider.Initialize(appSettings, null);
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
@@ -123,7 +123,7 @@ namespace Lide.Core.Tests
 
         private static string ToBase64(PropagateSettings propagateSettings)
         {
-            var serializer = new SerializeProvider();
+            var serializer = new BinarySerializeProvider();
             var compressor = new CompressionProvider();
             var serialized = serializer.Serialize(propagateSettings);
             var compressed = compressor.Compress(serialized);
