@@ -59,7 +59,7 @@ namespace Lide.Decorators
             var signature = _signatureProvider.GetMethodSignature(methodMetadata.MethodInfo, SignatureOptions.OnlyBaseNamespace);
             var message = $"{scopeId}: [{signature}] took {executionTime} ticks + {Environment.NewLine}";
             var data = Encoding.ASCII.GetBytes(message);
-            _fileFacade.WriteToFile(_filePath, data);
+            _fileFacade.WriteNextBatch(_filePath, data);
         }
     }
 }

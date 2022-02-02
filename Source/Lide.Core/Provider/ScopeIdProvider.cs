@@ -22,10 +22,10 @@ namespace Lide.Core.Provider
 
         public void SetRootScopeId(string rootScopeId)
         {
-            _rootScopeId = rootScopeId;
+            _rootScopeId = rootScopeId ?? _scopeId;
         }
 
         public string GetRootScopeId() => _rootScopeId;
-        public string GetCurrentScopeId() => _rootScopeId ?? _scopeId;
+        public string GetCurrentScopeId() => _scopeId;
     }
 }

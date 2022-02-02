@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Lide.Core.Model.Settings;
 using Lide.Core.Provider;
@@ -10,54 +9,13 @@ namespace Lide.Core.Tests
     public class TestSettingsProvider
     {
         [TestMethod]
-        public void That_CanInitialize_When_JsonPropagateSettings()
-        {
-            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
-            var propagateSettings = new PropagateSettings()
-            {
-                InclusionPattern = "Test1",
-                DecoratorsWithPattern = new List<string> { "Test2" },
-                OverrideInclusionPattern = true,
-                OverrideDecoratorsWithPattern = true,
-            };
-
-            settingsProvider.Initialize(new AppSettings(), System.Text.Json.JsonSerializer.Serialize(propagateSettings));
-            Assert.AreEqual(ToBase64(propagateSettings), settingsProvider.PropagateSettingsString);
-        }
-
-        [TestMethod]
-        public void That_CanInitialize_When_CompressedPropagateSettings()
-        {
-            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
-            var propagateSettings = new PropagateSettings()
-            {
-                InclusionPattern = "Test1",
-                DecoratorsWithPattern = new List<string> { "Test2" },
-                OverrideInclusionPattern = true,
-                OverrideDecoratorsWithPattern = true,
-            };
-
-            settingsProvider.Initialize(new AppSettings(), ToBase64(propagateSettings));
-            Assert.AreEqual(ToBase64(propagateSettings), settingsProvider.PropagateSettingsString);
-        }
-
-        [TestMethod]
-        public void That_CanInitialize_When_NoPropagateSettings()
-        {
-            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
-            settingsProvider.Initialize(new AppSettings(), null);
-
-            Assert.AreEqual(ToBase64(new PropagateSettings()), settingsProvider.PropagateSettingsString);
-        }
-
-        [TestMethod]
         public void That_AllowReadonlyDecorators_IsTrue_WhenBothEnabledKeysMatch()
         {
-            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
-
+            var settingsProvider = new SettingsProvider();
+            
             void AssertAllowReadonlyWithKeys(bool expected, string appEnabledKey, string propagateEnabledKey)
             {
-                settingsProvider.Initialize(new AppSettings() { EnabledKey = appEnabledKey }, ToBase64(new PropagateSettings() { EnabledKey = propagateEnabledKey }));
+                settingsProvider.Initialize(new AppSettings() { EnabledKey = appEnabledKey }, new PropagateSettings() { EnabledKey = propagateEnabledKey }, 0);
                 Assert.AreEqual(expected, settingsProvider.AllowReadonlyDecorators);
             }
 
@@ -71,12 +29,14 @@ namespace Lide.Core.Tests
         [TestMethod]
         public void That_AllowVolatileDecorators_IsTrue_WhenAllKeysMatch()
         {
-            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
+            var settingsProvider = new SettingsProvider();
 
             void AssertAllowReadonlyWithKeys(bool expected, string appEnabledKey, string propagateEnabledKey, string appVolatileKey, string propagateVolatileKey)
             {
-                settingsProvider.Initialize(new AppSettings() { EnabledKey = appEnabledKey, VolatileKey = appVolatileKey },
-                    ToBase64(new PropagateSettings() { EnabledKey = propagateEnabledKey, VolatileKey = propagateVolatileKey }));
+                settingsProvider.Initialize(
+                    new AppSettings() { EnabledKey = appEnabledKey, VolatileKey = appVolatileKey },
+                    new PropagateSettings() { EnabledKey = propagateEnabledKey, VolatileKey = propagateVolatileKey },
+                    0);
                 Assert.AreEqual(expected, settingsProvider.AllowVolatileDecorators);
             }
 
@@ -92,43 +52,32 @@ namespace Lide.Core.Tests
         [TestMethod]
         public void That_GetDecorators_ReturnProperSet_When_DifferentPatterns()
         {
-            var settingsProvider = new SettingsProvider(new BinarySerializeProvider(), new JsonSerializeProvider(), new CompressionProvider());
+            var settingsProvider = new SettingsProvider();
             var appSettings = new AppSettings() { DecoratorsWithPattern = new List<string> { "Decorator1" } };
-            settingsProvider.Initialize(appSettings, null);
+            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
             appSettings = new AppSettings() { DecoratorsWithPattern = new List<string> { "Decorator1+Newtonsoft.*" } };
-            settingsProvider.Initialize(appSettings, null);
+            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
             Assert.AreEqual(1, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
-            appSettings = new AppSettings() { InclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1" } };
-            settingsProvider.Initialize(appSettings, null);
+            appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1" } };
+            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
             Assert.AreEqual(1, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
-            appSettings = new AppSettings() { InclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1" } };
-            settingsProvider.Initialize(appSettings, null);
+            appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1" } };
+            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(TestSettingsProvider)).Count);
-            appSettings = new AppSettings() { InclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.Json.JsonConvert" } };
-            settingsProvider.Initialize(appSettings, null);
+            appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.Json.JsonConvert" } };
+            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
-            appSettings = new AppSettings() { InclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.Json" } };
-            settingsProvider.Initialize(appSettings, null);
+            appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.Json" } };
+            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
-            appSettings = new AppSettings() { InclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.*" } };
-            settingsProvider.Initialize(appSettings, null);
+            appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.*" } };
+            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
-            appSettings = new AppSettings() { InclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.*+Newtonsoft.Json.JsonConvert" } };
-            settingsProvider.Initialize(appSettings, null);
+            appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.*+Newtonsoft.Json.JsonConvert" } };
+            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
             Assert.AreEqual(1, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonReader)).Count);
-            
-        }
-
-        private static string ToBase64(PropagateSettings propagateSettings)
-        {
-            var serializer = new BinarySerializeProvider();
-            var compressor = new CompressionProvider();
-            var serialized = serializer.Serialize(propagateSettings);
-            var compressed = compressor.Compress(serialized);
-            var base64 = Convert.ToBase64String(compressed);
-            return base64;
         }
     }
 }

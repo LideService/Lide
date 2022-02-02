@@ -17,7 +17,7 @@ namespace Lide.Decorators.Tests
     public class TestSubstituteDecorators
     {
         [TestMethod]
-        public void Do()
+        public void That_RecordingAndParsing_Works()
         {
             var fileStub = new FileFacadeStub();
             var signatureProvider = new SignatureProvider();
@@ -129,7 +129,7 @@ namespace Lide.Decorators.Tests
         private class FileFacadeStub : IFileFacade
         {
             private readonly MemoryStream _ms = new MemoryStream();
-            public Task WriteToFile(string filePath, byte[] data)
+            public Task WriteNextBatch(string filePath, byte[] data)
             {
                 _ms.Write(BitConverter.GetBytes(data.Length));
                 _ms.Write(data);
@@ -158,6 +158,21 @@ namespace Lide.Decorators.Tests
 
             public void DeleteFile(string filePath)
             {
+            }
+
+            public string GetFileName(string id = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<byte[]> ReadWholeFle(string filePath)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task WriteWholeFile(string filePath, byte[] data)
+            {
+                throw new NotImplementedException();
             }
         }
     }

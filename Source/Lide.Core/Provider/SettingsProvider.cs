@@ -10,41 +10,35 @@ namespace Lide.Core.Provider
     public class SettingsProvider : ISettingsProvider
     {
         private const string ExcludedByDefault = "-Lide.*-Microsoft.*-System.*";
-        private readonly IBinarySerializeProvider _binarySerializeProvider;
-        private readonly IJsonSerializeProvider _jsonSerializeProvider;
-        private readonly ICompressionProvider _compressionProvider;
-        private readonly List<(bool inclusion, string pattern)> _globalPatterns = new ();
-        private readonly List<(bool inclusion, string pattern)> _defaultPatterns = new ();
+        private readonly List<(bool inclusion, string pattern)> _globalTypesPatterns = new ();
+        private readonly List<(bool inclusion, string pattern)> _defaultTypesPatterns = new ();
+        private readonly List<(bool inclusion, string pattern)> _globalAddressesPatterns = new ();
         private readonly Dictionary<string, List<(bool inclusion, string pattern)>> _decoratorPatterns = new ();
-        private PropagateSettings _propagateSettings;
-
-        public SettingsProvider(
-            IBinarySerializeProvider binarySerializeProvider,
-            IJsonSerializeProvider jsonSerializeProvider,
-            ICompressionProvider compressionProvider)
-        {
-            _binarySerializeProvider = binarySerializeProvider;
-            _jsonSerializeProvider = jsonSerializeProvider;
-            _compressionProvider = compressionProvider;
-        }
 
         public AppSettings AppSettings { get; private set; }
-        public string PropagateSettingsString { get; private set; }
-        public bool AllowVolatileDecorators => AllowReadonlyDecorators && (string.IsNullOrEmpty(AppSettings.VolatileKey) || AppSettings.VolatileKey == _propagateSettings.VolatileKey);
-        public bool AllowReadonlyDecorators => string.IsNullOrEmpty(AppSettings.EnabledKey) || AppSettings.EnabledKey == _propagateSettings.EnabledKey;
+        public PropagateSettings PropagateSettings { get; private set; }
+        public PropagateHeaders PropagateHeaders { get; private set; }
+        public bool AllowVolatileDecorators => AllowReadonlyDecorators && (string.IsNullOrEmpty(AppSettings.VolatileKey) || AppSettings.VolatileKey == PropagateSettings.VolatileKey);
+        public bool AllowReadonlyDecorators => string.IsNullOrEmpty(AppSettings.EnabledKey) || AppSettings.EnabledKey == PropagateSettings.EnabledKey;
 
-        public void Initialize(AppSettings appSettings, string propagateSettings)
+        public void Initialize(AppSettings appSettings, PropagateSettings propagateSettings, int depth)
         {
             AppSettings = appSettings;
-            PreparePropagateSettings(propagateSettings);
+            PropagateSettings = propagateSettings;
+            PropagateHeaders = new PropagateHeaders()
+            {
+                Enabled = true,
+                Depth = depth,
+            };
+
             PreparePatterns();
         }
 
-        public List<string> GetDecorators(Type type)
+        public ISet<string> GetDecorators(Type type)
         {
-            var result = new List<string>();
-            var globalInclusion = IsIncludedInPattern(type, _globalPatterns);
-            var defaultInclusion = IsIncludedInPattern(type, _defaultPatterns);
+            var result = new HashSet<string>();
+            var globalInclusion = IsIncludedInPattern(type, _globalTypesPatterns);
+            var defaultInclusion = IsIncludedInPattern(type, _defaultTypesPatterns);
             if (defaultInclusion.HasValue && !defaultInclusion.Value)
             {
                 return result;
@@ -53,13 +47,32 @@ namespace Lide.Core.Provider
             foreach (var (decoratorName, decoratorPatterns) in _decoratorPatterns)
             {
                 var decoratorInclusion = IsIncludedInPattern(type, decoratorPatterns);
-                if (decoratorInclusion ?? globalInclusion ?? false)
+                if (decoratorInclusion ?? globalInclusion ?? AppSettings.DefaultTypeInclusion)
                 {
                     result.Add(decoratorName);
                 }
             }
 
             return result;
+        }
+
+        public bool IsAddressAllowed(string address)
+        {
+            bool? included = null;
+            foreach (var (inclusion, pattern) in _globalAddressesPatterns)
+            {
+                if (included == inclusion)
+                {
+                    continue;
+                }
+
+                if (Regex.IsMatch(address, pattern))
+                {
+                    included = inclusion;
+                }
+            }
+
+            return included ?? AppSettings.DefaultTypeInclusion;
         }
 
         private bool? IsIncludedInPattern(Type type, List<(bool inclusion, string pattern)> inclusionPatterns)
@@ -85,45 +98,17 @@ namespace Lide.Core.Provider
             return included;
         }
 
-        private void PreparePropagateSettings(string propagateSettings)
-        {
-            try
-            {
-                var fromBase64 = Convert.FromBase64String(propagateSettings);
-                var decompressed = _compressionProvider.Decompress(fromBase64);
-                var deserialized = _binarySerializeProvider.Deserialize<PropagateSettings>(decompressed);
-                _propagateSettings = deserialized;
-                PropagateSettingsString = propagateSettings;
-            }
-            catch
-            {
-                try
-                {
-                    _propagateSettings = _jsonSerializeProvider.Deserialize<PropagateSettings>(propagateSettings);
-                }
-                catch
-                {
-                    _propagateSettings = new PropagateSettings();
-                }
-
-                var serialized = _binarySerializeProvider.Serialize(_propagateSettings);
-                var compressed = _compressionProvider.Compress(serialized);
-                var toBase64 = Convert.ToBase64String(compressed);
-                PropagateSettingsString = toBase64;
-            }
-        }
-
         private void PreparePatterns()
         {
-            _defaultPatterns.AddRange(GetInclusionPatterns(ExcludedByDefault).Item2);
-            if (!_propagateSettings.OverrideInclusionPattern)
+            _defaultTypesPatterns.AddRange(GetInclusionPatterns(ExcludedByDefault).Item2);
+            if (!PropagateSettings.OverrideInclusionPattern)
             {
-                _globalPatterns.AddRange(GetInclusionPatterns(AppSettings.InclusionPattern).Item2);
+                _globalTypesPatterns.AddRange(GetInclusionPatterns(AppSettings.TypesInclusionPattern).Item2);
             }
 
-            _globalPatterns.AddRange(GetInclusionPatterns(_propagateSettings.InclusionPattern).Item2);
+            _globalTypesPatterns.AddRange(GetInclusionPatterns(PropagateSettings.TypesInclusionPattern).Item2);
 
-            if (!_propagateSettings.OverrideDecoratorsWithPattern)
+            if (!PropagateSettings.OverrideDecoratorsWithPattern)
             {
                 foreach (var decoratorWithPattern in AppSettings.DecoratorsWithPattern.Where(x => x.Length > 0))
                 {
@@ -133,16 +118,27 @@ namespace Lide.Core.Provider
                 }
             }
 
-            foreach (var decoratorWithPattern in _propagateSettings.DecoratorsWithPattern.Where(x => x.Length > 0))
+            foreach (var decoratorWithPattern in PropagateSettings.DecoratorsWithPattern.Where(x => x.Length > 0))
             {
                 var (name, patterns) = GetInclusionPatterns(decoratorWithPattern);
                 _decoratorPatterns.TryAdd(name, new List<(bool, string)>());
                 _decoratorPatterns[name].AddRange(patterns);
             }
+
+            _globalAddressesPatterns.AddRange(GetInclusionPatterns(PropagateSettings.AddressesInclusionPattern).Item2);
+            if (!PropagateSettings.OverrideAddressesPattern)
+            {
+                _globalAddressesPatterns.AddRange(GetInclusionPatterns(AppSettings.AddressesInclusionPattern).Item2);
+            }
         }
 
         private (string, List<(bool, string)>) GetInclusionPatterns(string inclusionPattern)
         {
+            if (string.IsNullOrEmpty(inclusionPattern))
+            {
+                return (string.Empty, new List<(bool, string)>());
+            }
+
             var result = new List<(bool, string)>();
             var globalInclusionNames = Regex.Matches(inclusionPattern, "([-+]?[^+-]*)")
                 .Select(x => x.Value)

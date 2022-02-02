@@ -6,10 +6,12 @@ using System.Runtime.CompilerServices;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
+using Lide.Core.Provider;
 using Lide.TracingProxy;
 using Lide.TracingProxy.Contract;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Lide.WebApi
+namespace Lide.WebApi.Wrappers
 {
     public class ServiceProviderWrapper : IServiceProvider, IDisposable
     {
@@ -40,6 +42,14 @@ namespace Lide.WebApi
 
         public void Dispose()
         {
+            foreach (var proxy in _generatedProxies.Values)
+            {
+                if (proxy is IDisposable disposable)
+                {
+                    disposable.Dispose();
+                }
+            }
+
             _disposeProvider?.Invoke();
             GC.SuppressFinalize(this);
         }
@@ -47,15 +57,7 @@ namespace Lide.WebApi
         public object GetService(Type serviceType)
         {
             var originalObject = _serviceProvider.GetService(serviceType);
-            if (originalObject == null)
-            {
-                return null;
-            }
-
-            var notSupported = UnsupportedTypes.ContainsKey(serviceType);
-            var keyMismatch = !SettingsProvider.AllowDecoratorsKeyMatch;
-            var isTypeBlocked = !SettingsProvider.IsTypeAllowed(serviceType);
-            if (notSupported || keyMismatch || isTypeBlocked)
+            if (originalObject == null || UnsupportedTypes.ContainsKey(serviceType))
             {
                 return originalObject;
             }
@@ -92,9 +94,10 @@ namespace Lide.WebApi
         {
             try
             {
+                var decorators = SettingsProvider.GetDecorators(serviceType);
                 var proxy = ProxyDecoratorFactory.CreateProxyDecorator(serviceType);
-                proxy.SetDecorators(_readonlyDecorators.Where(x => SettingsProvider.GetDecorators().Contains(x.Id)));
-                proxy.SetDecorators(_volatileDecorators.Where(x => SettingsProvider.AllowVolatileDecorators && SettingsProvider.GetDecorators().Contains(x.Id)));
+                proxy.SetDecorators(_readonlyDecorators.Where(x => SettingsProvider.AllowReadonlyDecorators && decorators.Contains(x.Id)));
+                proxy.SetDecorators(_volatileDecorators.Where(x => SettingsProvider.AllowVolatileDecorators && decorators.Contains(x.Id)));
                 proxy.SetOriginalObject(originalObject);
                 proxy.SetLogErrorAction(_loggerFacade.LogError);
                 var decoratedObject = proxy.GetDecoratedObject();

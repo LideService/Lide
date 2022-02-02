@@ -1,3 +1,4 @@
+using System;
 using Lide.AsyncProxy;
 using Lide.TracingProxy.Contract;
 using Lide.TracingProxy.DecoratedProxy;
@@ -10,6 +11,11 @@ namespace Lide.TracingProxy
             where TInterface : class
         {
             return (ProxyDecorator<TInterface>)(object)DispatchProxyAsyncFactory.Create<TInterface, ProxyDecorator<TInterface>>();
+        }
+
+        public static IProxyCompositor<object> CreateProxyDecorator(Type tInterface)
+        {
+            return (ProxyDecorator<object>)DispatchProxyAsyncFactory.Create(tInterface, typeof(ProxyDecorator<object>));
         }
     }
 }

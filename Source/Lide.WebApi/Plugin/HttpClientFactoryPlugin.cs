@@ -2,16 +2,17 @@ using System;
 using System.Net.Http;
 using Lide.Core.Contract.Plugin;
 using Lide.WebApi.Contract;
+using Lide.WebApi.Wrappers;
 
 namespace Lide.WebApi.Plugin
 {
     public class HttpClientFactoryPlugin : IServiceProviderPlugin
     {
-        private readonly IHttpHeaderProcessor _httpHeaderProcessor;
+        private readonly IHttpClientRebuilder _httpClientRebuilder;
 
-        public HttpClientFactoryPlugin(IHttpHeaderProcessor httpHeaderProcessor)
+        public HttpClientFactoryPlugin(IHttpClientRebuilder httpClientRebuilder)
         {
-            _httpHeaderProcessor = httpHeaderProcessor;
+            _httpClientRebuilder = httpClientRebuilder;
         }
 
         public Type Type => typeof(IHttpClientFactory);
@@ -19,7 +20,7 @@ namespace Lide.WebApi.Plugin
 
         public object GetService(object originalObject)
         {
-            return new HttpClientFactoryWrapper(originalObject as IHttpClientFactory, _httpHeaderProcessor);
+            return new HttpClientFactoryWrapper(originalObject as IHttpClientFactory, _httpClientRebuilder);
         }
     }
 }

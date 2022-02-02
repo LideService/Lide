@@ -52,8 +52,8 @@ namespace Lide.Decorators
             };
             var data = _binarySerializeProvider.Serialize(before);
             var compressed = _compressionProvider.Compress(data);
-            _taskRunner.AddToQueue(_fileFacade.WriteToFile(_filePath, BeforeBytes));
-            _taskRunner.AddToQueue(_fileFacade.WriteToFile(_filePath, compressed));
+            _taskRunner.AddToQueue(_fileFacade.WriteNextBatch(_filePath, BeforeBytes));
+            _taskRunner.AddToQueue(_fileFacade.WriteNextBatch(_filePath, compressed));
         }
 
         public void ExecuteAfterResult(MethodMetadata methodMetadata)
@@ -70,8 +70,8 @@ namespace Lide.Decorators
 
             var data = _binarySerializeProvider.Serialize(after);
             var compressed = _compressionProvider.Compress(data);
-            _taskRunner.AddToQueue(_fileFacade.WriteToFile(_filePath, AfterBytes));
-            _taskRunner.AddToQueue(_fileFacade.WriteToFile(_filePath, compressed));
+            _taskRunner.AddToQueue(_fileFacade.WriteNextBatch(_filePath, AfterBytes));
+            _taskRunner.AddToQueue(_fileFacade.WriteNextBatch(_filePath, compressed));
         }
     }
 }

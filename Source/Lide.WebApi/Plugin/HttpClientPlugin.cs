@@ -7,11 +7,11 @@ namespace Lide.WebApi.Plugin
 {
     public class HttpClientPlugin : IServiceProviderPlugin
     {
-        private readonly IHttpHeaderProcessor _httpHeaderProcessor;
+        private readonly IHttpClientRebuilder _httpClientRebuilder;
 
-        public HttpClientPlugin(IHttpHeaderProcessor httpHeaderProcessor)
+        public HttpClientPlugin(IHttpClientRebuilder httpClientRebuilder)
         {
-            _httpHeaderProcessor = httpHeaderProcessor;
+            _httpClientRebuilder = httpClientRebuilder;
         }
 
         public Type Type => typeof(HttpClient);
@@ -19,9 +19,9 @@ namespace Lide.WebApi.Plugin
 
         public object GetService(object originalObject)
         {
-            var client = originalObject as HttpClient;
-            _httpHeaderProcessor.AddHeaders(client);
-            return client;
+            var originalClient = originalObject as HttpClient;
+            var newClient = _httpClientRebuilder.RebuildNewClient(originalClient);
+            return newClient;
         }
     }
 }
