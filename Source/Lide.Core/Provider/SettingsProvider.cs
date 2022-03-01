@@ -15,22 +15,18 @@ namespace Lide.Core.Provider
         private readonly List<(bool inclusion, string pattern)> _globalAddressesPatterns = new ();
         private readonly Dictionary<string, List<(bool inclusion, string pattern)>> _decoratorPatterns = new ();
 
+        public int Depth { get; set; }
+        public int NextDepth => Depth + 1;
         public AppSettings AppSettings { get; private set; }
         public PropagateSettings PropagateSettings { get; private set; }
-        public PropagateHeaders PropagateHeaders { get; private set; }
+        public string OriginRequestPath { get; set; }
         public bool AllowVolatileDecorators => AllowReadonlyDecorators && (string.IsNullOrEmpty(AppSettings.VolatileKey) || AppSettings.VolatileKey == PropagateSettings.VolatileKey);
         public bool AllowReadonlyDecorators => string.IsNullOrEmpty(AppSettings.EnabledKey) || AppSettings.EnabledKey == PropagateSettings.EnabledKey;
 
-        public void Initialize(AppSettings appSettings, PropagateSettings propagateSettings, int depth)
+        public void Initialize(AppSettings appSettings, PropagateSettings propagateSettings)
         {
             AppSettings = appSettings;
             PropagateSettings = propagateSettings;
-            PropagateHeaders = new PropagateHeaders()
-            {
-                Enabled = true,
-                Depth = depth,
-            };
-
             PreparePatterns();
         }
 
@@ -72,7 +68,7 @@ namespace Lide.Core.Provider
                 }
             }
 
-            return included ?? AppSettings.DefaultTypeInclusion;
+            return included ?? AppSettings.DefaultAddressInclusion;
         }
 
         private bool? IsIncludedInPattern(Type type, List<(bool inclusion, string pattern)> inclusionPatterns)
@@ -101,12 +97,18 @@ namespace Lide.Core.Provider
         private void PreparePatterns()
         {
             _defaultTypesPatterns.AddRange(GetInclusionPatterns(ExcludedByDefault).Item2);
+            _globalTypesPatterns.AddRange(GetInclusionPatterns(PropagateSettings.TypesInclusionPattern).Item2);
             if (!PropagateSettings.OverrideInclusionPattern)
             {
                 _globalTypesPatterns.AddRange(GetInclusionPatterns(AppSettings.TypesInclusionPattern).Item2);
             }
 
-            _globalTypesPatterns.AddRange(GetInclusionPatterns(PropagateSettings.TypesInclusionPattern).Item2);
+            foreach (var decoratorWithPattern in PropagateSettings.DecoratorsWithPattern.Where(x => x.Length > 0))
+            {
+                var (name, patterns) = GetInclusionPatterns(decoratorWithPattern);
+                _decoratorPatterns.TryAdd(name, new List<(bool, string)>());
+                _decoratorPatterns[name].AddRange(patterns);
+            }
 
             if (!PropagateSettings.OverrideDecoratorsWithPattern)
             {
@@ -116,13 +118,6 @@ namespace Lide.Core.Provider
                     _decoratorPatterns.TryAdd(name, new List<(bool, string)>());
                     _decoratorPatterns[name].AddRange(patterns);
                 }
-            }
-
-            foreach (var decoratorWithPattern in PropagateSettings.DecoratorsWithPattern.Where(x => x.Length > 0))
-            {
-                var (name, patterns) = GetInclusionPatterns(decoratorWithPattern);
-                _decoratorPatterns.TryAdd(name, new List<(bool, string)>());
-                _decoratorPatterns[name].AddRange(patterns);
             }
 
             _globalAddressesPatterns.AddRange(GetInclusionPatterns(PropagateSettings.AddressesInclusionPattern).Item2);

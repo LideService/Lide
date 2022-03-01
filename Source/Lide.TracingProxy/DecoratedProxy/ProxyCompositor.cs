@@ -13,7 +13,6 @@ namespace Lide.TracingProxy.DecoratedProxy
         public IProxyCompositor<TInterface> SetOriginalObject(TInterface originalObject)
         {
             _originalObject = originalObject;
-            _originalObjectType = typeof(TInterface);
             return this;
         }
 

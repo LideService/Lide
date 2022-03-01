@@ -16,7 +16,7 @@ namespace Lide.TracingProxy.Tests
             var value1 = "Empty";
             var value2 = 3;
             var value3 = 13;
-            var callId = 1;
+            var callId = 1762;
             var hashCode = typeof(ITester).GetMethods().First(x => x.Name == "Method").GetHashCode();
             var readonlyDecorator = new Mock<IObjectDecoratorReadonly>();
             var originalObject = new Mock<ITester>();
@@ -57,7 +57,8 @@ namespace Lide.TracingProxy.Tests
                     Assert.IsNull(metadata.ReturnMetadata.GetEditedResult());
                 }
             }
-            
+
+            CallCounter.CallId = callId-1;
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
             proxyDecorator.SetOriginalObject(originalObject.Object);
             proxyDecorator.SetDecorator(readonlyDecorator.Object);

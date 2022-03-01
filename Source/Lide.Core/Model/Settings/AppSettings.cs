@@ -4,8 +4,8 @@ namespace Lide.Core.Model.Settings
 {
     public class AppSettings
     {
-        public bool DefaultTypeInclusion { get; set; }
-        public bool DefaultAddressInclusion { get; set; }
+        public bool DefaultTypeInclusion { get; set; } // whether to include type if not either included or excluded from app/propagate settings
+        public bool DefaultAddressInclusion { get; set; } // whether to include address if not either included or excluded from app/propagate settings
         public bool SearchHttpBody { get; set; }
         public string VolatileKey { get; set; } = string.Empty;
         public string EnabledKey { get; set; } = string.Empty;

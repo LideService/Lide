@@ -15,7 +15,7 @@ namespace Lide.Core.Tests
             
             void AssertAllowReadonlyWithKeys(bool expected, string appEnabledKey, string propagateEnabledKey)
             {
-                settingsProvider.Initialize(new AppSettings() { EnabledKey = appEnabledKey }, new PropagateSettings() { EnabledKey = propagateEnabledKey }, 0);
+                settingsProvider.Initialize(new AppSettings() { EnabledKey = appEnabledKey }, new PropagateSettings() { EnabledKey = propagateEnabledKey });
                 Assert.AreEqual(expected, settingsProvider.AllowReadonlyDecorators);
             }
 
@@ -35,8 +35,7 @@ namespace Lide.Core.Tests
             {
                 settingsProvider.Initialize(
                     new AppSettings() { EnabledKey = appEnabledKey, VolatileKey = appVolatileKey },
-                    new PropagateSettings() { EnabledKey = propagateEnabledKey, VolatileKey = propagateVolatileKey },
-                    0);
+                    new PropagateSettings() { EnabledKey = propagateEnabledKey, VolatileKey = propagateVolatileKey });
                 Assert.AreEqual(expected, settingsProvider.AllowVolatileDecorators);
             }
 
@@ -54,28 +53,28 @@ namespace Lide.Core.Tests
         {
             var settingsProvider = new SettingsProvider();
             var appSettings = new AppSettings() { DecoratorsWithPattern = new List<string> { "Decorator1" } };
-            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
+            settingsProvider.Initialize(appSettings, new PropagateSettings());
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
             appSettings = new AppSettings() { DecoratorsWithPattern = new List<string> { "Decorator1+Newtonsoft.*" } };
-            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
+            settingsProvider.Initialize(appSettings, new PropagateSettings());
             Assert.AreEqual(1, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
             appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1" } };
-            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
+            settingsProvider.Initialize(appSettings, new PropagateSettings());
             Assert.AreEqual(1, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
             appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1" } };
-            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
+            settingsProvider.Initialize(appSettings, new PropagateSettings());
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(TestSettingsProvider)).Count);
             appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.Json.JsonConvert" } };
-            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
+            settingsProvider.Initialize(appSettings, new PropagateSettings());
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
             appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.Json" } };
-            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
+            settingsProvider.Initialize(appSettings, new PropagateSettings());
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
             appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.*" } };
-            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
+            settingsProvider.Initialize(appSettings, new PropagateSettings());
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
             appSettings = new AppSettings() { TypesInclusionPattern = "+*", DecoratorsWithPattern = new List<string> { "Decorator1-Newtonsoft.*+Newtonsoft.Json.JsonConvert" } };
-            settingsProvider.Initialize(appSettings, new PropagateSettings(), 0);
+            settingsProvider.Initialize(appSettings, new PropagateSettings());
             Assert.AreEqual(1, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonConvert)).Count);
             Assert.AreEqual(0, settingsProvider.GetDecorators(typeof(Newtonsoft.Json.JsonReader)).Count);
         }

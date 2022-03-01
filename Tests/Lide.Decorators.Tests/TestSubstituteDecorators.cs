@@ -7,7 +7,6 @@ using Lide.Core.Contract.Provider;
 using Lide.Core.Facade;
 using Lide.Core.Model;
 using Lide.Core.Provider;
-using Lide.Decorators.Substitute;
 using Lide.TracingProxy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -23,11 +22,13 @@ namespace Lide.Decorators.Tests
             var signatureProvider = new SignatureProvider();
             var binarySerializer = new BinarySerializeProvider();
             var decorator = new SubstituteRecordDecorator(
-                new CompressionProvider(),
-                signatureProvider,
                 binarySerializer,
+                new PropagateContentHandler(),
+                signatureProvider,
+                new SettingsProvider(),
+                new StreamBatchProvider(),
+                new PathFacade(),
                 fileStub,
-                new PathProvider(new PathFacade(), new ScopeIdProvider(new DateTimeFacade(), new RandomFacade()), new DateTimeFacade()),
                 new TaskRunnerStub());
 
             var level2 = new Level2();
@@ -43,11 +44,13 @@ namespace Lide.Decorators.Tests
             var level1Decorated = level1Proxy.GetDecoratedObject();
 
             var result = level1Decorated.Method1("Something to test with", 24);
-            var loader = new SubstituteLoader(fileStub, new CompressionProvider(), new BinarySerializeProvider());
+            var stream = fileStub.OpenFile("");
+            var loader = new SubstituteParser(new BinarySerializeProvider(), new StreamBatchProvider());
             var signature1 = signatureProvider.GetMethodSignature(typeof(ILevel1).GetMethods().First(x => x.Name == "Method1"), SignatureOptions.AllSet);
-            var signature2 = signatureProvider.GetMethodSignature(typeof(ILevel2).GetMethods().First(x => x.Name == "Method1"), SignatureOptions.AllSet);
-            var signature3 = signatureProvider.GetMethodSignature(typeof(ILevel2).GetMethods().First(x => x.Name == "Method2"), SignatureOptions.AllSet);
-            loader.Load("");
+            var signature2 = signatureProvider.GetMethodSignature(typeof(ILevel2).GetMethods().First(x => x.Name == "Method2"), SignatureOptions.AllSet);
+            var signature3 = signatureProvider.GetMethodSignature(typeof(ILevel2).GetMethods().First(x => x.Name == "Method3"), SignatureOptions.AllSet);
+            
+            loader.Load(stream);
             var befores = loader.Befores;
             var afters = loader.Afters;
 
@@ -60,16 +63,16 @@ namespace Lide.Decorators.Tests
             Assert.AreEqual(signature2, befores[1].MethodSignature);
             Assert.AreEqual(signature3, befores[2].MethodSignature);
             CollectionAssert.AreEqual(new object[] {"Something to test with", 24}, (object[])binarySerializer.Deserialize(befores[0].InputParameters));
-            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method1", 24+13}, (object[])binarySerializer.Deserialize(befores[1].InputParameters));
-            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method2", 24+17}, (object[])binarySerializer.Deserialize(befores[2].InputParameters));
+            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method2", 24+13}, (object[])binarySerializer.Deserialize(befores[1].InputParameters));
+            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method3", 24+17}, (object[])binarySerializer.Deserialize(befores[2].InputParameters));
             
             Assert.AreEqual(3, afters.Count);
             Assert.AreEqual(2, afters[0].CallId); // First Level2.Method1 finishes
-            Assert.AreEqual(3, afters[1].CallId); // Next Level2.Method2 finishes
-            Assert.AreEqual(1, afters[2].CallId); // Last Level1.Method1 finishes
+            Assert.AreEqual(3, afters[1].CallId); // Next Level2.Method3 finishes
+            Assert.AreEqual(1, afters[2].CallId); // Last Level1.Method2 finishes
             CollectionAssert.AreEqual(new object[] {"Something to test with", 24}, (object[])binarySerializer.Deserialize(afters[2].InputParameters));
-            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method1", 24+13}, (object[])binarySerializer.Deserialize(afters[0].InputParameters));
-            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method2", 24+17}, (object[])binarySerializer.Deserialize(afters[1].InputParameters));
+            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method2", 24+13}, (object[])binarySerializer.Deserialize(afters[0].InputParameters));
+            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method3", 24+17}, (object[])binarySerializer.Deserialize(afters[1].InputParameters));
         }
 
         private interface ILevel1
@@ -79,8 +82,8 @@ namespace Lide.Decorators.Tests
 
         private interface ILevel2
         {
-            int Method1(string data, int value);
             int Method2(string data, int value);
+            int Method3(string data, int value);
         }
 
         private class Level1 : ILevel1
@@ -94,20 +97,20 @@ namespace Lide.Decorators.Tests
 
             public int Method1(string data, int value)
             {
-                var a = _level2.Method1($"{data}.Level2.Method1", value + 13);
-                var b = _level2.Method2($"{data}.Level2.Method2", value + 17);
+                var a = _level2.Method2($"{data}.Level2.Method2", value + 13);
+                var b = _level2.Method3($"{data}.Level2.Method3", value + 17);
                 return a + b;
             }
         }
 
         private class Level2 : ILevel2
         {
-            public int Method1(string data, int value)
+            public int Method2(string data, int value)
             {
                 return data.Length + value;
             }
 
-            public int Method2(string data, int value)
+            public int Method3(string data, int value)
             {
                 return data.Length + value;
             }
@@ -115,12 +118,17 @@ namespace Lide.Decorators.Tests
 
         private class TaskRunnerStub : ITaskRunner
         {
-            public void AddToQueue(Task task)
+            public void AddToQueue(Func<Task> task)
             {
-                task.Wait();
+                task().Wait();
             }
 
             public Task KillQueue()
+            {
+                return Task.CompletedTask;
+            }
+
+            public Task WaitQueue()
             {
                 return Task.CompletedTask;
             }
@@ -129,31 +137,10 @@ namespace Lide.Decorators.Tests
         private class FileFacadeStub : IFileFacade
         {
             private readonly MemoryStream _ms = new MemoryStream();
-            public Task WriteNextBatch(string filePath, byte[] data)
-            {
-                _ms.Write(BitConverter.GetBytes(data.Length));
-                _ms.Write(data);
-                return Task.CompletedTask;
-            }
 
-            public Task<BinaryFileBatch> ReadNextBatch(string filePath, int startPosition = 0)
+            public Stream OpenFile(string filePath)
             {
-                _ms.Seek(startPosition, SeekOrigin.Begin);
-                var buffer = new byte[sizeof(int)];
-                var read = _ms.Read(buffer, 0, sizeof(int));
-                if (read == 0)
-                {
-                    return Task.FromResult(new BinaryFileBatch { Data = null, EndPosition = -1 });
-                }
-
-                var length = BitConverter.ToInt32(buffer);
-                var data = new byte[length];
-                _ms.Read(data, 0, length);
-                return Task.FromResult(new BinaryFileBatch
-                {
-                    Data = data,
-                    EndPosition = sizeof(int) + data.Length + startPosition,
-                });
+                return _ms;
             }
 
             public void DeleteFile(string filePath)
@@ -162,7 +149,7 @@ namespace Lide.Decorators.Tests
 
             public string GetFileName(string id = null)
             {
-                throw new NotImplementedException();
+                return string.Empty;
             }
 
             public Task<byte[]> ReadWholeFle(string filePath)

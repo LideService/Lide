@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
@@ -10,29 +11,36 @@ using Lide.TracingProxy.Model;
 
 namespace Lide.Decorators
 {
-    public class DiagnosticsDecorator : IObjectDecoratorReadonly
+    public sealed class DiagnosticsDecorator : IObjectDecoratorReadonly, IDisposable
     {
         private static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
-        private readonly IFileFacade _fileFacade;
+        private readonly IStreamBatchProvider _streamBatchProvider;
         private readonly ISignatureProvider _signatureProvider;
         private readonly IScopeIdProvider _scopeIdProvider;
         private readonly ConcurrentDictionary<int, long> _executionTimes;
-        private readonly string _filePath;
+        private readonly Stream _fileStream;
 
         public DiagnosticsDecorator(
             IFileFacade fileFacade,
+            IStreamBatchProvider streamBatchProvider,
             ISignatureProvider signatureProvider,
             IScopeIdProvider scopeIdProvider,
-            IPathProvider pathProvider)
+            IPathFacade pathFacade)
         {
-            _fileFacade = fileFacade;
+            _streamBatchProvider = streamBatchProvider;
             _signatureProvider = signatureProvider;
             _scopeIdProvider = scopeIdProvider;
             _executionTimes = new ConcurrentDictionary<int, long>();
-            _filePath = pathProvider.GetDecoratorFilePath(Id, true);
+            var filePath = pathFacade.Combine(pathFacade.GetTempPath(), fileFacade.GetFileName(Id));
+            _fileStream = fileFacade.OpenFile(filePath);
         }
 
-        public string Id { get; } = "Lide.Diagnostic";
+        public string Id => "Lide.Diagnostic";
+
+        public void Dispose()
+        {
+            _fileStream?.Dispose();
+        }
 
         public void ExecuteBeforeInvoke(MethodMetadata methodMetadata)
         {
@@ -59,7 +67,7 @@ namespace Lide.Decorators
             var signature = _signatureProvider.GetMethodSignature(methodMetadata.MethodInfo, SignatureOptions.OnlyBaseNamespace);
             var message = $"{scopeId}: [{signature}] took {executionTime} ticks + {Environment.NewLine}";
             var data = Encoding.ASCII.GetBytes(message);
-            _fileFacade.WriteNextBatch(_filePath, data);
+            _streamBatchProvider.WriteNextBatch(_fileStream, data);
         }
     }
 }

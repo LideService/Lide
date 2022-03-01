@@ -28,10 +28,9 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddSingleton<IBinarySerializeProvider, BinarySerializeProvider>();
             serviceCollection.AddSingleton<ICompressionProvider, CompressionProvider>();
             serviceCollection.AddSingleton<IJsonSerializeProvider, JsonSerializeProvider>();
-            serviceCollection.AddSingleton<IPathProvider, PathProvider>();
-            serviceCollection.AddSingleton<IScopeIdProvider, ScopeIdProvider>();
             serviceCollection.AddSingleton<ISettingsProvider, SettingsProvider>();
             serviceCollection.AddSingleton<ISignatureProvider, SignatureProvider>();
+            serviceCollection.AddSingleton<IStreamBatchProvider, StreamBatchProvider>();
             serviceCollection.AddSingleton<ITaskRunner, TaskRunner>();
 
             // Decorators
@@ -40,9 +39,8 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddScoped<IObjectDecoratorReadonly, SubstituteRecordDecorator>();
             serviceCollection.AddScoped<IObjectDecoratorVolatile, SubstituteReplayDecorator>();
 
-            // Scoped?
-            serviceCollection.AddScoped<IScopeIdProvider, ScopeIdProvider>();
             serviceCollection.AddScoped<ISettingsProvider, SettingsProvider>();
+            serviceCollection.AddScoped<IScopeIdProvider, ScopeIdProvider>();
 
             // Web
             serviceCollection.AddScoped<IServiceProviderPlugin, HttpClientFactoryPlugin>();

@@ -8,11 +8,13 @@ namespace Lide.Core.Contract.Provider
     {
         AppSettings AppSettings { get; }
         PropagateSettings PropagateSettings { get; }
-        PropagateHeaders PropagateHeaders { get; }
+        public int Depth { get; set; }
+        public int NextDepth { get; }
         bool AllowVolatileDecorators { get; }
         bool AllowReadonlyDecorators { get; }
+        string OriginRequestPath { get; set; }
 
-        void Initialize(AppSettings appSettings, PropagateSettings propagateSettings, int depth);
+        void Initialize(AppSettings appSettings, PropagateSettings propagateSettings);
         ISet<string> GetDecorators(Type type);
         bool IsAddressAllowed(string address);
     }

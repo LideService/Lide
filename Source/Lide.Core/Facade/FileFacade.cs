@@ -1,13 +1,13 @@
-using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Lide.Core.Contract.Facade;
-using Lide.Core.Model;
 
 namespace Lide.Core.Facade
 {
+    [SuppressMessage("Reliability", "CA2007:Consider calling ConfigureAwait on the awaited task", Justification = "using await .ConfigureAwait nonsense")]
     public class FileFacade : IFileFacade
     {
         private readonly IDateTimeFacade _dateTimeFacade;
@@ -26,41 +26,20 @@ namespace Lide.Core.Facade
 
             if (!string.IsNullOrEmpty(id))
             {
-                sb.Append(".");
+                sb.Append('.');
                 sb.Append(id);
             }
 
+            sb.Append('.');
+            sb.Append(nextId);
+            sb.Append('.');
             sb.Append(_dateTimeFacade.GetDateNow().ToString("yyyyMMdd_hhmmss"));
             return sb.ToString();
         }
 
-        public async Task WriteNextBatch(string filePath, byte[] data)
+        public Stream OpenFile(string filePath)
         {
-            await using var fileHandle = new FileStream(filePath, FileMode.Append, FileAccess.Write, FileShare.None);
-            await fileHandle.WriteAsync(BitConverter.GetBytes(data.Length)).ConfigureAwait(false);
-            await fileHandle.WriteAsync(data).ConfigureAwait(false);
-            await fileHandle.FlushAsync().ConfigureAwait(false);
-        }
-
-        public async Task<BinaryFileBatch> ReadNextBatch(string filePath, int startPosition = 0)
-        {
-            await using var fileHandle = File.OpenRead(filePath);
-            fileHandle.Seek(startPosition, SeekOrigin.Begin);
-            var buffer = new byte[sizeof(int)];
-            var read = await fileHandle.ReadAsync(buffer.AsMemory(0, sizeof(int))).ConfigureAwait(false);
-            if (read == 0)
-            {
-                return new BinaryFileBatch { Data = null, EndPosition = -1 };
-            }
-
-            var length = BitConverter.ToInt32(buffer);
-            var data = new byte[length];
-            await fileHandle.ReadAsync(data.AsMemory(0, length)).ConfigureAwait(false);
-            return new BinaryFileBatch
-            {
-                Data = data,
-                EndPosition = sizeof(int) + data.Length + startPosition,
-            };
+            return new FileStream(filePath, FileMode.Append, FileAccess.ReadWrite, FileShare.None);
         }
 
         public void DeleteFile(string filePath)

@@ -6,10 +6,8 @@ using System.Runtime.CompilerServices;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
-using Lide.Core.Provider;
 using Lide.TracingProxy;
 using Lide.TracingProxy.Contract;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Lide.WebApi.Wrappers
 {
@@ -19,26 +17,30 @@ namespace Lide.WebApi.Wrappers
         private readonly Dictionary<object, object> _generatedProxies;
         private readonly IServiceProvider _serviceProvider;
         private readonly Action _disposeProvider;
-        private readonly List<IServiceProviderPlugin> _plugins;
-        private readonly List<IObjectDecoratorReadonly> _readonlyDecorators;
-        private readonly List<IObjectDecoratorVolatile> _volatileDecorators;
+        private readonly IEnumerable<IServiceProviderPlugin> _plugins;
+        private readonly IEnumerable<IObjectDecoratorReadonly> _readonlyDecorators;
+        private readonly IEnumerable<IObjectDecoratorVolatile> _volatileDecorators;
         private readonly ILoggerFacade _loggerFacade;
 
         public ServiceProviderWrapper(IServiceProvider scoped, Action disposeProvider)
         {
             _serviceProvider = scoped;
             _disposeProvider = disposeProvider;
-            SettingsProvider = (ISettingsProvider)scoped.GetService(typeof(ISettingsProvider)) ?? throw new Exception($"Missing service type {nameof(ISettingsProvider)}");
-            ScopeIdProvider = (IScopeIdProvider)scoped.GetService(typeof(IScopeIdProvider)) ?? throw new Exception($"Missing service type {nameof(IScopeIdProvider)}");
-            _loggerFacade = (ILoggerFacade)scoped.GetService(typeof(ILoggerFacade)) ?? throw new Exception($"Missing service type {nameof(ILoggerFacade)}");
-            _plugins = ((IEnumerable<IServiceProviderPlugin>)scoped.GetService(typeof(IEnumerable<IServiceProviderPlugin>)))?.ToList() ?? new List<IServiceProviderPlugin>();
-            _readonlyDecorators = ((IEnumerable<IObjectDecoratorReadonly>)scoped.GetService(typeof(IEnumerable<IObjectDecoratorReadonly>)))?.ToList() ?? new List<IObjectDecoratorReadonly>();
-            _volatileDecorators = ((IEnumerable<IObjectDecoratorVolatile>)scoped.GetService(typeof(IEnumerable<IObjectDecoratorVolatile>)))?.ToList() ?? new List<IObjectDecoratorVolatile>();
+            SettingsProvider = GetService<ISettingsProvider>(scoped);
+            PropagateContentHandler = GetService<IPropagateContentHandler>(scoped);
+            BinarySerializeProvider = GetService<IBinarySerializeProvider>(scoped);
+            CompressionProvider = GetService<ICompressionProvider>(scoped);
+            _loggerFacade = GetService<ILoggerFacade>(scoped);
+            _plugins = GetService<IEnumerable<IServiceProviderPlugin>>(scoped, true, new List<IServiceProviderPlugin>());
+            _readonlyDecorators = GetService<IEnumerable<IObjectDecoratorReadonly>>(scoped, true, new List<IObjectDecoratorReadonly>());
+            _volatileDecorators = GetService<IEnumerable<IObjectDecoratorVolatile>>(scoped, true, new List<IObjectDecoratorVolatile>());
             _generatedProxies = new Dictionary<object, object>(new IdentityEqualityComparer<object>());
         }
 
         public ISettingsProvider SettingsProvider { get; private set; }
-        public IScopeIdProvider ScopeIdProvider { get; private set; }
+        public IPropagateContentHandler PropagateContentHandler { get; private set; }
+        public IBinarySerializeProvider BinarySerializeProvider { get; private set; }
+        public ICompressionProvider CompressionProvider { get; private set; }
 
         public void Dispose()
         {
@@ -109,6 +111,14 @@ namespace Lide.WebApi.Wrappers
                 UnsupportedTypes.TryAdd(serviceType, true);
                 return originalObject;
             }
+        }
+
+        private static TIService GetService<TIService>(IServiceProvider scoped, bool useDefault = false, TIService defaultReturn = null)
+            where TIService : class
+        {
+            return useDefault
+                ? (TIService)scoped.GetService(typeof(TIService)) ?? defaultReturn
+                : (TIService)scoped.GetService(typeof(TIService)) ?? throw new Exception($"Missing service type {nameof(TIService)}");
         }
 
         private class IdentityEqualityComparer<T> : IEqualityComparer<T>

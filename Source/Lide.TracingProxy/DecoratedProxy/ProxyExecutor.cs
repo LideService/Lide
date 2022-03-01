@@ -73,9 +73,9 @@ namespace Lide.TracingProxy.DecoratedProxy
 
             RepopulateOriginalParameters(invokeMetadata);
             ShouldThrow(invokeMetadata);
-            var editedType = invokeMetadata.ReturnMetadataVolatile.GetEditedResult().GetType();
+            var editedType = invokeMetadata.ReturnMetadataVolatile.GetEditedResult()?.GetType();
             var returnType = invokeMetadata.MethodInfo.ReturnType;
-            return editedType == returnType || editedType.IsSubclassOf(returnType)
+            return editedType == returnType || (editedType?.IsSubclassOf(returnType) ?? false)
                 ? invokeMetadata.ReturnMetadataVolatile.GetEditedResult()
                 : invokeMetadata.ReturnMetadataVolatile.GetOriginalResult();
         }

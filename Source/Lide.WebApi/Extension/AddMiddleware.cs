@@ -6,6 +6,13 @@ namespace Lide.WebApi.Extension
     {
         public static IApplicationBuilder UseLide(this IApplicationBuilder builder)
         {
+            //// builder.UseEndpoints(endpoints =>
+            //// {
+            ////     endpoints.MapControllerRoute(
+            ////         name: "default",
+            ////         pattern: "{controller=Home}/{action=Index}/{id?}");
+            //// });
+
             builder.UseMiddleware<LideMiddleware>();
             return builder;
         }

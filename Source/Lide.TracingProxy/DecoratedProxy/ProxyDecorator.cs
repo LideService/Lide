@@ -15,7 +15,6 @@ namespace Lide.TracingProxy.DecoratedProxy
         private readonly List<IObjectDecoratorVolatile> _volatileDecorators = new ();
         private IActivatorProvider _activatorProvider;
         private TInterface _originalObject;
-        private Type _originalObjectType;
         private Action<string> _logError;
 
         public override object Invoke(MethodInfo methodInfo, object[] originalParameters)

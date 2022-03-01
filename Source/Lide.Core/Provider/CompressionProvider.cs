@@ -8,7 +8,7 @@ namespace Lide.Core.Provider
     {
         public byte[] Compress(byte[] data)
         {
-            var output = new MemoryStream();
+            using var output = new MemoryStream();
             using var stream = new DeflateStream(output, CompressionLevel.Optimal);
             stream.Write(data, 0, data.Length);
             stream.Flush();
@@ -17,8 +17,8 @@ namespace Lide.Core.Provider
 
         public byte[] Decompress(byte[] compressed)
         {
-            var input = new MemoryStream(compressed);
-            var output = new MemoryStream();
+            using var input = new MemoryStream(compressed);
+            using var output = new MemoryStream();
             using var stream = new DeflateStream(input, CompressionMode.Decompress);
             stream.CopyTo(output);
             return output.ToArray();
