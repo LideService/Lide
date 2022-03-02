@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
@@ -20,9 +19,7 @@ namespace Lide.Decorators
         private readonly IStreamBatchProvider _streamBatchProvider;
         private readonly ITaskRunner _taskRunner;
         private readonly Stream _fileStream;
-
-        private readonly object _lockObject = new ();
-        private bool _initialized;
+        private readonly bool _enabled;
 
         public SubstituteRecordDecorator(
             IBinarySerializeProvider binarySerializeProvider,
@@ -41,28 +38,34 @@ namespace Lide.Decorators
             _streamBatchProvider = streamBatchProvider;
             _taskRunner = taskRunner;
 
-            var filePath = pathFacade.Combine(pathFacade.GetTempPath(), fileFacade.GetFileName(Id));
-            _fileStream = fileFacade.OpenFile(filePath);
-            _propagateContentHandler.PrepareForParent += PropagateContentHandlerOnPrepareForParent;
-            _propagateContentHandler.ParseFromChild += PropagateContentHandlerOnParseFromChild;
+            _enabled = settingsProvider.IsDecoratorIncluded(Id);
+            if (_enabled)
+            {
+                var filePath = pathFacade.Combine(pathFacade.GetTempPath(), fileFacade.GetFileName(Id));
+                _fileStream = fileFacade.OpenFile(filePath);
+            }
+
+            _propagateContentHandler.ParseOwnRequest += ParseOwnRequest;
+            _propagateContentHandler.ParseOutgoingResponse += ParseOutgoingResponse;
+            _propagateContentHandler.PrepareOwnResponse += PrepareOwnResponse;
         }
 
         public string Id => "Lide.Substitute.Record";
 
         public void Dispose()
         {
-            _propagateContentHandler.PrepareForParent -= PropagateContentHandlerOnPrepareForParent;
-            _propagateContentHandler.ParseFromChild -= PropagateContentHandlerOnParseFromChild;
-            _fileStream.Close();
-            _fileStream.Dispose();
+            _propagateContentHandler.ParseOwnRequest -= ParseOwnRequest;
+            _propagateContentHandler.ParseOutgoingResponse -= ParseOutgoingResponse;
+            _propagateContentHandler.PrepareOwnResponse -= PrepareOwnResponse;
+            _fileStream?.Close();
+            _fileStream?.Dispose();
         }
 
         public void ExecuteBeforeInvoke(MethodMetadata methodMetadata)
         {
-            ExecuteInitialization();
             var methodSignature = _signatureProvider.GetMethodSignature(methodMetadata.MethodInfo, SignatureOptions.AllSet);
             var inputParameters = _binarySerializeProvider.Serialize(methodMetadata.ParametersMetadata.GetOriginalParameters());
-            var before = new SubstituteBefore
+            var before = new SubstituteMethodBefore
             {
                 CallId = methodMetadata.CallId,
                 MethodSignature = methodSignature,
@@ -75,10 +78,9 @@ namespace Lide.Decorators
 
         public void ExecuteAfterResult(MethodMetadata methodMetadata)
         {
-            ExecuteInitialization();
             var result = methodMetadata.ReturnMetadata.GetOriginalException() ?? methodMetadata.ReturnMetadata.GetOriginalResult();
             var inputParameters = _binarySerializeProvider.Serialize(methodMetadata.ParametersMetadata.GetOriginalParameters());
-            var after = new SubstituteAfter
+            var after = new SubstituteMethodAfter
             {
                 CallId = methodMetadata.CallId,
                 IsException = methodMetadata.ReturnMetadata.GetOriginalException() != null,
@@ -90,51 +92,55 @@ namespace Lide.Decorators
             _taskRunner.AddToQueue(() => _streamBatchProvider.WriteNextBatch(_fileStream, serialized));
         }
 
-        private void ExecuteInitialization()
+        private void ParseOwnRequest(ConcurrentDictionary<string, byte[]> content)
         {
-            if (!_initialized)
+            if (!_enabled)
             {
-                lock (_lockObject)
-                {
-                    if (!_initialized)
-                    {
-                        _initialized = true;
-                        _propagateContentHandler.ParentData.TryGetValue(PropagateProperties.OriginalRequest, out var originalContent);
-                        _propagateContentHandler.ParentData.TryGetValue(PropagateProperties.OriginalHeaders, out var originalHeaders);
-                        var request = new SubstituteRequest
-                        {
-                            Path = _settingsProvider.OriginRequestPath,
-                            OriginalContent = originalContent,
-                            OriginalHeaders = originalHeaders,
-                        };
-                        var serialized = _binarySerializeProvider.Serialize(request);
-                        _taskRunner.AddToQueue(() => _streamBatchProvider.WriteNextBatch(_fileStream, serialized));
-                    }
-                }
+                return;
             }
-        }
 
-        private void PropagateContentHandlerOnPrepareForParent(ConcurrentDictionary<string, byte[]> container, string requestPath)
-        {
-            _taskRunner.WaitQueue().Wait();
-            using var reader = new MemoryStream();
-            _fileStream.CopyTo(reader);
-            var content = reader.ToArray();
-            container["SubstituteContent"] = content;
-        }
-
-        private void PropagateContentHandlerOnParseFromChild(Dictionary<string, byte[]> content, Exception e, string requestPath)
-        {
-            var childContent = content["SubstituteContent"];
-            var child = new SubstituteChild()
+            content.TryGetValue(PropagateProperties.RequestContent, out var requestContent);
+            var request = new SubstituteOwnRequest
             {
-                Path = requestPath,
+                Path = _settingsProvider.OriginRequestPath,
+                Content = requestContent,
+            };
+            var serialized = _binarySerializeProvider.Serialize(request);
+            _taskRunner.AddToQueue(() => _streamBatchProvider.WriteNextBatch(_fileStream, serialized));
+        }
+
+        private void ParseOutgoingResponse(ConcurrentDictionary<string, byte[]> content, string path, long requestId, Exception exception)
+        {
+            if (!_enabled)
+            {
+                return;
+            }
+
+            content.TryGetValue(PropagateProperties.SubstituteContent, out var childContent);
+            var child = new SubstituteOutgoingResponse()
+            {
+                Path = path,
+                RequestId = requestId,
                 Content = childContent,
-                Exception = e,
+                Exception = exception,
             };
 
             var serialized = _binarySerializeProvider.Serialize(child);
             _taskRunner.AddToQueue(() => _streamBatchProvider.WriteNextBatch(_fileStream, serialized));
+        }
+
+        private void PrepareOwnResponse(ConcurrentDictionary<string, byte[]> container)
+        {
+            if (!_enabled)
+            {
+                return;
+            }
+
+            _taskRunner.WaitQueue().Wait();
+            using var reader = new MemoryStream();
+            _fileStream.CopyTo(reader);
+            var content = reader.ToArray();
+            container[PropagateProperties.SubstituteContent] = content;
         }
     }
 }

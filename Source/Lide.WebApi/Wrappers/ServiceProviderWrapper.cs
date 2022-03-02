@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
@@ -11,7 +12,7 @@ using Lide.TracingProxy.Contract;
 
 namespace Lide.WebApi.Wrappers
 {
-    public class ServiceProviderWrapper : IServiceProvider, IDisposable
+    public sealed class ServiceProviderWrapper : IServiceProvider, IAsyncDisposable
     {
         private static readonly ConcurrentDictionary<Type, bool> UnsupportedTypes = new ();
         private readonly Dictionary<object, object> _generatedProxies;
@@ -42,7 +43,7 @@ namespace Lide.WebApi.Wrappers
         public IBinarySerializeProvider BinarySerializeProvider { get; private set; }
         public ICompressionProvider CompressionProvider { get; private set; }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
             foreach (var proxy in _generatedProxies.Values)
             {
@@ -50,10 +51,14 @@ namespace Lide.WebApi.Wrappers
                 {
                     disposable.Dispose();
                 }
+
+                if (proxy is IAsyncDisposable asyncDisposable)
+                {
+                    await asyncDisposable.DisposeAsync().ConfigureAwait(false);
+                }
             }
 
             _disposeProvider?.Invoke();
-            GC.SuppressFinalize(this);
         }
 
         public object GetService(Type serviceType)

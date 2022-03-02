@@ -1,6 +1,6 @@
 namespace Lide.Core.Model
 {
-    public class SubstituteAfter
+    public class SubstituteMethodAfter
     {
         public long CallId { get; init; }
         public bool IsException { get; init; }

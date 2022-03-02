@@ -48,7 +48,7 @@ namespace Lide.WebApi.Extension
         {
             var scope = httpContext.RequestServices.CreateScope();
             var scopedProvider = scope.ServiceProvider;
-            var wrapper = new ServiceProviderWrapper(scopedProvider, scope.Dispose);
+            await using var wrapper = new ServiceProviderWrapper(scopedProvider, scope.Dispose);
 
             await ParseAndReplaceRequestBody(httpContext, wrapper);
 
@@ -56,23 +56,27 @@ namespace Lide.WebApi.Extension
             var originalResponseBody = httpContext.Response.Body;
             httpContext.Response.Body = memoryResponseBody;
 
-            void Handler(ConcurrentDictionary<string, byte[]> container, string requestPath)
+            var settings = wrapper.SettingsProvider.PropagateSettings;
+            var serialized = wrapper.BinarySerializeProvider.Serialize(settings);
+            void PropagateSettingsData(ConcurrentDictionary<string, byte[]> container, string path, long requestId, byte[] content)
             {
-                container.TryAdd(PropagateProperties.PropagateSettings, wrapper.PropagateContentHandler.ParentData[PropagateProperties.PropagateSettings]);
+                container.TryAdd(PropagateProperties.PropagateSettings, serialized);
             }
 
             try
             {
-                wrapper.PropagateContentHandler.PrepareForChild += Handler;
+                wrapper.PropagateContentHandler.PrepareOutgoingRequest += PropagateSettingsData;
                 await _next(httpContext).ConfigureAwait(false);
             }
             finally
             {
-                wrapper.PropagateContentHandler.PrepareForChild -= Handler;
+                wrapper.PropagateContentHandler.PrepareOutgoingRequest -= PropagateSettingsData;
             }
 
-            var dataForParent = wrapper.PropagateContentHandler.GetDataForParent();
-            dataForParent[PropagateProperties.OriginalResponse] = memoryResponseBody.ToArray();
+            var container = new ConcurrentDictionary<string, byte[]>();
+            container[PropagateProperties.ResponseContent] = memoryResponseBody.ToArray();
+            wrapper.PropagateContentHandler.PrepareDataForOwnResponse(container);
+            var dataForParent = new Dictionary<string, byte[]>(container);
             var serializedResponse = wrapper.BinarySerializeProvider.Serialize(dataForParent);
             var compressedResponse = wrapper.CompressionProvider.Compress(serializedResponse);
 
@@ -91,7 +95,7 @@ namespace Lide.WebApi.Extension
                 return;
             }
 
-            var path = httpContext.Request.Path.Value?.Replace('/', '.')?[1..];
+            var path = (httpContext.Request.Path.Value?.Replace('/', '.'))?[1..];
             var action = httpContext.Request.RouteValues.ContainsKey("controller")
                 ? httpContext.Request.RouteValues["controller"] + "." + httpContext.Request.RouteValues["action"]
                 : "unknown";
@@ -111,18 +115,20 @@ namespace Lide.WebApi.Extension
                 using var reader = new StreamReader(currentRequestBodyCopy, Encoding.UTF8, leaveOpen: true);
                 var strRequestBody = await reader.ReadToEndAsync().ConfigureAwait(false);
                 var maybeJsonBody = TryParseFromJsonOrBase64<Dictionary<string, object>>(strRequestBody);
-                var settingsData = httpContext.Request.Headers[PropagateProperties.PropagateSettings].FirstOrDefault() ??
-                               httpContext.Request.Query[PropagateProperties.PropagateSettings].FirstOrDefault() ??
-                               Convert.ToString(maybeJsonBody[PropagateProperties.PropagateSettings]);
+                var maybeJsonSettings = maybeJsonBody.ContainsKey(PropagateProperties.PropagateSettings)
+                    ? Convert.ToString(maybeJsonBody[PropagateProperties.PropagateSettings])
+                    : string.Empty;
+
+                var settingsData =
+                    httpContext.Request.Headers[PropagateProperties.PropagateSettings].FirstOrDefault() ??
+                    httpContext.Request.Query[PropagateProperties.PropagateSettings].FirstOrDefault() ??
+                    maybeJsonSettings;
                 var settings = TryParseFromJsonOrBase64<PropagateSettings>(settingsData);
 
-                var headers = httpContext.Request.Headers.ToDictionary(
-                    x => x.Key,
-                    x => x.Value.ToArray());
-
-                wrapper.PropagateContentHandler.ParentData[PropagateProperties.OriginalRequest] = currentRequestBodyCopy.ToArray();
-                wrapper.PropagateContentHandler.ParentData[PropagateProperties.OriginalHeaders] = wrapper.BinarySerializeProvider.Serialize(headers);
-                wrapper.PropagateContentHandler.ParentData[PropagateProperties.PropagateSettings] = wrapper.BinarySerializeProvider.Serialize(settings);
+                var container = new ConcurrentDictionary<string, byte[]>();
+                container[PropagateProperties.RequestContent] = currentRequestBodyCopy.ToArray();
+                container[PropagateProperties.PropagateSettings] = wrapper.BinarySerializeProvider.Serialize(settings);
+                wrapper.PropagateContentHandler.ParseDataFromOwnRequest(container);
                 wrapper.SettingsProvider.Initialize(_appSettings, settings);
                 wrapper.SettingsProvider.OriginRequestPath = httpContext.Request.Path;
             }
@@ -131,19 +137,14 @@ namespace Lide.WebApi.Extension
             {
                 var decompressedRequestBody = wrapper.CompressionProvider.Decompress(currentRequestBodyCopy.ToArray());
                 var deserializedRequestBody = wrapper.BinarySerializeProvider.Deserialize<Dictionary<string, byte[]>>(decompressedRequestBody);
-                wrapper.PropagateContentHandler.ParentData = deserializedRequestBody;
-                var originalContentData = wrapper.PropagateContentHandler.ParentData[PropagateProperties.OriginalRequest];
-                var originalHeadersData = wrapper.PropagateContentHandler.ParentData[PropagateProperties.OriginalHeaders];
-                var propagateSettingsData = wrapper.PropagateContentHandler.ParentData[PropagateProperties.PropagateSettings];
+                var container = new ConcurrentDictionary<string, byte[]>(deserializedRequestBody);
+                wrapper.PropagateContentHandler.ParseDataFromOwnRequest(container);
+
+                var originalContentData = container[PropagateProperties.RequestContent];
+                var propagateSettingsData = container[PropagateProperties.PropagateSettings];
 
                 var settings = wrapper.BinarySerializeProvider.Deserialize<PropagateSettings>(propagateSettingsData);
-                var originalHeadersDictionary = wrapper.BinarySerializeProvider.Deserialize<Dictionary<string, string[]>>(originalHeadersData);
                 var originalContentReplaceStream = new MemoryStream(originalContentData);
-                foreach (var (key, values) in originalHeadersDictionary)
-                {
-                    httpContext.Request.Headers.Add(key, values);
-                }
-
                 await httpContext.Request.Body.DisposeAsync().ConfigureAwait(false);
                 httpContext.Request.Body = originalContentReplaceStream;
                 wrapper.SettingsProvider.Initialize(_appSettings, settings);

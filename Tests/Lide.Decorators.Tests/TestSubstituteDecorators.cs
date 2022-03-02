@@ -9,6 +9,7 @@ using Lide.Core.Model;
 using Lide.Core.Provider;
 using Lide.TracingProxy;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace Lide.Decorators.Tests
 {
@@ -21,11 +22,13 @@ namespace Lide.Decorators.Tests
             var fileStub = new FileFacadeStub();
             var signatureProvider = new SignatureProvider();
             var binarySerializer = new BinarySerializeProvider();
+            var settingsProvider = new Mock<ISettingsProvider>();
+            settingsProvider.Setup(x => x.IsDecoratorIncluded(It.IsAny<string>())).Returns(true);
             var decorator = new SubstituteRecordDecorator(
                 binarySerializer,
                 new PropagateContentHandler(),
                 signatureProvider,
-                new SettingsProvider(),
+                settingsProvider.Object,
                 new StreamBatchProvider(),
                 new PathFacade(),
                 fileStub,
@@ -50,9 +53,9 @@ namespace Lide.Decorators.Tests
             var signature2 = signatureProvider.GetMethodSignature(typeof(ILevel2).GetMethods().First(x => x.Name == "Method2"), SignatureOptions.AllSet);
             var signature3 = signatureProvider.GetMethodSignature(typeof(ILevel2).GetMethods().First(x => x.Name == "Method3"), SignatureOptions.AllSet);
             
-            loader.Load(stream);
-            var befores = loader.Befores;
-            var afters = loader.Afters;
+            loader.LoadAll(stream);
+            var befores = loader.BeforeMethods;
+            var afters = loader.AfterMethods;
 
             Assert.AreEqual(22 + 15 + 24 + 13 + 22 + 15 + 24 + 17, result);
             Assert.AreEqual(3, befores.Count);

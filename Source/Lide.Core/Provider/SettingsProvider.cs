@@ -30,6 +30,11 @@ namespace Lide.Core.Provider
             PreparePatterns();
         }
 
+        public bool IsDecoratorIncluded(string decoratorName)
+        {
+            return _decoratorPatterns.ContainsKey(decoratorName);
+        }
+
         public ISet<string> GetDecorators(Type type)
         {
             var result = new HashSet<string>();

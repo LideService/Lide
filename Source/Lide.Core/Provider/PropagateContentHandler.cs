@@ -1,34 +1,34 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Lide.Core.Contract.Provider;
 
 namespace Lide.Core.Provider
 {
     public class PropagateContentHandler : IPropagateContentHandler
     {
-        public event PropagateContentPrepareHandler PrepareForChild;
-        public event PropagateContentParseHandler ParseFromChild;
-        public event PropagateContentPrepareHandler PrepareForParent;
+        public event PrepareOutgoingRequestHandler PrepareOutgoingRequest;
+        public event ParseOutgoingResponseHandler ParseOutgoingResponse;
+        public event PrepareOwnResponseHandler PrepareOwnResponse;
+        public event ParseOwnRequestHandler ParseOwnRequest;
 
-        public Dictionary<string, byte[]> ParentData { get; set; } = new ();
-        public Dictionary<string, byte[]> GetDataForParent()
+        public void ParseDataFromOwnRequest(ConcurrentDictionary<string, byte[]> content)
         {
-            var container = new ConcurrentDictionary<string, byte[]>();
-            PrepareForParent?.Invoke(container, string.Empty);
-            return new Dictionary<string, byte[]>(container);
+            ParseOwnRequest?.Invoke(content);
         }
 
-        public Dictionary<string, byte[]> GetDataForChild(string requestPath)
+        public void PrepareDataForOutgoingRequest(ConcurrentDictionary<string, byte[]> container, string path, long requestId, byte[] content)
         {
-            var container = new ConcurrentDictionary<string, byte[]>();
-            PrepareForChild?.Invoke(container, requestPath);
-            return new Dictionary<string, byte[]>(container);
+            PrepareOutgoingRequest?.Invoke(container, path, requestId, content);
         }
 
-        public void ParseDataFromChild(Dictionary<string, byte[]> content, Exception exception, string requestPath)
+        public void ParseDataFromOutgoingResponse(ConcurrentDictionary<string, byte[]> content, string path, long requestId, Exception exception)
         {
-            ParseFromChild?.Invoke(content, exception, requestPath);
+            ParseOutgoingResponse?.Invoke(content, path, requestId, exception);
+        }
+
+        public void PrepareDataForOwnResponse(ConcurrentDictionary<string, byte[]> container)
+        {
+            PrepareOwnResponse?.Invoke(container);
         }
     }
 }

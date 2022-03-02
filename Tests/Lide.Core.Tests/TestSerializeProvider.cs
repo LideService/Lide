@@ -141,13 +141,13 @@ namespace Lide.Core.Tests
         public void That_SerializeAndDeserialize_OnBeforeAndAfterWorks()
         {
             var provider = new BinarySerializeProvider();
-            var tester1 = new SubstituteBefore()
+            var tester1 = new SubstituteMethodBefore()
             {
                 CallId = 13,
                 MethodSignature = "ValidateThis",
                 InputParameters = new byte[] {1, 3, 2, 56, 2, 6, 7, 2, 7, 3},
             };
-            var tester2 = new SubstituteAfter()
+            var tester2 = new SubstituteMethodAfter()
             {
                 CallId = 13,
                 InputParameters = new byte[] {1, 3, 2, 56, 2, 6, 7, 2, 7, 3},
@@ -156,14 +156,14 @@ namespace Lide.Core.Tests
             };
             
             var serialized1 = provider.Serialize(tester1);
-            var deserialized1 = provider.Deserialize<SubstituteBefore>(serialized1);
+            var deserialized1 = provider.Deserialize<SubstituteMethodBefore>(serialized1);
             
             Assert.AreEqual(tester1.CallId, deserialized1.CallId);
             Assert.AreEqual(tester1.MethodSignature, deserialized1.MethodSignature);
             CollectionAssert.AreEqual(tester1.InputParameters, deserialized1.InputParameters);
             
             var serialized2 = provider.Serialize(tester2);
-            var deserialized2 = provider.Deserialize<SubstituteAfter>(serialized2);
+            var deserialized2 = provider.Deserialize<SubstituteMethodAfter>(serialized2);
             Assert.AreEqual(tester2.CallId, deserialized2.CallId);
             Assert.AreEqual(tester2.IsException, deserialized2.IsException);
             CollectionAssert.AreEqual(tester2.InputParameters, deserialized2.InputParameters);

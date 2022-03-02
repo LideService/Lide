@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
@@ -17,6 +18,7 @@ namespace Lide.WebApi.Wrappers
         private readonly IBinarySerializeProvider _binarySerializeProvider;
         private readonly ICompressionProvider _compressionProvider;
         private readonly Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> _sendAsyncInvoke;
+        private long _requestId;
 
         public HttpMessageHandlerWrapper(
             HttpMessageHandler originalObject,
@@ -57,18 +59,18 @@ namespace Lide.WebApi.Wrappers
                 return await _sendAsyncInvoke(request, cancellationToken).ConfigureAwait(false);
             }
 
-            var propagateData = _propagateContentHandler.GetDataForChild(request.RequestUri?.AbsolutePath);
+            var requestId = Interlocked.Increment(ref _requestId);
+            var requestContainer = new ConcurrentDictionary<string, byte[]>();
+            var requestContent = (byte[])null;
             if (request.Content != null)
             {
-                var headers = request.Content.Headers.ToDictionary(
-                    x => x.Key,
-                    x => x.Value.ToArray());
-
-                propagateData.Add(PropagateProperties.OriginalRequest, await request.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false));
-                propagateData.Add(PropagateProperties.OriginalHeaders, _binarySerializeProvider.Serialize(headers));
+                requestContent = await request.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+                requestContainer[PropagateProperties.RequestContent] = requestContent;
                 request.Content.Dispose();
             }
 
+            _propagateContentHandler.PrepareDataForOutgoingRequest(requestContainer, request.RequestUri?.AbsolutePath, requestId, requestContent);
+            var propagateData = new Dictionary<string, byte[]>(requestContainer);
             var serialized = _binarySerializeProvider.Serialize(propagateData);
             var compressed = _compressionProvider.Compress(serialized);
             var propagateContent = new ByteArrayContent(compressed);
@@ -82,15 +84,16 @@ namespace Lide.WebApi.Wrappers
                 var content = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
                 var decompressed = _compressionProvider.Decompress(content);
                 var deserialized = _binarySerializeProvider.Deserialize<Dictionary<string, byte[]>>(decompressed);
-                _propagateContentHandler.ParseDataFromChild(deserialized, null, request.RequestUri?.AbsolutePath);
+                var responseContainer = new ConcurrentDictionary<string, byte[]>(deserialized);
+                _propagateContentHandler.ParseDataFromOutgoingResponse(responseContainer, request.RequestUri?.AbsolutePath, requestId, null);
                 response.Content.Dispose();
-                response.Content = new ByteArrayContent(deserialized[PropagateProperties.OriginalResponse]);
+                response.Content = new ByteArrayContent(deserialized[PropagateProperties.ResponseContent]);
 
                 return response;
             }
             catch (Exception e)
             {
-                _propagateContentHandler.ParseDataFromChild(null, e, request.RequestUri?.AbsolutePath);
+                _propagateContentHandler.ParseDataFromOutgoingResponse(null, request.RequestUri?.AbsolutePath, requestId, e);
                 ExceptionDispatchInfo.Capture(e).Throw();
                 throw;
             }
