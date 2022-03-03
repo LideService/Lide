@@ -35,12 +35,19 @@ namespace Lide.Core.Provider
             return _decoratorPatterns.ContainsKey(decoratorName);
         }
 
+        public bool IsTypeDisallowed(Type type)
+        {
+            var globalInclusion = IsIncludedInPattern(type, _globalTypesPatterns);
+            var defaultInclusion = IsIncludedInPattern(type, _defaultTypesPatterns);
+            return globalInclusion == false || defaultInclusion == false;
+        }
+
         public ISet<string> GetDecorators(Type type)
         {
             var result = new HashSet<string>();
             var globalInclusion = IsIncludedInPattern(type, _globalTypesPatterns);
             var defaultInclusion = IsIncludedInPattern(type, _defaultTypesPatterns);
-            if (defaultInclusion.HasValue && !defaultInclusion.Value)
+            if (globalInclusion == false || defaultInclusion == false)
             {
                 return result;
             }
@@ -108,7 +115,7 @@ namespace Lide.Core.Provider
                 _globalTypesPatterns.AddRange(GetInclusionPatterns(AppSettings.TypesInclusionPattern).Item2);
             }
 
-            foreach (var decoratorWithPattern in PropagateSettings.DecoratorsWithPattern.Where(x => x.Length > 0))
+            foreach (var decoratorWithPattern in PropagateSettings.DecoratorsWithPattern.Where(x => x?.Length > 0))
             {
                 var (name, patterns) = GetInclusionPatterns(decoratorWithPattern);
                 _decoratorPatterns.TryAdd(name, new List<(bool, string)>());
@@ -117,7 +124,7 @@ namespace Lide.Core.Provider
 
             if (!PropagateSettings.OverrideDecoratorsWithPattern)
             {
-                foreach (var decoratorWithPattern in AppSettings.DecoratorsWithPattern.Where(x => x.Length > 0))
+                foreach (var decoratorWithPattern in AppSettings.DecoratorsWithPattern.Where(x => x?.Length > 0))
                 {
                     var (name, patterns) = GetInclusionPatterns(decoratorWithPattern);
                     _decoratorPatterns.TryAdd(name, new List<(bool, string)>());

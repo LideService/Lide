@@ -10,9 +10,10 @@ namespace Lide.TracingProxy.DecoratedProxy
     public partial class ProxyDecorator<TInterface> : IProxyCompositor<TInterface>
         where TInterface : class
     {
-        public IProxyCompositor<TInterface> SetOriginalObject(TInterface originalObject)
+        public IProxyCompositor<TInterface> SetOriginalObject(TInterface originalObject, bool singleton = false)
         {
             _originalObject = originalObject;
+            _isSingleton = singleton;
             return this;
         }
 

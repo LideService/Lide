@@ -14,6 +14,7 @@ namespace Lide.Core.Contract.Provider
         bool AllowReadonlyDecorators { get; }
         string OriginRequestPath { get; set; }
 
+        bool IsTypeDisallowed(Type type);
         bool IsDecoratorIncluded(string decoratorName);
         void Initialize(AppSettings appSettings, PropagateSettings propagateSettings);
         ISet<string> GetDecorators(Type type);

@@ -6,12 +6,14 @@ namespace Lide.TracingProxy.Model
     {
         public MethodMetadataVolatile(
             object plainObject,
+            bool isSingleton,
             MethodInfo methodInfo,
             ParametersMetadataVolatile parametersMetadataVolatile,
             ReturnMetadataVolatile returnMetadataVolatile,
             long callId)
         {
             PlainObject = plainObject;
+            IsSingleton = isSingleton;
             MethodInfo = methodInfo;
             ParametersMetadataVolatile = parametersMetadataVolatile;
             ReturnMetadataVolatile = returnMetadataVolatile;
@@ -22,6 +24,7 @@ namespace Lide.TracingProxy.Model
             MethodMetadataVolatile methodMetadataVolatile,
             ReturnMetadataVolatile returnMetadataVolatile)
         {
+            IsSingleton = methodMetadataVolatile.IsSingleton;
             PlainObject = methodMetadataVolatile.PlainObject;
             MethodInfo = methodMetadataVolatile.MethodInfo;
             ParametersMetadataVolatile = methodMetadataVolatile.ParametersMetadataVolatile;
@@ -31,6 +34,7 @@ namespace Lide.TracingProxy.Model
 
         public long CallId { get; }
         public object PlainObject { get; }
+        public bool IsSingleton { get; }
         public MethodInfo MethodInfo { get; }
         public ParametersMetadataVolatile ParametersMetadataVolatile { get; }
         public ReturnMetadataVolatile ReturnMetadataVolatile { get; }

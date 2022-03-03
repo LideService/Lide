@@ -58,7 +58,7 @@ namespace Lide.Core.Provider.Internal
             {
                 var field = fields[fieldIndex];
                 var value = field.GetValue(data);
-                var valueBytes = ObjectReader(field.FieldType, value, field.GetHashCode());
+                var valueBytes = ObjectReader(field.FieldType, value, GetHashCode(field));
                 fieldsData[fieldIndex] = valueBytes;
             }
 
@@ -112,7 +112,7 @@ namespace Lide.Core.Provider.Internal
             foreach (var fieldBytes in fieldsData)
             {
                 var fieldHashCode = _fieldTypeConverter.GetHashCode(fieldBytes);
-                var field = fields.First(x => x.GetHashCode() == fieldHashCode);
+                var field = fields.First(x => GetHashCode(x) == fieldHashCode);
                 var fieldValue = ObjectWriter(field.FieldType, fieldBytes);
                 field.SetValue(target, fieldValue);
             }
@@ -136,6 +136,20 @@ namespace Lide.Core.Provider.Internal
             }
 
             return array;
+        }
+
+        private int GetHashCode(FieldInfo fieldInfo)
+        {
+            unchecked
+            {
+                var hash = 251;
+                foreach (var c in fieldInfo.ToString())
+                {
+                    hash = hash * 127 + c;
+                }
+
+                return hash;
+            }
         }
     }
 }

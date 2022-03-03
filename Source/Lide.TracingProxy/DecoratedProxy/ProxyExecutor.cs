@@ -20,7 +20,7 @@ namespace Lide.TracingProxy.DecoratedProxy
             var callId = Interlocked.Increment(ref CallCounter.CallId);
             var parametersMetadataVolatile = new ParametersMetadataVolatile(originalParameters);
             var returnMetadataVolatile = new ReturnMetadataVolatile(null, null);
-            var metadataVolatile = new MethodMetadataVolatile(_originalObject, methodInfo, parametersMetadataVolatile, returnMetadataVolatile, callId);
+            var metadataVolatile = new MethodMetadataVolatile(_originalObject,  _isSingleton, methodInfo, parametersMetadataVolatile, returnMetadataVolatile, callId);
             ExecuteDecorators<IObjectDecoratorVolatile, MethodMetadataVolatile>(_volatileDecorators, decorator => decorator.ExecuteBeforeInvoke(metadataVolatile));
 
             var parametersMetadata = new ParametersMetadata(metadataVolatile.ParametersMetadataVolatile);

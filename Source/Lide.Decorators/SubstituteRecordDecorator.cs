@@ -19,7 +19,6 @@ namespace Lide.Decorators
         private readonly IStreamBatchProvider _streamBatchProvider;
         private readonly ITaskRunner _taskRunner;
         private readonly Stream _fileStream;
-        private readonly bool _enabled;
 
         public SubstituteRecordDecorator(
             IBinarySerializeProvider binarySerializeProvider,
@@ -38,13 +37,8 @@ namespace Lide.Decorators
             _streamBatchProvider = streamBatchProvider;
             _taskRunner = taskRunner;
 
-            _enabled = settingsProvider.IsDecoratorIncluded(Id);
-            if (_enabled)
-            {
-                var filePath = pathFacade.Combine(pathFacade.GetTempPath(), fileFacade.GetFileName(Id));
-                _fileStream = fileFacade.OpenFile(filePath);
-            }
-
+            var filePath = pathFacade.Combine(pathFacade.GetTempPath(), fileFacade.GetFileName(Id));
+            _fileStream = fileFacade.OpenFile(filePath);
             _propagateContentHandler.ParseOwnRequest += ParseOwnRequest;
             _propagateContentHandler.ParseOutgoingResponse += ParseOutgoingResponse;
             _propagateContentHandler.PrepareOwnResponse += PrepareOwnResponse;
@@ -94,16 +88,18 @@ namespace Lide.Decorators
 
         private void ParseOwnRequest(ConcurrentDictionary<string, byte[]> content)
         {
-            if (!_enabled)
+            if (!_settingsProvider.IsDecoratorIncluded(Id))
             {
                 return;
             }
 
-            content.TryGetValue(PropagateProperties.RequestContent, out var requestContent);
-            var request = new SubstituteOwnRequest
+            content.TryGetValue(PropagateProperties.OriginalContent, out var requestContent);
+            content.TryGetValue(PropagateProperties.OriginalQuery, out var queryContent);
+            var request = new SubstituteOwnContent
             {
-                Path = _settingsProvider.OriginRequestPath,
-                Content = requestContent,
+                TestId = 81,
+                Content = requestContent ?? Array.Empty<byte>(),
+                Query = queryContent ?? Array.Empty<byte>(),
             };
             var serialized = _binarySerializeProvider.Serialize(request);
             _taskRunner.AddToQueue(() => _streamBatchProvider.WriteNextBatch(_fileStream, serialized));
@@ -111,7 +107,7 @@ namespace Lide.Decorators
 
         private void ParseOutgoingResponse(ConcurrentDictionary<string, byte[]> content, string path, long requestId, Exception exception)
         {
-            if (!_enabled)
+            if (!_settingsProvider.IsDecoratorIncluded(Id))
             {
                 return;
             }
@@ -131,13 +127,26 @@ namespace Lide.Decorators
 
         private void PrepareOwnResponse(ConcurrentDictionary<string, byte[]> container)
         {
-            if (!_enabled)
+            if (!_settingsProvider.IsDecoratorIncluded(Id))
             {
                 return;
             }
 
+            container.TryGetValue(PropagateProperties.OriginalContent, out var responseContent);
+            var response = new SubstituteOwnContent
+            {
+                TestId = 63,
+                Content = responseContent ?? Array.Empty<byte>(),
+                Query = Array.Empty<byte>(),
+            };
+
+            container.TryRemove(PropagateProperties.OriginalContent, out _);
+            var serialized = _binarySerializeProvider.Serialize(response);
+            _taskRunner.AddToQueue(() => _streamBatchProvider.WriteNextBatch(_fileStream, serialized));
+
             _taskRunner.WaitQueue().Wait();
             using var reader = new MemoryStream();
+            _fileStream.Seek(0, SeekOrigin.Begin);
             _fileStream.CopyTo(reader);
             var content = reader.ToArray();
             container[PropagateProperties.SubstituteContent] = content;

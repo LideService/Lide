@@ -39,7 +39,7 @@ namespace Lide.Core.Facade
 
         public Stream OpenFile(string filePath)
         {
-            return new FileStream(filePath, FileMode.Append, FileAccess.ReadWrite, FileShare.None);
+            return new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         }
 
         public void DeleteFile(string filePath)

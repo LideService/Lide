@@ -28,9 +28,9 @@ namespace TaxCalculator.WebApi.Controllers
             _taxLevelsState.RemoveTaxLevel(name);
         }
 
-        [HttpGet]
+        [HttpPost]
         [Route("tax/info")]
-        public string GetInfo(string name)
+        public string GetInfo()
         {
             return _taxLevelsState.GetInfo();
         }

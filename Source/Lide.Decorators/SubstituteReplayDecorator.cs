@@ -11,12 +11,12 @@ namespace Lide.Decorators
 {
     public sealed class SubstituteReplayDecorator : IObjectDecoratorVolatile, IDisposable
     {
+        private readonly ISettingsProvider _settingsProvider;
         private readonly IBinarySerializeProvider _binarySerializeProvider;
         private readonly IPropagateContentHandler _propagateContentHandler;
         private readonly ISignatureProvider _signatureProvider;
         private readonly SubstituteParser _substituteParser;
         private readonly ConcurrentDictionary<long, long> _callIds = new ();
-        private readonly bool _enabled;
 
         public SubstituteReplayDecorator(
             ISettingsProvider settingsProvider,
@@ -25,7 +25,7 @@ namespace Lide.Decorators
             IStreamBatchProvider streamBatchProvider,
             ISignatureProvider signatureProvider)
         {
-            _enabled = settingsProvider.IsDecoratorIncluded(Id);
+            _settingsProvider = settingsProvider;
             _binarySerializeProvider = binarySerializeProvider;
             _propagateContentHandler = propagateContentHandler;
             _signatureProvider = signatureProvider;
@@ -79,19 +79,26 @@ namespace Lide.Decorators
 
         private void ParseOwnRequest(ConcurrentDictionary<string, byte[]> content)
         {
-            if (!_enabled)
+            if (!_settingsProvider.IsDecoratorIncluded(Id))
             {
                 return;
             }
 
             content.TryGetValue(PropagateProperties.SubstituteContent, out var requestContent);
-            var ownRequest = _binarySerializeProvider.Deserialize<SubstituteOwnRequest>(requestContent);
-            var contentStream = new MemoryStream(ownRequest.Content);
+            var contentStream = new MemoryStream(requestContent);
             _substituteParser.LoadAll(contentStream);
+
+            content[PropagateProperties.OriginalContent] = _substituteParser.SubstituteOwnRequest.Content;
+            content[PropagateProperties.OriginalQuery] = _substituteParser.SubstituteOwnRequest.Query;
         }
 
         private void PrepareOutgoingRequest(ConcurrentDictionary<string, byte[]> container, string path, long requestId, byte[] content)
         {
+            if (!_settingsProvider.IsDecoratorIncluded(Id))
+            {
+                return;
+            }
+
             var innerContent = _substituteParser.GetOutgoingResponse(path);
             if (innerContent == null)
             {

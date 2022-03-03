@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Lide.Core.Model;
 using Lide.Core.Model.Settings;
 using Lide.WebApi.Wrappers;
 using Microsoft.AspNetCore.Http;
@@ -29,11 +30,9 @@ namespace Lide.WebApi.Extension
 
         public async Task Invoke(HttpContext httpContext)
         {
-            var depth = Convert.ToInt32(httpContext.Request.Headers[PropagateProperties.Enabled].FirstOrDefault() ?? "0");
-            var enabled = depth > 0
-                          || Convert.ToBoolean(httpContext.Request.Headers[PropagateProperties.Enabled].FirstOrDefault() ?? "false")
-                          || Convert.ToBoolean(httpContext.Request.Query[PropagateProperties.Enabled].FirstOrDefault() ?? "false")
-                          || await GetEnabledFromBody(httpContext).ConfigureAwait(false);
+            var enabled =
+                Convert.ToBoolean(httpContext.Request.Headers[PropagateProperties.Enabled].FirstOrDefault() ?? "false")
+             || Convert.ToBoolean(httpContext.Request.Query[PropagateProperties.Enabled].FirstOrDefault() ?? "false");
 
             if (enabled)
             {
@@ -46,9 +45,11 @@ namespace Lide.WebApi.Extension
 
         private async Task ExecuteLide(HttpContext httpContext)
         {
-            var scope = httpContext.RequestServices.CreateScope();
+            var originalServices = httpContext.RequestServices;
+            using var scope = httpContext.RequestServices.CreateScope();
             var scopedProvider = scope.ServiceProvider;
-            await using var wrapper = new ServiceProviderWrapper(scopedProvider, scope.Dispose);
+            await using var wrapper = new ServiceProviderWrapper(scopedProvider);
+            httpContext.RequestServices = wrapper;
 
             await ParseAndReplaceRequestBody(httpContext, wrapper);
 
@@ -71,13 +72,22 @@ namespace Lide.WebApi.Extension
             finally
             {
                 wrapper.PropagateContentHandler.PrepareOutgoingRequest -= PropagateSettingsData;
+                httpContext.RequestServices = originalServices;
             }
 
             var container = new ConcurrentDictionary<string, byte[]>();
-            container[PropagateProperties.ResponseContent] = memoryResponseBody.ToArray();
+            container[PropagateProperties.OriginalContent] = memoryResponseBody.ToArray();
             wrapper.PropagateContentHandler.PrepareDataForOwnResponse(container);
             var dataForParent = new Dictionary<string, byte[]>(container);
-            var serializedResponse = wrapper.BinarySerializeProvider.Serialize(dataForParent);
+            var serializedData = wrapper.BinarySerializeProvider.Serialize(dataForParent);
+            var compressedData = wrapper.CompressionProvider.Compress(serializedData);
+
+            var response = new LideResponse()
+            {
+                Path = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}{httpContext.Request.Path}",
+                ContentData = compressedData,
+            };
+            var serializedResponse = wrapper.BinarySerializeProvider.Serialize(response);
             var compressedResponse = wrapper.CompressionProvider.Compress(serializedResponse);
 
             PrepareResponseAsAFile(httpContext);
@@ -89,7 +99,7 @@ namespace Lide.WebApi.Extension
 
         private static void PrepareResponseAsAFile(HttpContext httpContext)
         {
-            var depth = Convert.ToInt32(httpContext.Request.Headers[PropagateProperties.Enabled].FirstOrDefault() ?? "0");
+            var depth = Convert.ToInt32(httpContext.Request.Headers[PropagateProperties.Depth].FirstOrDefault() ?? "0");
             if (depth != 0)
             {
                 return;
@@ -100,70 +110,63 @@ namespace Lide.WebApi.Extension
                 ? httpContext.Request.RouteValues["controller"] + "." + httpContext.Request.RouteValues["action"]
                 : "unknown";
             var filename = $"{path ?? action}.lide";
-            httpContext.Response.ContentType = "text/binary";
+            httpContext.Response.ContentType = "blob";
             httpContext.Response.Headers.Add("Content-Disposition", $"attachment; filename={filename}; filename*=UTF-8''{filename}");
         }
 
         private async Task ParseAndReplaceRequestBody(HttpContext httpContext, ServiceProviderWrapper wrapper)
         {
+            httpContext.Request.EnableBuffering();
+            httpContext.Request.Body.Seek(0, SeekOrigin.Begin);
             await using var currentRequestBodyCopy = new MemoryStream();
             await httpContext.Request.Body.CopyToAsync(currentRequestBodyCopy).ConfigureAwait(false);
+            var originalBodyContent = currentRequestBodyCopy.ToArray();
 
-            var depth = Convert.ToInt32(httpContext.Request.Headers[PropagateProperties.Enabled].FirstOrDefault() ?? "0");
+            var depth = Convert.ToInt32(httpContext.Request.Headers[PropagateProperties.Depth].FirstOrDefault() ?? "0");
             if (depth == 0)
             {
-                using var reader = new StreamReader(currentRequestBodyCopy, Encoding.UTF8, leaveOpen: true);
-                var strRequestBody = await reader.ReadToEndAsync().ConfigureAwait(false);
-                var maybeJsonBody = TryParseFromJsonOrBase64<Dictionary<string, object>>(strRequestBody);
-                var maybeJsonSettings = maybeJsonBody.ContainsKey(PropagateProperties.PropagateSettings)
-                    ? Convert.ToString(maybeJsonBody[PropagateProperties.PropagateSettings])
-                    : string.Empty;
-
                 var settingsData =
                     httpContext.Request.Headers[PropagateProperties.PropagateSettings].FirstOrDefault() ??
-                    httpContext.Request.Query[PropagateProperties.PropagateSettings].FirstOrDefault() ??
-                    maybeJsonSettings;
+                    httpContext.Request.Query[PropagateProperties.PropagateSettings].FirstOrDefault();
                 var settings = TryParseFromJsonOrBase64<PropagateSettings>(settingsData);
 
                 var container = new ConcurrentDictionary<string, byte[]>();
-                container[PropagateProperties.RequestContent] = currentRequestBodyCopy.ToArray();
+                container[PropagateProperties.OriginalContent] = originalBodyContent;
+                container[PropagateProperties.OriginalQuery] = Encoding.UTF8.GetBytes(httpContext.Request.QueryString.Value ?? string.Empty);
                 container[PropagateProperties.PropagateSettings] = wrapper.BinarySerializeProvider.Serialize(settings);
-                wrapper.PropagateContentHandler.ParseDataFromOwnRequest(container);
                 wrapper.SettingsProvider.Initialize(_appSettings, settings);
                 wrapper.SettingsProvider.OriginRequestPath = httpContext.Request.Path;
+                wrapper.PropagateContentHandler.ParseDataFromOwnRequest(container);
             }
 
             if (depth > 0)
             {
-                var decompressedRequestBody = wrapper.CompressionProvider.Decompress(currentRequestBodyCopy.ToArray());
+                var decompressedRequestBody = wrapper.CompressionProvider.Decompress(originalBodyContent);
                 var deserializedRequestBody = wrapper.BinarySerializeProvider.Deserialize<Dictionary<string, byte[]>>(decompressedRequestBody);
                 var container = new ConcurrentDictionary<string, byte[]>(deserializedRequestBody);
-                wrapper.PropagateContentHandler.ParseDataFromOwnRequest(container);
 
-                var originalContentData = container[PropagateProperties.RequestContent];
-                var propagateSettingsData = container[PropagateProperties.PropagateSettings];
+                var settingsFormHeader =
+                    httpContext.Request.Headers[PropagateProperties.PropagateSettings].FirstOrDefault() ??
+                    httpContext.Request.Query[PropagateProperties.PropagateSettings].FirstOrDefault();
+                var settings = TryParseFromJsonOrBase64<PropagateSettings>(settingsFormHeader);
 
-                var settings = wrapper.BinarySerializeProvider.Deserialize<PropagateSettings>(propagateSettingsData);
-                var originalContentReplaceStream = new MemoryStream(originalContentData);
-                await httpContext.Request.Body.DisposeAsync().ConfigureAwait(false);
-                httpContext.Request.Body = originalContentReplaceStream;
+                if (container.ContainsKey(PropagateProperties.PropagateSettings))
+                {
+                    var propagateSettingsData = container[PropagateProperties.PropagateSettings];
+                    settings = wrapper.BinarySerializeProvider.Deserialize<PropagateSettings>(propagateSettingsData);
+                }
+
                 wrapper.SettingsProvider.Initialize(_appSettings, settings);
                 wrapper.SettingsProvider.OriginRequestPath = httpContext.Request.Path;
-            }
-        }
+                wrapper.PropagateContentHandler.ParseDataFromOwnRequest(container);
 
-        private async Task<bool> GetEnabledFromBody(HttpContext httpContext)
-        {
-            if (!_appSettings.SearchHttpBody)
-            {
-                return false;
+                await httpContext.Request.Body.DisposeAsync().ConfigureAwait(false);
+                var originalContentData = container[PropagateProperties.OriginalContent];
+                var queryString = Encoding.UTF8.GetString(container[PropagateProperties.OriginalQuery]);
+                var originalContentReplaceStream = new MemoryStream(originalContentData);
+                httpContext.Request.Body = originalContentReplaceStream;
+                httpContext.Request.QueryString = new QueryString(queryString);
             }
-
-            using var reader = new StreamReader(httpContext.Request.Body, Encoding.UTF8, leaveOpen: true);
-            var strRequestBody = await reader.ReadToEndAsync().ConfigureAwait(false);
-            httpContext.Request.Body.Seek(0, SeekOrigin.Begin);
-            var jsonBody = TryParseFromJsonOrBase64<Dictionary<string, object>>(strRequestBody);
-            return Convert.ToBoolean(jsonBody[PropagateProperties.Enabled] ?? "false");
         }
 
         private static TTarget TryParseFromJsonOrBase64<TTarget>(string data)

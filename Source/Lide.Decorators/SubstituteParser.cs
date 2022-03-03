@@ -19,7 +19,8 @@ namespace Lide.Decorators
             _streamBatchProvider = streamBatchProvider;
         }
 
-        public SubstituteOwnRequest SubstituteOwnRequest { get; private set; }
+        public SubstituteOwnContent SubstituteOwnRequest { get; private set; }
+        public SubstituteOwnContent SubstituteOwnResponse { get; private set; }
         public List<SubstituteMethodBefore> BeforeMethods { get; } = new ();
         public List<SubstituteMethodAfter> AfterMethods { get; } = new ();
         public List<SubstituteOutgoingRequest> OutgoingRequests { get; } = new ();
@@ -102,8 +103,9 @@ namespace Lide.Decorators
                 case SubstituteOutgoingResponse substituteOutgoingResponse:
                     OutgoingResponses.Add(substituteOutgoingResponse);
                     break;
-                case SubstituteOwnRequest substituteOwnRequest:
-                    SubstituteOwnRequest = substituteOwnRequest;
+                case SubstituteOwnContent substituteOwnContent:
+                    SubstituteOwnRequest ??= substituteOwnContent;
+                    SubstituteOwnResponse = substituteOwnContent;
                     break;
             }
 

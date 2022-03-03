@@ -7,7 +7,7 @@ namespace Lide.TracingProxy.Contract
     public interface IProxyCompositor<TInterface>
         where TInterface : class
     {
-        IProxyCompositor<TInterface> SetOriginalObject(TInterface originalObject);
+        IProxyCompositor<TInterface> SetOriginalObject(TInterface originalObject, bool singleton);
         IProxyCompositor<TInterface> SetDecorators(IEnumerable<IObjectDecoratorReadonly> readonlyDecorators);
         IProxyCompositor<TInterface> SetDecorator(IObjectDecoratorReadonly readonlyDecorator);
         IProxyCompositor<TInterface> SetDecorators(IEnumerable<IObjectDecoratorVolatile> volatileDecorators);

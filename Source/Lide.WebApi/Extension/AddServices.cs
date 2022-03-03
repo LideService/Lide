@@ -1,3 +1,4 @@
+using System.Net.Http;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
@@ -6,7 +7,9 @@ using Lide.Core.Model.Settings;
 using Lide.Core.Provider;
 using Lide.Decorators;
 using Lide.TracingProxy.Contract;
+using Lide.WebApi.Contract;
 using Lide.WebApi.Plugin;
+using Lide.WebApi.Wrappers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +19,8 @@ namespace Lide.WebApi.Extension
     {
         public static void AddLideCore(this IServiceCollection serviceCollection, IConfiguration configuration)
         {
+            serviceCollection.AddSingleton<IServiceCollection>(sp => serviceCollection);
+
             // Facades
             serviceCollection.AddSingleton<IDateTimeFacade, DateTimeFacade>();
             serviceCollection.AddSingleton<ILoggerFacade, LoggerFacade>();
@@ -41,8 +46,11 @@ namespace Lide.WebApi.Extension
 
             serviceCollection.AddScoped<ISettingsProvider, SettingsProvider>();
             serviceCollection.AddScoped<IScopeIdProvider, ScopeIdProvider>();
+            serviceCollection.AddScoped<IPropagateContentHandler, PropagateContentHandler>();
 
             // Web
+            serviceCollection.AddScoped<HttpClient>();
+            serviceCollection.AddScoped<IHttpClientRebuilder, HttpClientRebuilder>();
             serviceCollection.AddScoped<IServiceProviderPlugin, HttpClientFactoryPlugin>();
             serviceCollection.AddScoped<IServiceProviderPlugin, HttpClientPlugin>();
 

@@ -22,13 +22,17 @@ namespace TaxCalculator.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSwaggerGen(c => { c.SwaggerDoc("v1", new OpenApiInfo { Title = "TaxCalculator.WebApi", Version = "v1" }); });
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "TaxCalculator.WebApi", Version = "v1" });
+                c.OperationFilter<EnableSwaggerHeaders>();
+            });
             services.AddLideCore(Configuration);
             services.AddSingleton<ICalculator, Calculator>();
             services.AddSingleton<ITaxLevelsState, TaxLevelsState>();
             services.AddScoped<INonDeterministic1, NonDeterministic1>();
             services.AddScoped<INonDeterministic2, NonDeterministic2>();
-            services.AddSingleton<IDateTimeFacade, DateTimeFacade>();
+            services.AddScoped<IDateTimeFacade, DateTimeFacade>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

@@ -36,13 +36,13 @@ namespace Lide.Decorators.Tests
 
             var level2 = new Level2();
             var level2Proxy = ProxyDecoratorFactory.CreateProxyDecorator<ILevel2>();
-            level2Proxy.SetOriginalObject(level2);
+            level2Proxy.SetOriginalObject(level2, false);
             level2Proxy.SetDecorator(decorator);
             var level2Decorated = level2Proxy.GetDecoratedObject();
             
             var level1 = new Level1(level2Decorated);
             var level1Proxy = ProxyDecoratorFactory.CreateProxyDecorator<ILevel1>();
-            level1Proxy.SetOriginalObject(level1);
+            level1Proxy.SetOriginalObject(level1, false);
             level1Proxy.SetDecorator(decorator);
             var level1Decorated = level1Proxy.GetDecoratedObject();
 

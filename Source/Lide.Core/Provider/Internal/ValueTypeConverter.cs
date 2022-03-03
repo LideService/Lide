@@ -19,7 +19,7 @@ namespace Lide.Core.Provider.Internal
         // ReSharper disable once MemberCanBeMadeStatic.Global for consistency
         public bool IsValueType(Type type)
         {
-            return (type.IsPrimitive && type.IsValueType) || type == typeof(string) || type == typeof(decimal);
+            return (type.IsPrimitive && type.IsValueType) || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime);
         }
 
         public byte[] GetBytes(Type type, object data)
@@ -37,6 +37,8 @@ namespace Lide.Core.Provider.Internal
             _cachedGetObject.Add(typeof(byte), (data) => data[0]);
             _cachedGetObject.Add(typeof(string), Encoding.UTF8.GetString);
             _cachedGetObject.Add(typeof(decimal), (data) => ToDecimal(data));
+            _cachedGetObject.Add(typeof(DateTime), (data) => DateTime.FromBinary(BitConverter.ToInt64(data)));
+
             var convertors = typeof(BitConverter).GetMethods()
                 .Where(x => x.Name.StartsWith("To"))
                 .Where(x => x.GetParameters().Length == 2)
@@ -58,6 +60,7 @@ namespace Lide.Core.Provider.Internal
             _cachedGetBytes.Add(typeof(byte), (data) => new byte[] { (byte)data });
             _cachedGetBytes.Add(typeof(string), (data) => data == null ? Array.Empty<byte>() : Encoding.UTF8.GetBytes((string)data));
             _cachedGetBytes.Add(typeof(decimal), (data) => GetBytes((decimal)data));
+            _cachedGetBytes.Add(typeof(DateTime), (data) => BitConverter.GetBytes(((DateTime)data).ToBinary()));
 
             var convertors = typeof(BitConverter).GetMethods()
                 .Where(x => x.Name == nameof(BitConverter.GetBytes))

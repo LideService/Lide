@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Lide.Core.Model;
@@ -79,27 +80,57 @@ namespace Lide.Core.Tests
         }
         
         [TestMethod]
+        public void That_LideResponse_SerializeAndDeserialize_Works()
+        {
+            var provider = new BinarySerializeProvider();
+            var data = new LideResponse
+            {
+                Path = "api/something/lqlqlq",
+                ContentData = new byte[] { 1, 7, 13, 6, 1, 29 },
+            };
+            
+            var serialized = provider.Serialize(data);
+            var deserialized = provider.Deserialize<LideResponse>(serialized);
+            Assert.AreEqual(data.Path, deserialized.Path);
+            CollectionAssert.AreEqual(data.ContentData, deserialized.ContentData);
+        }
+        
+        [TestMethod]
         public void That_SerializeAndDeserializeProduceOriginalValue()
         {
             var provider = new BinarySerializeProvider();
-            var data = new Tester()
+            var tester = new Tester()
             {
                 Field1 = 7,
                 Field2 = 17.8m,
                 Field3 = new List<string> {"Data1", "Data2", "Data3"},
+                Field4 = new Dictionary<string, byte[]>()
+                {
+                    {"Key1", new byte[] {12,15,1,240}},
+                    {"Key2", new byte[] {}},
+                    {"Key3", new byte[] {240, 142, 1, 0, 13, 0}},
+                },
+                Field5 = DateTime.Now,
                 Inner = new Inner() { Field1 = "Value" }
             };
             
-            var serialized = provider.Serialize(data);
+            var serialized = provider.Serialize(tester);
             var deserialized = provider.Deserialize<Tester>(serialized);
             
-            Assert.AreEqual(data.Field1, deserialized.Field1);
-            Assert.AreEqual(data.Field2, deserialized.Field2);
-            Assert.AreEqual(data.Inner.Field1, deserialized.Inner.Field1);
-            Assert.IsFalse(ReferenceEquals(data, deserialized));
-            Assert.IsFalse(ReferenceEquals(data.Inner, deserialized.Inner));
-            Assert.IsFalse(ReferenceEquals(data.Field3, deserialized.Field3));
-            CollectionAssert.AreEqual(data.Field3, deserialized.Field3);
+            Assert.AreEqual(tester.Field1, deserialized.Field1);
+            Assert.AreEqual(tester.Field2, deserialized.Field2);
+            Assert.AreEqual(tester.Inner.Field1, deserialized.Inner.Field1);
+            Assert.IsFalse(ReferenceEquals(tester, deserialized));
+            Assert.IsFalse(ReferenceEquals(tester.Inner, deserialized.Inner));
+            Assert.IsFalse(ReferenceEquals(tester.Field3, deserialized.Field3));
+            CollectionAssert.AreEqual(tester.Field3, deserialized.Field3);
+            
+            Assert.IsTrue(tester.Field4.ContainsKey("Key1"));
+            Assert.IsTrue(tester.Field4.ContainsKey("Key2"));
+            Assert.IsTrue(tester.Field4.ContainsKey("Key3"));
+            CollectionAssert.AreEqual(tester.Field4["Key1"], new byte[] {12,15,1,240});
+            CollectionAssert.AreEqual(tester.Field4["Key2"], new byte[] {});
+            CollectionAssert.AreEqual(tester.Field4["Key3"], new byte[] {240, 142, 1, 0, 13, 0});
         }
         
         [TestMethod]
@@ -175,6 +206,8 @@ namespace Lide.Core.Tests
             public int Field1 { get; init; }
             public decimal Field2 { get; init; }
             public List<string> Field3 { get; init; }
+            public Dictionary<string, byte[]> Field4 { get; init; }
+            public DateTime Field5 { get; init; }
             public Inner Inner { get; init; }
         }
 

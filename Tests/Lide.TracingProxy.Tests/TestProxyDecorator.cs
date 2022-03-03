@@ -13,7 +13,7 @@ namespace Lide.TracingProxy.Tests
         {
             var originalObject = new Tester();
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject);
+            proxyDecorator.SetOriginalObject(originalObject, false);
             var decorated = proxyDecorator.GetDecoratedObject();
             Assert.IsTrue(ReferenceEquals(originalObject, decorated));
         }
@@ -23,7 +23,7 @@ namespace Lide.TracingProxy.Tests
         {
             var originalObject = new Tester();
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject);
+            proxyDecorator.SetOriginalObject(originalObject, false);
             proxyDecorator.SetDecorator(new DecoratorReadonly());
             var decorated = proxyDecorator.GetDecoratedObject();
             Assert.IsFalse(ReferenceEquals(originalObject, decorated));
@@ -34,7 +34,7 @@ namespace Lide.TracingProxy.Tests
         {
             var originalObject = new Tester();
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject);
+            proxyDecorator.SetOriginalObject(originalObject, false);
             proxyDecorator.SetDecorator(new DecoratorVolatile());
             var decorated = proxyDecorator.GetDecoratedObject();
             Assert.IsFalse(ReferenceEquals(originalObject, decorated));
@@ -46,12 +46,12 @@ namespace Lide.TracingProxy.Tests
         {
             var originalObject = new Tester();
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject);
+            proxyDecorator.SetOriginalObject(originalObject, false);
             proxyDecorator.SetDecorator(new DecoratorVolatile());
             var decorated = proxyDecorator.GetDecoratedObject();
             
             var proxyDecorator2 = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator2.SetOriginalObject(originalObject);
+            proxyDecorator2.SetOriginalObject(originalObject, false);
             proxyDecorator2.SetDecorator(new DecoratorVolatile());
             var decorated2 = proxyDecorator2.GetDecoratedObject();
             Assert.AreEqual(decorated.GetType(), decorated2.GetType());
@@ -78,7 +78,7 @@ namespace Lide.TracingProxy.Tests
 
             var originalObject = new Tester();
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject);
+            proxyDecorator.SetOriginalObject(originalObject, false);
             proxyDecorator.SetDecorator(readonlyDecorator1.Object);
             proxyDecorator.SetDecorator(volatileDecorator1.Object);
             proxyDecorator.SetDecorator(volatileDecorator2.Object);

@@ -14,8 +14,8 @@ namespace Lide.Core.Provider
         public object CreateObject(Type targetType)
         {
             var constructors = targetType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-            var shortest = constructors.OrderBy(x => x.GetParameters().Length).First();
-            if (shortest.GetParameters().Length == 0)
+            var shortest = constructors.OrderBy(x => x.GetParameters().Length).FirstOrDefault();
+            if ((shortest?.GetParameters().Length ?? 0) == 0)
             {
                 return Activator.CreateInstance(targetType);
             }

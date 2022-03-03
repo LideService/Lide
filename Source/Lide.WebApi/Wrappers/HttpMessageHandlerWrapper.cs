@@ -65,7 +65,7 @@ namespace Lide.WebApi.Wrappers
             if (request.Content != null)
             {
                 requestContent = await request.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
-                requestContainer[PropagateProperties.RequestContent] = requestContent;
+                requestContainer[PropagateProperties.OriginalContent] = requestContent;
                 request.Content.Dispose();
             }
 
@@ -87,7 +87,7 @@ namespace Lide.WebApi.Wrappers
                 var responseContainer = new ConcurrentDictionary<string, byte[]>(deserialized);
                 _propagateContentHandler.ParseDataFromOutgoingResponse(responseContainer, request.RequestUri?.AbsolutePath, requestId, null);
                 response.Content.Dispose();
-                response.Content = new ByteArrayContent(deserialized[PropagateProperties.ResponseContent]);
+                response.Content = new ByteArrayContent(deserialized[PropagateProperties.OriginalContent]);
 
                 return response;
             }

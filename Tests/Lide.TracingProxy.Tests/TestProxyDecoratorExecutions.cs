@@ -60,7 +60,7 @@ namespace Lide.TracingProxy.Tests
 
             CallCounter.CallId = callId-1;
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(readonlyDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
             
@@ -88,7 +88,7 @@ namespace Lide.TracingProxy.Tests
                 .Throws(new Exception());
             
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(readonlyDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
             
@@ -108,7 +108,7 @@ namespace Lide.TracingProxy.Tests
                 .Throws(new Exception(message));
             
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(readonlyDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
             
@@ -130,7 +130,7 @@ namespace Lide.TracingProxy.Tests
                 });
             
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(volatileDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
             
@@ -152,7 +152,7 @@ namespace Lide.TracingProxy.Tests
                 });
             
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(volatileDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
             
@@ -174,7 +174,7 @@ namespace Lide.TracingProxy.Tests
                 });
             
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(volatileDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
             
@@ -196,7 +196,7 @@ namespace Lide.TracingProxy.Tests
                 });
             
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(volatileDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
             
@@ -218,7 +218,7 @@ namespace Lide.TracingProxy.Tests
                 });
             
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(volatileDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
             
@@ -241,7 +241,7 @@ namespace Lide.TracingProxy.Tests
                 });
             
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(volatileDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
 
@@ -264,7 +264,7 @@ namespace Lide.TracingProxy.Tests
                 });
             
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(volatileDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
 
@@ -289,7 +289,7 @@ namespace Lide.TracingProxy.Tests
                 });
             
             var proxyDecorator = ProxyDecoratorFactory.CreateProxyDecorator<ITester>();
-            proxyDecorator.SetOriginalObject(originalObject.Object);
+            proxyDecorator.SetOriginalObject(originalObject.Object, false);
             proxyDecorator.SetDecorator(volatileDecorator.Object);
             var decorated = proxyDecorator.GetDecoratedObject();
             
