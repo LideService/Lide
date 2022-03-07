@@ -42,6 +42,26 @@ namespace Lide.Core.Tests
         }
         
         [TestMethod]
+        public void That_DeepCopy_With_CircularReference_IsSuccessful()
+        {
+            var provider = new ActivatorProvider();
+            var source = new CircularReference();
+            source.Inner = new CircularReferenceInner(source, "TestData2");
+            source.Data = "TestData";
+            var target = new CircularReference();
+            target.Inner = new CircularReferenceInner(target, "lqlqlqwl2");
+            target.Data = "lqlqlq";
+
+            provider.DeepCopyIntoExistingObject(source, target);
+            Assert.IsNotNull(target);
+            Assert.IsNotNull(target.Inner);
+            Assert.AreEqual("TestData", target.Data);
+            Assert.AreEqual("TestData2", target.Inner.Data);
+            Assert.IsFalse(ReferenceEquals(source.Inner, target.Inner));
+            Assert.IsFalse(ReferenceEquals(source.Inner.Parent, target.Inner.Parent));
+        }
+        
+        [TestMethod]
         public void That_ReferenceObjectsAreKeptWithTheSameReference()
         {
             var provider = new ActivatorProvider();
@@ -86,5 +106,31 @@ namespace Lide.Core.Tests
                 Data = data;
             }
         }
+
+        private class CircularReference
+        {
+            public CircularReference()
+            {
+                
+            }
+            
+            public string Data { get; set; }
+            public CircularReferenceInner Inner { get; set; }
+        }
+        
+        private class CircularReferenceInner
+        {
+            private readonly CircularReference _baseRef;
+
+            public CircularReferenceInner(CircularReference baseRef, string data)
+            {
+                _baseRef = baseRef;
+                Data = data;
+            }
+            
+            public string Data { get; init; }
+            public CircularReference Parent => _baseRef;
+        }
+        
     }
 }

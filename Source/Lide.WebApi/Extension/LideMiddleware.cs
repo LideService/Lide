@@ -81,20 +81,25 @@ namespace Lide.WebApi.Extension
             var dataForParent = new Dictionary<string, byte[]>(container);
             var serializedData = wrapper.BinarySerializeProvider.Serialize(dataForParent);
             var compressedData = wrapper.CompressionProvider.Compress(serializedData);
+            var response = compressedData;
 
-            var response = new LideResponse()
+            var depth = Convert.ToInt32(httpContext.Request.Headers[PropagateProperties.Depth].FirstOrDefault() ?? "0");
+            if (depth == 0)
             {
-                Path = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}{httpContext.Request.Path}",
-                ContentData = compressedData,
-            };
-            var serializedResponse = wrapper.BinarySerializeProvider.Serialize(response);
-            var compressedResponse = wrapper.CompressionProvider.Compress(serializedResponse);
+                var lideResponse = new LideResponse()
+                {
+                    Path = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}{httpContext.Request.Path}",
+                    ContentData = compressedData,
+                };
+                var compressedLideResponse = wrapper.BinarySerializeProvider.Serialize(lideResponse);
+                response = wrapper.CompressionProvider.Compress(compressedLideResponse);
+            }
 
             PrepareResponseAsAFile(httpContext);
 
             httpContext.Response.Body = originalResponseBody;
-            httpContext.Response.ContentLength = compressedResponse.Length;
-            await httpContext.Response.Body.WriteAsync(compressedResponse).ConfigureAwait(false);
+            httpContext.Response.ContentLength = response.Length;
+            await httpContext.Response.Body.WriteAsync(response).ConfigureAwait(false);
         }
 
         private static void PrepareResponseAsAFile(HttpContext httpContext)

@@ -13,7 +13,7 @@ namespace TaxCalculator.WebApi.Controllers
         {
             _taxLevelsState = taxLevelsState;
         }
-        
+
         [HttpPost]
         [Route("tax/add")]
         public void AddTaxLevel(TaxLevel taxLevel)

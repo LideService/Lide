@@ -140,7 +140,6 @@ namespace Lide.Decorators
                 Query = Array.Empty<byte>(),
             };
 
-            container.TryRemove(PropagateProperties.OriginalContent, out _);
             var serialized = _binarySerializeProvider.Serialize(response);
             _taskRunner.AddToQueue(() => _streamBatchProvider.WriteNextBatch(_fileStream, serialized));
 

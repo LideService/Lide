@@ -64,7 +64,8 @@ namespace Lide.WebApi.Wrappers
 
         public object GetService(Type serviceType)
         {
-            if (IsTypeDisallowed(serviceType))
+            var plugin = _plugins.FirstOrDefault(x => x.Type == serviceType);
+            if (plugin == null && IsTypeDisallowed(serviceType))
             {
                 return _serviceProvider.GetService(serviceType);
             }
@@ -80,7 +81,6 @@ namespace Lide.WebApi.Wrappers
                 return _generatedProxies[instanceObject];
             }
 
-            var plugin = _plugins.FirstOrDefault(x => x.Type == serviceType);
             if (plugin != null)
             {
                 var pluginObject = plugin.GetService(instanceObject);

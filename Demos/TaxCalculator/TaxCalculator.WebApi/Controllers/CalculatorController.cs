@@ -17,12 +17,12 @@ namespace TaxCalculator.WebApi.Controllers
             _taxLevelsState = taxLevelsState;
             _calculator = calculator;
         }
-        
+
         [HttpPost]
         [Route("api/calculate")]
         public decimal Calculate(InputAmount input)
         {
-            var taxes  = _taxLevelsState.GetTaxes();
+            var taxes = _taxLevelsState.GetTaxes();
             var result = _calculator.CalculateAfterTax(input.Amount, taxes);
             return result;
         }

@@ -2,7 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Lide.Core.Contract.Provider;
 
 namespace Lide.Core.Provider
@@ -55,16 +57,17 @@ namespace Lide.Core.Provider
 
             var sourceType = source.GetType();
             var targetType = target.GetType();
+            var circularReferences = new Dictionary<object, object>(new IdentityEqualityComparer<object>());
             if (sourceType != targetType || sourceType.IsValueType || sourceType == typeof(string))
             {
                 return false;
             }
 
-            CopyReferenceFields(source, target);
+            CopyReferenceFields(source, target, circularReferences);
             return true;
         }
 
-        private void CopyReferenceFields(object source, object target)
+        private void CopyReferenceFields(object source, object target, Dictionary<object, object> circularReferences)
         {
             var members = source.GetType().GetFields(_flags).ToList();
             foreach (var member in members)
@@ -75,11 +78,11 @@ namespace Lide.Core.Provider
                 }
                 else if (member.FieldType.IsArray)
                 {
-                    CopyArrayField(member, source, target);
+                    CopyArrayField(member, source, target, circularReferences);
                 }
                 else
                 {
-                    CopyReferenceField(member, source, target);
+                    CopyReferenceField(member, source, target, circularReferences);
                 }
             }
         }
@@ -87,15 +90,29 @@ namespace Lide.Core.Provider
         // ReSharper disable once MemberCanBeMadeStatic.Local for consistency
         private bool IsValueType(Type type)
         {
-            return (type.IsPrimitive && type.IsValueType) || type == typeof(string) || type == typeof(decimal);
+            return type.IsValueType
+                   || type == typeof(string)
+                   || type == typeof(decimal)
+                   || type == typeof(DateTime);
         }
 
-        private void CopyReferenceField(FieldInfo member, object source, object target)
+        private void CopyReferenceField(FieldInfo member, object source, object target, Dictionary<object, object> circularReferences)
         {
+            if (member.IsInitOnly && member.IsStatic)
+            {
+                return;
+            }
+
             var sourceValue = member.GetValue(source);
             if (sourceValue == null)
             {
                 member.SetValue(target, null);
+                return;
+            }
+
+            if (circularReferences.ContainsKey(sourceValue))
+            {
+                member.SetValue(target, circularReferences[sourceValue]);
                 return;
             }
 
@@ -107,17 +124,23 @@ namespace Lide.Core.Provider
                 member.SetValue(target, targetValue);
             }
 
-            CopyReferenceFields(sourceValue, targetValue);
+            circularReferences.Add(sourceValue, targetValue);
+            CopyReferenceFields(sourceValue, targetValue, circularReferences);
         }
 
         // ReSharper disable once MemberCanBeMadeStatic.Local for consistency
         private void CopyValueField(FieldInfo member, object source, object target)
         {
+            if (member.IsInitOnly && member.IsStatic)
+            {
+                return;
+            }
+
             var value = member.GetValue(source);
             member.SetValue(target, value);
         }
 
-        private void CopyArrayField(FieldInfo member, object source, object target)
+        private void CopyArrayField(FieldInfo member, object source, object target, Dictionary<object, object> circularReferences)
         {
             var elementType = member.FieldType.GetElementType();
             var isArrayValueType = IsValueType(elementType);
@@ -159,8 +182,22 @@ namespace Lide.Core.Provider
                         targetArray[index] = targetValue;
                     }
 
-                    CopyReferenceFields(sourceValue, targetValue);
+                    CopyReferenceFields(sourceValue, targetValue, circularReferences);
                 }
+            }
+        }
+
+        private class IdentityEqualityComparer<T> : IEqualityComparer<T>
+            where T : class
+        {
+            public int GetHashCode(T value)
+            {
+                return RuntimeHelpers.GetHashCode(value);
+            }
+
+            public bool Equals(T left, T right)
+            {
+                return ReferenceEquals(left, right);
             }
         }
     }

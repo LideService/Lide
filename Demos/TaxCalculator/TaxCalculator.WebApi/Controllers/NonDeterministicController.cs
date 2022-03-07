@@ -15,13 +15,21 @@ namespace TaxCalculator.WebApi.Controllers
         }
         
         [HttpPost]
+        [Route("nond/noisolation/withinnercall")]
+        public BadDesignData InvokeNoIsolationWithInnerCall(decimal initialValue)
+        {
+            var result = _nonDeterministic1.InitializeAndDoStuff_NoIsolationWithInnerCall(initialValue);
+            return result;
+        }
+
+        [HttpPost]
         [Route("nond/noisolation")]
         public BadDesignData InvokeNoIsolation(decimal initialValue)
         {
             var result = _nonDeterministic1.InitializeAndDoStuff_NoIsolation(initialValue);
             return result;
         }
-        
+
         [HttpPost]
         [Route("nond/withisolation")]
         public BadDesignData InvokeWithIsolation(decimal initialValue)

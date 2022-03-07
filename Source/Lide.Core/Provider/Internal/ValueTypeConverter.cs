@@ -19,16 +19,31 @@ namespace Lide.Core.Provider.Internal
         // ReSharper disable once MemberCanBeMadeStatic.Global for consistency
         public bool IsValueType(Type type)
         {
-            return (type.IsPrimitive && type.IsValueType) || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime);
+            return (type.IsPrimitive && type.IsValueType)
+                   || type == typeof(string)
+                   || type == typeof(decimal)
+                   || type == typeof(DateTime)
+                   || type == typeof(TimeSpan)
+                   || type.IsEnum;
         }
 
         public byte[] GetBytes(Type type, object data)
         {
+            if (type.IsEnum)
+            {
+                return _cachedGetBytes[typeof(int)](data);
+            }
+
             return _cachedGetBytes[type](data);
         }
 
         public object GetObject(Type type, byte[] data)
         {
+            if (type.IsEnum)
+            {
+                return _cachedGetObject[typeof(int)](data);
+            }
+
             return _cachedGetObject[type](data);
         }
 
@@ -38,6 +53,7 @@ namespace Lide.Core.Provider.Internal
             _cachedGetObject.Add(typeof(string), Encoding.UTF8.GetString);
             _cachedGetObject.Add(typeof(decimal), (data) => ToDecimal(data));
             _cachedGetObject.Add(typeof(DateTime), (data) => DateTime.FromBinary(BitConverter.ToInt64(data)));
+            _cachedGetObject.Add(typeof(TimeSpan), (data) => TimeSpan.FromTicks(BitConverter.ToInt64(data)));
 
             var convertors = typeof(BitConverter).GetMethods()
                 .Where(x => x.Name.StartsWith("To"))
@@ -61,6 +77,7 @@ namespace Lide.Core.Provider.Internal
             _cachedGetBytes.Add(typeof(string), (data) => data == null ? Array.Empty<byte>() : Encoding.UTF8.GetBytes((string)data));
             _cachedGetBytes.Add(typeof(decimal), (data) => GetBytes((decimal)data));
             _cachedGetBytes.Add(typeof(DateTime), (data) => BitConverter.GetBytes(((DateTime)data).ToBinary()));
+            _cachedGetBytes.Add(typeof(TimeSpan), (data) => BitConverter.GetBytes(((TimeSpan)data).Ticks));
 
             var convertors = typeof(BitConverter).GetMethods()
                 .Where(x => x.Name == nameof(BitConverter.GetBytes))

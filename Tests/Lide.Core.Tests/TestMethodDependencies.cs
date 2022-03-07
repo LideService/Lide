@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Lide.Core.Provider;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -15,6 +17,8 @@ namespace Lide.Core.Tests
             var methodInfo = typeof(Tester).GetMethods().FirstOrDefault(x => x.Name == "Method");
             var provider = new MethodDependencies();
             
+            
+            Console.WriteLine(OriginalIL.DumpMethod(methodInfo));
             var dependencies = provider.GetDependencies(methodInfo);
             Assert.AreEqual(3, dependencies.Count);
             CollectionAssert.Contains(dependencies, typeof(Console));
@@ -41,13 +45,15 @@ namespace Lide.Core.Tests
                 b("Something");
             }
         }
-
+        
         private class Tester
         {
             public void Method()
             {
-                var e = new Exception();
-                var c = Encoding.UTF8.GetBytes("Data");
+                Internal();
+                var e = new Exception("lqlqlq");
+                Console.WriteLine(e);
+                var c = Encoding.UTF8.GetBytes("ada");
                 Internal();
             }
 

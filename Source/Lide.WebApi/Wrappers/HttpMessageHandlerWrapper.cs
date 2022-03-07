@@ -3,7 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.ExceptionServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Lide.Core.Contract.Provider;
@@ -31,7 +33,9 @@ namespace Lide.WebApi.Wrappers
             _propagateContentHandler = propagateContentHandler;
             _binarySerializeProvider = binarySerializeProvider;
             _compressionProvider = compressionProvider;
-            var sendAsyncMethodInfo = typeof(HttpMessageHandler).GetMethods().First(x => x.Name == "SendAsync");
+            var sendAsyncMethodInfo = typeof(HttpMessageHandler)
+                .GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static)
+                .First(x => x.Name == "SendAsync");
 
             _sendAsyncInvoke = (request, cancellationToken) =>
             {
@@ -54,13 +58,15 @@ namespace Lide.WebApi.Wrappers
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            if (!_settingsProvider.IsAddressAllowed(request.RequestUri?.ToString() ?? string.Empty))
-            {
-                return await _sendAsyncInvoke(request, cancellationToken).ConfigureAwait(false);
-            }
+            ////if (!_settingsProvider.IsAddressAllowed(request.RequestUri?.ToString() ?? string.Empty))
+            ////{
+            ////    return await _sendAsyncInvoke(request, cancellationToken).ConfigureAwait(false);
+            ////}
 
             var requestId = Interlocked.Increment(ref _requestId);
             var requestContainer = new ConcurrentDictionary<string, byte[]>();
+            requestContainer[PropagateProperties.OriginalQuery] = Encoding.UTF8.GetBytes(request.RequestUri?.Query ?? string.Empty);
+            requestContainer[PropagateProperties.OriginalContent] = Array.Empty<byte>();
             var requestContent = (byte[])null;
             if (request.Content != null)
             {
@@ -87,7 +93,7 @@ namespace Lide.WebApi.Wrappers
                 var responseContainer = new ConcurrentDictionary<string, byte[]>(deserialized);
                 _propagateContentHandler.ParseDataFromOutgoingResponse(responseContainer, request.RequestUri?.AbsolutePath, requestId, null);
                 response.Content.Dispose();
-                response.Content = new ByteArrayContent(deserialized[PropagateProperties.OriginalContent]);
+                response.Content = new ByteArrayContent(responseContainer[PropagateProperties.OriginalContent]);
 
                 return response;
             }

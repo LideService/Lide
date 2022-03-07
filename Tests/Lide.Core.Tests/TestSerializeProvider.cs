@@ -111,7 +111,8 @@ namespace Lide.Core.Tests
                     {"Key3", new byte[] {240, 142, 1, 0, 13, 0}},
                 },
                 Field5 = DateTime.Now,
-                Inner = new Inner() { Field1 = "Value" }
+                Inner = new Inner() { Field1 = "Value" },
+                TestEnum = TestEnum.Value2,
             };
             
             var serialized = provider.Serialize(tester);
@@ -209,11 +210,19 @@ namespace Lide.Core.Tests
             public Dictionary<string, byte[]> Field4 { get; init; }
             public DateTime Field5 { get; init; }
             public Inner Inner { get; init; }
+            public TestEnum TestEnum { get; init; }
         }
 
         private class Inner
         {
             public string Field1 { get; init; }
+        }
+
+        private enum TestEnum
+        {
+            Value1 = 7,
+            Value2 = 13,
+            Value3 = 45,
         }
     }
 }
