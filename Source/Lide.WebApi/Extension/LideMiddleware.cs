@@ -57,21 +57,12 @@ namespace Lide.WebApi.Extension
             var originalResponseBody = httpContext.Response.Body;
             httpContext.Response.Body = memoryResponseBody;
 
-            var settings = wrapper.SettingsProvider.PropagateSettings;
-            var serialized = wrapper.BinarySerializeProvider.Serialize(settings);
-            void PropagateSettingsData(ConcurrentDictionary<string, byte[]> container, string path, long requestId, byte[] content)
-            {
-                container.TryAdd(PropagateProperties.PropagateSettings, serialized);
-            }
-
             try
             {
-                wrapper.PropagateContentHandler.PrepareOutgoingRequest += PropagateSettingsData;
                 await _next(httpContext).ConfigureAwait(false);
             }
             finally
             {
-                wrapper.PropagateContentHandler.PrepareOutgoingRequest -= PropagateSettingsData;
                 httpContext.RequestServices = originalServices;
             }
 

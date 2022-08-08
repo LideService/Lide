@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Lide.Core.Contract.Provider;
 using Lide.Core.Model.Settings;
+using Lide.Decorators;
 
 namespace Lide.WebApi.Wrappers
 {
@@ -58,10 +59,10 @@ namespace Lide.WebApi.Wrappers
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            ////if (!_settingsProvider.IsAddressAllowed(request.RequestUri?.ToString() ?? string.Empty))
-            ////{
-            ////    return await _sendAsyncInvoke(request, cancellationToken).ConfigureAwait(false);
-            ////}
+            if (!_settingsProvider.IsAddressAllowed(request.RequestUri?.ToString() ?? string.Empty))
+            {
+                return await _sendAsyncInvoke(request, cancellationToken).ConfigureAwait(false);
+            }
 
             var requestId = Interlocked.Increment(ref _requestId);
             var requestContainer = new ConcurrentDictionary<string, byte[]>();

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.ComponentModel.Design;
 using System.IO;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
@@ -14,44 +13,32 @@ namespace Lide.Decorators
     public sealed class SubstituteRecordDecorator : IObjectDecoratorReadonly, IDisposable
     {
         private readonly IBinarySerializeProvider _binarySerializeProvider;
-        private readonly IPropagateContentHandler _propagateContentHandler;
         private readonly ISignatureProvider _signatureProvider;
-        private readonly ISettingsProvider _settingsProvider;
         private readonly IStreamBatchProvider _streamBatchProvider;
         private readonly ITaskRunner _taskRunner;
         private readonly Stream _fileStream;
 
         public SubstituteRecordDecorator(
             IBinarySerializeProvider binarySerializeProvider,
-            IPropagateContentHandler propagateContentHandler,
             ISignatureProvider signatureProvider,
-            ISettingsProvider settingsProvider,
             IStreamBatchProvider streamBatchProvider,
             IPathFacade pathFacade,
             IFileFacade fileFacade,
             ITaskRunner taskRunner)
         {
             _binarySerializeProvider = binarySerializeProvider;
-            _propagateContentHandler = propagateContentHandler;
             _signatureProvider = signatureProvider;
-            _settingsProvider = settingsProvider;
             _streamBatchProvider = streamBatchProvider;
             _taskRunner = taskRunner;
 
             var filePath = pathFacade.Combine(pathFacade.GetTempPath(), fileFacade.GetFileName(Id));
             _fileStream = fileFacade.OpenFile(filePath);
-            _propagateContentHandler.ParseOwnRequest += ParseOwnRequest;
-            _propagateContentHandler.ParseOutgoingResponse += ParseOutgoingResponse;
-            _propagateContentHandler.PrepareOwnResponse += PrepareOwnResponse;
         }
 
         public string Id => "Lide.Substitute.Record";
 
         public void Dispose()
         {
-            _propagateContentHandler.ParseOwnRequest -= ParseOwnRequest;
-            _propagateContentHandler.ParseOutgoingResponse -= ParseOutgoingResponse;
-            _propagateContentHandler.PrepareOwnResponse -= PrepareOwnResponse;
             _fileStream?.Close();
             _fileStream?.Dispose();
         }
@@ -93,13 +80,8 @@ namespace Lide.Decorators
             _taskRunner.AddToQueue(() => _streamBatchProvider.WriteNextBatch(_fileStream, serialized));
         }
 
-        private void ParseOwnRequest(ConcurrentDictionary<string, byte[]> content)
+        public void ParseOwnRequest(ConcurrentDictionary<string, byte[]> content)
         {
-            if (!_settingsProvider.IsDecoratorIncluded(Id))
-            {
-                return;
-            }
-
             content.TryGetValue(PropagateProperties.OriginalContent, out var requestContent);
             content.TryGetValue(PropagateProperties.OriginalQuery, out var queryContent);
             var request = new SubstituteOwnContent
@@ -112,13 +94,8 @@ namespace Lide.Decorators
             _taskRunner.AddToQueue(() => _streamBatchProvider.WriteNextBatch(_fileStream, serialized));
         }
 
-        private void ParseOutgoingResponse(ConcurrentDictionary<string, byte[]> content, string path, long requestId, Exception exception)
+        public void ParseOutgoingResponse(ConcurrentDictionary<string, byte[]> content, string path, long requestId, Exception exception)
         {
-            if (!_settingsProvider.IsDecoratorIncluded(Id))
-            {
-                return;
-            }
-
             content.TryGetValue(PropagateProperties.SubstituteContent, out var childContent);
             var child = new SubstituteOutgoingResponse()
             {
@@ -132,13 +109,8 @@ namespace Lide.Decorators
             _taskRunner.AddToQueue(() => _streamBatchProvider.WriteNextBatch(_fileStream, serialized));
         }
 
-        private void PrepareOwnResponse(ConcurrentDictionary<string, byte[]> container)
+        public void PrepareOwnResponse(ConcurrentDictionary<string, byte[]> container)
         {
-            if (!_settingsProvider.IsDecoratorIncluded(Id))
-            {
-                return;
-            }
-
             container.TryGetValue(PropagateProperties.OriginalContent, out var responseContent);
             var response = new SubstituteOwnContent
             {

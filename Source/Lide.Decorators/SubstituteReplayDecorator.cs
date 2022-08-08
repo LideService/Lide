@@ -9,42 +9,27 @@ using Lide.TracingProxy.Model;
 
 namespace Lide.Decorators
 {
-    public sealed class SubstituteReplayDecorator : IObjectDecoratorVolatile, IDisposable
+    public sealed class SubstituteReplayDecorator : IObjectDecoratorVolatile
     {
-        private readonly ISettingsProvider _settingsProvider;
         private readonly IBinarySerializeProvider _binarySerializeProvider;
-        private readonly IPropagateContentHandler _propagateContentHandler;
         private readonly ISignatureProvider _signatureProvider;
         private readonly IActivatorProvider _activatorProvider;
         private readonly SubstituteParser _substituteParser;
         private readonly ConcurrentDictionary<long, long> _callIds = new ();
 
         public SubstituteReplayDecorator(
-            ISettingsProvider settingsProvider,
             IBinarySerializeProvider binarySerializeProvider,
-            IPropagateContentHandler propagateContentHandler,
             IStreamBatchProvider streamBatchProvider,
             ISignatureProvider signatureProvider,
             IActivatorProvider activatorProvider)
         {
-            _settingsProvider = settingsProvider;
             _binarySerializeProvider = binarySerializeProvider;
-            _propagateContentHandler = propagateContentHandler;
             _signatureProvider = signatureProvider;
             _activatorProvider = activatorProvider;
             _substituteParser = new SubstituteParser(binarySerializeProvider, streamBatchProvider);
-
-            _propagateContentHandler.ParseOwnRequest += ParseOwnRequest;
-            _propagateContentHandler.PrepareOutgoingRequest += PrepareOutgoingRequest;
         }
 
         public string Id => "Lide.Substitute.Replay";
-
-        public void Dispose()
-        {
-            _propagateContentHandler.ParseOwnRequest -= ParseOwnRequest;
-            _propagateContentHandler.PrepareOutgoingRequest -= PrepareOutgoingRequest;
-        }
 
         public void ExecuteBeforeInvoke(MethodMetadataVolatile methodMetadata)
         {
@@ -91,13 +76,8 @@ namespace Lide.Decorators
             }
         }
 
-        private void ParseOwnRequest(ConcurrentDictionary<string, byte[]> content)
+        public void ParseOwnRequest(ConcurrentDictionary<string, byte[]> content)
         {
-            if (!_settingsProvider.IsDecoratorIncluded(Id))
-            {
-                return;
-            }
-
             content.TryGetValue(PropagateProperties.SubstituteContent, out var requestContent);
             var contentStream = new MemoryStream(requestContent);
             _substituteParser.LoadAll(contentStream);
@@ -106,13 +86,8 @@ namespace Lide.Decorators
             content[PropagateProperties.OriginalQuery] = _substituteParser.SubstituteOwnRequest.Query;
         }
 
-        private void PrepareOutgoingRequest(ConcurrentDictionary<string, byte[]> container, string path, long requestId, byte[] content)
+        public void PrepareOutgoingRequest(ConcurrentDictionary<string, byte[]> container, string path, long requestId, byte[] content)
         {
-            if (!_settingsProvider.IsDecoratorIncluded(Id))
-            {
-                return;
-            }
-
             var innerContent = _substituteParser.GetOutgoingResponse(path);
             if (innerContent == null)
             {

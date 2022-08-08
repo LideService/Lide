@@ -27,9 +27,7 @@ namespace Lide.Decorators.Tests
             settingsProvider.Setup(x => x.IsDecoratorIncluded(It.IsAny<string>())).Returns(true);
             var decorator = new SubstituteRecordDecorator(
                 binarySerializer,
-                new PropagateContentHandler(),
                 signatureProvider,
-                settingsProvider.Object,
                 new StreamBatchProvider(),
                 new PathFacade(),
                 fileStub,

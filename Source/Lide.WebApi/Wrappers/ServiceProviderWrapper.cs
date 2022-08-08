@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
+using Lide.Decorators;
 using Lide.TracingProxy;
 using Lide.TracingProxy.Contract;
 using Microsoft.Extensions.DependencyInjection;
