@@ -1,4 +1,3 @@
-using Lide.UseMessagePack;
 using Lide.WebApi.Extension;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -29,7 +28,6 @@ namespace TaxCalculator.WebApi
                 c.OperationFilter<EnableSwaggerHeaders>();
             });
             services.AddLideCore(Configuration);
-            services.AddMessagePack();
             services.AddSingleton<ICalculator, Calculator>();
             services.AddSingleton<ITaxLevelsState, TaxLevelsState>();
             services.AddScoped<INonDeterministic1, NonDeterministic1>();

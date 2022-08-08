@@ -60,7 +60,7 @@ namespace Lide.Core.Tests
             
             var dependentTypes = dependencies.Select(x => x.DeclaringType).Distinct().ToList();
             Assert.IsTrue(anyIsRuntimeGenerated);
-            Assert.AreEqual(5, dependencies.Count);
+            Assert.AreEqual(7, dependencies.Count);
             CollectionAssert.Contains(dependentTypes, typeof(ITesterDependency));
             CollectionAssert.Contains(dependentTypes, typeof(TesterWithDecoratedDependency));
             CollectionAssert.Contains(dependentTypes, typeof(DateTime));

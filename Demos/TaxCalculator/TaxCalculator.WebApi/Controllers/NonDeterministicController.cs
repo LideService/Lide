@@ -13,7 +13,7 @@ namespace TaxCalculator.WebApi.Controllers
         {
             _nonDeterministic1 = nonDeterministic1;
         }
-        
+
         [HttpPost]
         [Route("nond/noisolation/withinnercall")]
         public BadDesignData InvokeNoIsolationWithInnerCall(decimal initialValue)
