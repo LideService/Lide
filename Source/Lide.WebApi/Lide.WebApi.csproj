@@ -19,22 +19,14 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="5.6.3" />
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="5.6.3"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference PrivateAssets="all" Include="..\Lide.Core\Lide.Core.csproj">
-            <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-            <IncludeAssets>Lide.Core.dll</IncludeAssets>
-        </ProjectReference>
-        <ProjectReference Include="..\Lide.Decorators\Lide.Decorators.csproj">
-            <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-            <IncludeAssets>Lide.Decorators.dll</IncludeAssets>
-        </ProjectReference>
-            <ProjectReference Include="..\Lide.TracingProxy\Lide.TracingProxy.csproj">
-            <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
-            <IncludeAssets>Lide.TracingProxy.dll</IncludeAssets>
-        </ProjectReference>
+        <ProjectReference Include="..\Lide.Core\Lide.Core.csproj"/>
+        <ProjectReference Include="..\Lide.Decorators\Lide.Decorators.csproj"/>
+        <ProjectReference Include="..\Lide.TracingProxy\Lide.TracingProxy.csproj"/>
     </ItemGroup>
+
 
 </Project>
