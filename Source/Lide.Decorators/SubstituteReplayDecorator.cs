@@ -15,6 +15,7 @@ namespace Lide.Decorators
         private readonly IBinarySerializeProvider _binarySerializeProvider;
         private readonly IPropagateContentHandler _propagateContentHandler;
         private readonly ISignatureProvider _signatureProvider;
+        private readonly IActivatorProvider _activatorProvider;
         private readonly SubstituteParser _substituteParser;
         private readonly ConcurrentDictionary<long, long> _callIds = new ();
 
@@ -23,12 +24,14 @@ namespace Lide.Decorators
             IBinarySerializeProvider binarySerializeProvider,
             IPropagateContentHandler propagateContentHandler,
             IStreamBatchProvider streamBatchProvider,
-            ISignatureProvider signatureProvider)
+            ISignatureProvider signatureProvider,
+            IActivatorProvider activatorProvider)
         {
             _settingsProvider = settingsProvider;
             _binarySerializeProvider = binarySerializeProvider;
             _propagateContentHandler = propagateContentHandler;
             _signatureProvider = signatureProvider;
+            _activatorProvider = activatorProvider;
             _substituteParser = new SubstituteParser(binarySerializeProvider, streamBatchProvider);
 
             _propagateContentHandler.ParseOwnRequest += ParseOwnRequest;
@@ -55,6 +58,11 @@ namespace Lide.Decorators
             _callIds[methodMetadata.CallId] = before.CallId;
             var parameters = (object[])_binarySerializeProvider.Deserialize(before.InputParameters);
             methodMetadata.ParametersMetadataVolatile.SetParameters(parameters);
+            if (methodMetadata.IsSingleton)
+            {
+                var deserializedObject = _binarySerializeProvider.Deserialize(before.SerializedObject);
+                _activatorProvider.DeepCopyIntoExistingObject(deserializedObject, methodMetadata.PlainObject);
+            }
         }
 
         public void ExecuteAfterResult(MethodMetadataVolatile methodMetadata)
@@ -74,6 +82,12 @@ namespace Lide.Decorators
             else
             {
                 methodMetadata.ReturnMetadataVolatile.SetResult(result);
+            }
+
+            if (methodMetadata.IsSingleton)
+            {
+                var deserializedObject = _binarySerializeProvider.Deserialize(after.SerializedObject);
+                _activatorProvider.DeepCopyIntoExistingObject(deserializedObject, methodMetadata.PlainObject);
             }
         }
 

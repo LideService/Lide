@@ -8,6 +8,7 @@ using Lide.Core.Facade;
 using Lide.Core.Model;
 using Lide.Core.Provider;
 using Lide.TracingProxy;
+using Lide.UseMessagePack;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 
@@ -21,7 +22,7 @@ namespace Lide.Decorators.Tests
         {
             var fileStub = new FileFacadeStub();
             var signatureProvider = new SignatureProvider();
-            var binarySerializer = new BinarySerializeProvider();
+            var binarySerializer = new MessagePackAsBinarySerializer();
             var settingsProvider = new Mock<ISettingsProvider>();
             settingsProvider.Setup(x => x.IsDecoratorIncluded(It.IsAny<string>())).Returns(true);
             var decorator = new SubstituteRecordDecorator(
@@ -48,7 +49,7 @@ namespace Lide.Decorators.Tests
 
             var result = level1Decorated.Method1("Something to test with", 24);
             var stream = fileStub.OpenFile("");
-            var loader = new SubstituteParser(new BinarySerializeProvider(), new StreamBatchProvider());
+            var loader = new SubstituteParser(new MessagePackAsBinarySerializer(), new StreamBatchProvider());
             var signature1 = signatureProvider.GetMethodSignature(typeof(ILevel1).GetMethods().First(x => x.Name == "Method1"), SignatureOptions.AllSet);
             var signature2 = signatureProvider.GetMethodSignature(typeof(ILevel2).GetMethods().First(x => x.Name == "Method2"), SignatureOptions.AllSet);
             var signature3 = signatureProvider.GetMethodSignature(typeof(ILevel2).GetMethods().First(x => x.Name == "Method3"), SignatureOptions.AllSet);

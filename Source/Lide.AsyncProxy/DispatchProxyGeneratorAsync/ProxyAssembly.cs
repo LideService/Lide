@@ -32,8 +32,9 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
 
         public ProxyBuilder CreateProxy(string name, Type proxyBaseType)
         {
-            int nextId = Interlocked.Increment(ref _typeId);
-            TypeBuilder tb = _moduleBuilder.DefineType(name + "_" + nextId, TypeAttributes.Public, proxyBaseType);
+            var nextId = Interlocked.Increment(ref _typeId);
+            var fullTypeName = _moduleBuilder.GetTypes().Any(x => x.FullName == name) ? name + "_" + nextId : name;
+            var tb = _moduleBuilder.DefineType(fullTypeName, TypeAttributes.Public, proxyBaseType);
             return new ProxyBuilder(this, tb, proxyBaseType);
         }
 

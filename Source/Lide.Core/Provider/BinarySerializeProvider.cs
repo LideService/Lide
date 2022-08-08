@@ -1,30 +1,31 @@
+using System.IO;
+using Lide.BinarySerialization.Framework;
 using Lide.Core.Contract.Provider;
-using Lide.Core.Provider.Internal;
 
 namespace Lide.Core.Provider
 {
     public class BinarySerializeProvider : IBinarySerializeProvider
     {
-        private readonly ObjectConverter _typeConverter;
-
-        public BinarySerializeProvider()
-        {
-            _typeConverter = new ObjectConverter();
-        }
-
         public byte[] Serialize(object data)
         {
-            return _typeConverter.Serialize(data);
+            var formatter = new BinaryFormatter();
+            using var ms = new MemoryStream();
+            formatter.Serialize(ms, data);
+            return ms.ToArray();
         }
 
         public object Deserialize(byte[] data)
         {
-            return _typeConverter.Deserialize(data);
+            var formatter = new BinaryFormatter();
+            using var ms = new MemoryStream(data);
+            return formatter.Deserialize(ms);
         }
 
         public T Deserialize<T>(byte[] data)
         {
-            return (T)_typeConverter.Deserialize(data);
+            var formatter = new BinaryFormatter();
+            using var ms = new MemoryStream(data);
+            return (T)formatter.Deserialize(ms);
         }
     }
 }

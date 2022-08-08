@@ -15,7 +15,7 @@ namespace Lide.Core.Provider
             await stream.FlushAsync().ConfigureAwait(false);
         }
 
-        public async Task<BinaryBatchData> ReadNextBatch(Stream stream, int startPosition)
+        public async Task<BinaryBatchData> NextBatch(Stream stream, int startPosition)
         {
             stream.Seek(startPosition, SeekOrigin.Begin);
             var buffer = new byte[sizeof(int)];

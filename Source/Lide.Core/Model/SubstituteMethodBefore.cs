@@ -5,5 +5,6 @@ namespace Lide.Core.Model
         public long CallId { get; init; }
         public string MethodSignature { get; init; }
         public byte[] InputParameters { get; init; }
+        public byte[] SerializedObject { get; init; }
     }
 }

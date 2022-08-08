@@ -81,7 +81,7 @@ namespace Lide.Decorators
 
         private int LoadNext(Stream content, int lastPosition)
         {
-            var binaryBatch = _streamBatchProvider.ReadNextBatch(content, lastPosition).Result;
+            var binaryBatch = _streamBatchProvider.NextBatch(content, lastPosition).Result;
             lastPosition = binaryBatch.EndPosition;
             if (lastPosition == -1)
             {

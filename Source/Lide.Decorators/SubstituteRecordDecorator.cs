@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.ComponentModel.Design;
 using System.IO;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Provider;
@@ -64,6 +65,9 @@ namespace Lide.Decorators
                 CallId = methodMetadata.CallId,
                 MethodSignature = methodSignature,
                 InputParameters = inputParameters,
+                SerializedObject = methodMetadata.IsSingleton
+                    ? _binarySerializeProvider.Serialize(methodMetadata.PlainObject)
+                    : Array.Empty<byte>(),
             };
 
             var serialized = _binarySerializeProvider.Serialize(before);
@@ -80,6 +84,9 @@ namespace Lide.Decorators
                 IsException = methodMetadata.ReturnMetadata.GetOriginalException() != null,
                 OutputData = _binarySerializeProvider.Serialize(result),
                 InputParameters = inputParameters,
+                SerializedObject = methodMetadata.IsSingleton
+                    ? _binarySerializeProvider.Serialize(methodMetadata.PlainObject)
+                    : Array.Empty<byte>(),
             };
 
             var serialized = _binarySerializeProvider.Serialize(after);

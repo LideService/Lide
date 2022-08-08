@@ -14,7 +14,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\Source\Lide.AsyncProxy\Lide.AsyncProxy.csproj" />
       <ProjectReference Include="..\..\Source\Lide.Core\Lide.Core.csproj" />
+      <ProjectReference Include="..\..\Source\Lide.UseMessagePack\Lide.UseMessagePack.csproj" />
     </ItemGroup>
 
 </Project>

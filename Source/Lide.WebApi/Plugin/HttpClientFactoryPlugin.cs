@@ -3,6 +3,7 @@ using System.Net.Http;
 using Lide.Core.Contract.Plugin;
 using Lide.WebApi.Contract;
 using Lide.WebApi.Wrappers;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Lide.WebApi.Plugin
 {

@@ -26,7 +26,7 @@ namespace Lide.Core.Tests
         public void That_DeepCopyIntoExistingObjectCopiesAllFields()
         {
             var provider = new ActivatorProvider();
-            var array = new[] { 1, 6, 7, 8, 2 };
+            var array = new[] { 1, 6, 7, 8, 2, 0, 8 };
             var source = Tester.GetInstance(Inner.GetInstance("Test1"), "Test2", 13, array);
             var target = Tester.GetInstance(null, null, 0, Array.Empty<int>());
 
@@ -35,7 +35,7 @@ namespace Lide.Core.Tests
             Assert.IsNotNull(target.Inner);
             Assert.AreEqual("Test2", target.Data1);
             Assert.AreEqual(13, target.Data2);
-            Assert.AreEqual(5, target.Data3.Length);
+            Assert.AreEqual(7, target.Data3.Length);
             CollectionAssert.AreEqual(array, target.Data3);
             Assert.AreEqual("Test1", target.Inner.Data);
             Assert.IsFalse(ReferenceEquals(source.Inner, target.Inner));

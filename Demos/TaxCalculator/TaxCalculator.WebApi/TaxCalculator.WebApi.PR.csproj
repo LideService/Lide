@@ -25,6 +25,7 @@
       <ProjectReference Include="..\..\..\Source\Lide.Core\Lide.Core.csproj" />
       <ProjectReference Include="..\..\..\Source\Lide.Decorators\Lide.Decorators.csproj" />
       <ProjectReference Include="..\..\..\Source\Lide.TracingProxy\Lide.TracingProxy.csproj" />
+      <ProjectReference Include="..\..\..\Source\Lide.UseMessagePack\Lide.UseMessagePack.csproj" />
       <ProjectReference Include="..\..\..\Source\Lide.WebApi\Lide.WebApi.csproj" />
       <ProjectReference Include="..\TaxCalculator.Services\TaxCalculator.Services.csproj" />
     </ItemGroup>

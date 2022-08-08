@@ -107,7 +107,7 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
                 throw new ArgumentException($"ProxyType must have default ctor {proxyType.FullName}", nameof(proxyType));
             }
 
-            var proxyBuilder = ProxyAssembly.CreateProxy("generatedProxy", proxyType);
+            var proxyBuilder = ProxyAssembly.CreateProxy($"Lide.RuntimeGeneratedTypes.{proxyType.Name}.{interfaceType.Name}", proxyType);
             foreach (var implementedInterfacesTypes in interfaceType.GetTypeInfo().ImplementedInterfaces)
             {
                 proxyBuilder.AddInterfaceImplementation(implementedInterfacesTypes);

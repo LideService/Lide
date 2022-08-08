@@ -1,4 +1,7 @@
+using System;
+using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using Lide.Core.Contract.Facade;
 using Lide.Core.Contract.Plugin;
 using Lide.Core.Contract.Provider;
@@ -30,7 +33,6 @@ namespace Lide.WebApi.Extension
 
             // Provider
             serviceCollection.AddSingleton<IActivatorProvider, ActivatorProvider>();
-            serviceCollection.AddSingleton<IBinarySerializeProvider, BinarySerializeProvider>();
             serviceCollection.AddSingleton<ICompressionProvider, CompressionProvider>();
             serviceCollection.AddSingleton<IJsonSerializeProvider, JsonSerializeProvider>();
             serviceCollection.AddSingleton<ISettingsProvider, SettingsProvider>();
@@ -55,6 +57,19 @@ namespace Lide.WebApi.Extension
             serviceCollection.AddScoped<IServiceProviderPlugin, HttpClientPlugin>();
 
             serviceCollection.Configure<AppSettings>(configuration.GetSection("LideSettings"));
+        }
+
+        public static void ReplaceImplementation<TIType, TType>(this IServiceCollection serviceCollection)
+            where TType : class, TIType
+            where TIType : class
+        {
+            var binarySerializer = serviceCollection.FirstOrDefault(x => x.ServiceType == typeof(TIType));
+            if (binarySerializer != null)
+            {
+                serviceCollection.Remove(binarySerializer);
+            }
+
+            serviceCollection.AddSingleton<TIType, TType>();
         }
     }
 }
