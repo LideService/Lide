@@ -7,6 +7,7 @@ using Lide.Core.Model;
 using Lide.Core.Model.Settings;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Endpoint = Lide.WebApi.Endpoint;
 
 namespace Lide.WebApi.Controllers
 {
@@ -27,7 +28,7 @@ namespace Lide.WebApi.Controllers
         }
 
         [HttpPost]
-        [Route("lide/replay")]
+        [Route(Endpoint.LideReplayEndpoint)]
         public async Task ReplayLide(IFormFile formFile)
         {
             #pragma warning disable CA2007

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Lide.AsyncProxy;
@@ -18,6 +19,8 @@ namespace Lide.TracingProxy.DecoratedProxy
         private bool _isSingleton;
         private Action<string> _logError;
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         public override object Invoke(MethodInfo methodInfo, object[] originalParameters)
         {
             var executeBeforeMetadata = ExecuteBefore(methodInfo, originalParameters);
@@ -26,6 +29,8 @@ namespace Lide.TracingProxy.DecoratedProxy
             return result;
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         public override Task InvokeAsync(MethodInfo methodInfo, object[] originalParameters)
         {
             var executeBeforeMetadata = ExecuteBefore(methodInfo, originalParameters);
@@ -34,6 +39,8 @@ namespace Lide.TracingProxy.DecoratedProxy
             return result;
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         public override Task<TReturnType> InvokeAsyncT<TReturnType>(MethodInfo methodInfo, object[] originalParameters)
         {
             var executeBeforeMetadata = ExecuteBefore(methodInfo, originalParameters);

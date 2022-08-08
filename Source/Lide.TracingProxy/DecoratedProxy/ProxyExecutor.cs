@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
@@ -15,6 +16,8 @@ namespace Lide.TracingProxy.DecoratedProxy
     public partial class ProxyDecorator<TInterface>
         where TInterface : class
     {
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         private MethodMetadataVolatile ExecuteBefore(MethodInfo methodInfo, object[] originalParameters)
         {
             var callId = Interlocked.Increment(ref CallCounter.CallId);
@@ -31,6 +34,8 @@ namespace Lide.TracingProxy.DecoratedProxy
             return metadataVolatile;
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         private MethodMetadataVolatile ExecuteMethodInfo(MethodMetadataVolatile executeBeforeMetadata)
         {
             ShouldThrow(executeBeforeMetadata);
@@ -62,6 +67,8 @@ namespace Lide.TracingProxy.DecoratedProxy
             }
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         private object ExecuteAfter(MethodMetadataVolatile invokeMetadata)
         {
             ExecuteDecorators<IObjectDecoratorVolatile, MethodMetadataVolatile>(_volatileDecorators, decorator => decorator.ExecuteAfterResult(invokeMetadata));
@@ -80,6 +87,8 @@ namespace Lide.TracingProxy.DecoratedProxy
                 : invokeMetadata.ReturnMetadataVolatile.GetOriginalResult();
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         private Task ExecuteAfterAsync(MethodMetadataVolatile invokeMetadata)
         {
             var resultAsTask = invokeMetadata.ReturnMetadataVolatile.GetEditedResult() as Task;
@@ -101,6 +110,8 @@ namespace Lide.TracingProxy.DecoratedProxy
             return returnTask;
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         private Task<TReturnType> ExecuteAfterAsyncT<TReturnType>(MethodMetadataVolatile invokeMetadata)
         {
             var resultAsTask = invokeMetadata.ReturnMetadataVolatile.GetEditedResult() as Task<TReturnType>;
@@ -123,6 +134,8 @@ namespace Lide.TracingProxy.DecoratedProxy
             return returnTask;
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         private void RepopulateOriginalParameters(MethodMetadataVolatile invokeMetadata)
         {
             if (!invokeMetadata.ParametersMetadataVolatile.AreParametersEdited())
@@ -139,6 +152,8 @@ namespace Lide.TracingProxy.DecoratedProxy
             }
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         private static void ShouldThrow(MethodMetadataVolatile metadataVolatile)
         {
             var editedException = metadataVolatile.ReturnMetadataVolatile.GetEditedException();
@@ -150,6 +165,8 @@ namespace Lide.TracingProxy.DecoratedProxy
             }
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         private void ExecuteDecorators<TDecorator, TData>(List<TDecorator> decorators, Action<TDecorator> execute)
             where TDecorator : IObjectDecorator
         {

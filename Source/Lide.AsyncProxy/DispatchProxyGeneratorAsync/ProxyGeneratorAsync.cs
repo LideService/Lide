@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
@@ -21,6 +22,8 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             return Activator.CreateInstance(proxiedType, new DispatchProxyHandlerAsync());
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         public static object Invoke(object[] args)
         {
             try
@@ -35,6 +38,8 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             }
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         public static Task InvokeAsync(object[] args)
         {
             try
@@ -49,6 +54,8 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync
             }
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         public static Task<T> InvokeAsync<T>(object[] args)
         {
             try

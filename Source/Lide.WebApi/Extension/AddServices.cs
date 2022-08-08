@@ -33,6 +33,7 @@ namespace Lide.WebApi.Extension
 
             // Provider
             serviceCollection.AddSingleton<IActivatorProvider, ActivatorProvider>();
+            serviceCollection.AddSingleton<IBinarySerializeProvider, BinarySerializeProvider>();
             serviceCollection.AddSingleton<ICompressionProvider, CompressionProvider>();
             serviceCollection.AddSingleton<IJsonSerializeProvider, JsonSerializeProvider>();
             serviceCollection.AddSingleton<ISettingsProvider, SettingsProvider>();

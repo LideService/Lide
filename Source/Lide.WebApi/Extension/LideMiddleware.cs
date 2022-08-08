@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -28,6 +29,8 @@ namespace Lide.WebApi.Extension
             _appSettings = settings?.Value ?? new AppSettings();
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         public async Task Invoke(HttpContext httpContext)
         {
             var enabled =
@@ -43,6 +46,8 @@ namespace Lide.WebApi.Extension
             await _next(httpContext).ConfigureAwait(false);
         }
 
+        [DebuggerStepThrough]
+        [DebuggerHidden]
         private async Task ExecuteLide(HttpContext httpContext)
         {
             var originalServices = httpContext.RequestServices;

@@ -1,3 +1,5 @@
+using Lide.Core.Contract.Provider;
+using Lide.Core.Provider;
 using Lide.WebApi.Extension;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -30,6 +32,7 @@ namespace TaxCalculator.WebApi
             services.AddLideCore(Configuration);
             services.AddSingleton<ICalculator, Calculator>();
             services.AddSingleton<ITaxLevelsState, TaxLevelsState>();
+            services.AddSingleton<IBinarySerializeProvider, BinarySerializeProvider>();
             services.AddScoped<INonDeterministic1, NonDeterministic1>();
             services.AddScoped<INonDeterministic2, NonDeterministic2>();
             services.AddScoped<IDateTimeFacade, DateTimeFacade>();
