@@ -35,7 +35,7 @@ namespace Lide.Core.Tests
             
             var dependencies = provider.GetDependencies(methodInfo).Where(x => x != null).ToList();
             Assert.AreEqual(3, dependencies.Count);
-            CollectionAssert.Contains(dependencies, typeof(System.Action<object>));
+            CollectionAssert.Contains(dependencies, typeof(Action<object>));
             CollectionAssert.Contains(dependencies, typeof(File));
         }
         
@@ -96,11 +96,16 @@ namespace Lide.Core.Tests
         private interface ITesterDependency
         {
             void Do();
+            void Do2();
         }
 
         private class TesterDependency : ITesterDependency
         {
             public void Do()
+            {
+                Console.Write("Do");
+            }
+            public void Do2()
             {
                 Console.Write("Do");
             }
@@ -121,6 +126,7 @@ namespace Lide.Core.Tests
             {
                 var date = DateTime.Now;
                 _testerDependency2.Do(); 
+                _testerDependency.Do2(); 
                 Console.Write(date);
             }
         }

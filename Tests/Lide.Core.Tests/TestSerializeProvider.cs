@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using Lide.Core.Model;
 using Lide.Core.Provider;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -23,6 +25,21 @@ namespace Lide.Core.Tests
             var deserialized = provider.Deserialize<LideResponse>(serialized);
             Assert.AreEqual(data.Path, deserialized.Path);
             CollectionAssert.AreEqual(data.ContentData, deserialized.ContentData);
+        }
+        
+        [TestMethod]
+        public void That_MemoryStream_Serialization_Works()
+        {
+            var provider = new BinarySerializeProvider();
+            var value = "Something to test with";
+            var data = new MemStream
+            {
+                MS = new MemoryStream(Encoding.UTF8.GetBytes(value))
+            };
+            
+            var serialized = provider.Serialize(data);
+            var deserialized = provider.Deserialize<MemStream>(serialized);
+            Assert.AreEqual(value, Encoding.UTF8.GetString(deserialized.MS.ToArray()));
         }
         
         [TestMethod]
@@ -155,6 +172,11 @@ namespace Lide.Core.Tests
         private class Inner
         {
             public string Field1 { get; init; }
+        }
+
+        private class MemStream
+        {
+            public MemoryStream MS { get; set; }
         }
 
         public enum TestEnum

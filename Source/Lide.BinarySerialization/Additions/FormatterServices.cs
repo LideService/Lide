@@ -60,11 +60,6 @@ namespace Lide.BinarySerialization.Additions
                     for (int i = 0; i < parentTypeCount; i++)
                     {
                         parentType = parentTypes![i];
-                        if (!parentType.IsSerializable)
-                        {
-                            throw new SerializationException(SR.Format(SR.Serialization_NonSerType, parentType.FullName, parentType.Module.Assembly.FullName));
-                        }
-
                         FieldInfo[] typeFields = parentType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
                         string typeName = classNamesUnique ? parentType.Name : parentType.FullName!;
                         foreach (FieldInfo field in typeFields)

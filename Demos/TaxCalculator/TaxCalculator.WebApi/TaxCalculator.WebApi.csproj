@@ -11,21 +11,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
         <PackageReference Include="Lide.AsyncProxy" Version="1.0.0.6" />
         <PackageReference Include="Lide.Decorators" Version="1.0.0.6" />
         <PackageReference Include="Lide.TracingProxy" Version="1.0.0.6" />
+        <PackageReference Include="Lide.Core" Version="1.0.0.6" />
+        <PackageReference Include="Lide.WebApi" Version="1.0.0.6" />
         <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
-    
-    <ItemGroup>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
-        <PackageReference Include="Lide.Core" Version="1.0.0.6" />
-        <PackageReference Include="Lide.WebApi" Version="1.0.0.6" />
-    </ItemGroup>
-    
+        
     <ItemGroup>
       <ProjectReference Include="..\TaxCalculator.Services\TaxCalculator.Services.csproj" />
     </ItemGroup>

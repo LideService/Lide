@@ -7,7 +7,6 @@ namespace Lide.Core.Model.Settings
         public bool OverrideInclusionPattern { get; set; }
         public bool OverrideDecoratorsWithPattern { get; set; }
         public bool OverrideAddressesPattern { get; set; }
-        public bool DeterministicTypesOnly { get; set; }
 
         public string VolatileKey { get; set; } = string.Empty;
         public string EnabledKey { get; set; } = string.Empty;
