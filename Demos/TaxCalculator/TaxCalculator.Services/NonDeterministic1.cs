@@ -39,7 +39,7 @@ namespace TaxCalculator.Services
             };
 
             _nonDeterministic2.Volatile_TreatInputAsNonMutable_NoIsolation(data);
-            var result = _httpClient.PostAsync("https://localhost:5001/nond/withisolation?initialValue=132", new StringContent("")).Result;
+            var result = _httpClient.PostAsync("https://localhost:5001/nond/withisolation?initialValue=133", new StringContent("")).Result;
             var resultContent = result.Content.ReadAsStringAsync().Result;
             var resultObject = JsonSerializer.Deserialize<BadDesignData>(resultContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             data.Field1 += resultObject.Field1;

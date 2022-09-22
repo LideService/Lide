@@ -59,14 +59,24 @@ namespace Lide.Decorators
                 return;
             }
 
-            var result = _binarySerializeProvider.Deserialize(after.OutputData);
-            if (after.IsException)
+            var parameters = (object[])_binarySerializeProvider.Deserialize(after.InputParameters);
+            methodMetadata.ParametersMetadataVolatile.SetParameters(parameters);
+
+            if (after.OutputData.Length > 0)
             {
-                methodMetadata.ReturnMetadataVolatile.SetException((Exception)result);
+                var result = _binarySerializeProvider.Deserialize(after.OutputData);
+                if (after.IsException)
+                {
+                    methodMetadata.ReturnMetadataVolatile.SetException((Exception)result);
+                }
+                else
+                {
+                    methodMetadata.ReturnMetadataVolatile.SetResult(result);
+                }
             }
             else
             {
-                methodMetadata.ReturnMetadataVolatile.SetResult(result);
+                methodMetadata.ReturnMetadataVolatile.SetResult(null);
             }
 
             if (methodMetadata.IsSingleton)

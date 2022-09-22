@@ -29,7 +29,9 @@ namespace TaxCalculator.WebApi
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "TaxCalculator.WebApi", Version = "v1" });
                 c.OperationFilter<EnableSwaggerHeaders>();
             });
+            
             services.AddLideCore(Configuration);
+            
             services.AddSingleton<ICalculator, Calculator>();
             services.AddSingleton<ITaxLevelsState, TaxLevelsState>();
             services.AddSingleton<IBinarySerializeProvider, BinarySerializeProvider>();
@@ -50,7 +52,9 @@ namespace TaxCalculator.WebApi
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthorization();
+            
             app.UseLide();
+            
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }

@@ -52,7 +52,7 @@ namespace Lide.Decorators
                 CallId = methodMetadata.CallId,
                 MethodSignature = methodSignature,
                 InputParameters = inputParameters,
-                SerializedObject = methodMetadata.IsSingleton
+                SerializedObject = methodMetadata.IsSingleton && methodMetadata.PlainObject != null
                     ? _binarySerializeProvider.Serialize(methodMetadata.PlainObject)
                     : Array.Empty<byte>(),
             };
@@ -69,9 +69,9 @@ namespace Lide.Decorators
             {
                 CallId = methodMetadata.CallId,
                 IsException = methodMetadata.ReturnMetadata.GetOriginalException() != null,
-                OutputData = _binarySerializeProvider.Serialize(result),
+                OutputData = result == null ? Array.Empty<byte>() : _binarySerializeProvider.Serialize(result),
                 InputParameters = inputParameters,
-                SerializedObject = methodMetadata.IsSingleton
+                SerializedObject = methodMetadata.IsSingleton && methodMetadata.PlainObject != null
                     ? _binarySerializeProvider.Serialize(methodMetadata.PlainObject)
                     : Array.Empty<byte>(),
             };

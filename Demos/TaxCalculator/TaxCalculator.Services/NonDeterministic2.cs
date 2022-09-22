@@ -16,15 +16,15 @@ namespace TaxCalculator.Services
         public void Volatile_TreatInputAsNonMutable_NoIsolation(BadDesignData data)
         {
             var dateTime = DateTime.Now;
-            data.Field1 += dateTime.Millisecond % 6;
-            data.Field2 += dateTime.Millisecond % 9;
+            data.Field1 += dateTime.Second % 6;
+            data.Field2 += dateTime.Second % 9;
         }
 
         public void Volatile_TreatInputAsNonMutable_WithIsolation(BadDesignData data)
         {
             var dateTime = _dateTimeFacade.GetDatetimeNow();
-            data.Field1 += dateTime.Millisecond % 6;
-            data.Field2 += dateTime.Millisecond % 9;
+            data.Field1 += dateTime.Second % 6;
+            data.Field2 += dateTime.Second % 9;
         }
     }
 }
