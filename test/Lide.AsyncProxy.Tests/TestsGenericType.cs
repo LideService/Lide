@@ -7,9 +7,9 @@ namespace Lide.AsyncProxy.Tests
     public class TestsGenericType
     {
         [TestMethod]
-        public void That_GenericType_CanBeProxied()
+        public void That_GenericType_CanBeUsedInProxy()
         {
-            var proxyData = Helpers.GetProxy<ITesterGenericType<Poco>, TesterGenericType<Poco>, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterGenericType<Poco>, TesterGenericType<Poco>, DifferedFunctionProxyForTests>();
             var targetProxy = proxyData.TargetProxy;
             var poco = new Poco();
             var handlerIsCalled = false;
@@ -34,24 +34,24 @@ namespace Lide.AsyncProxy.Tests
             where TType : class
         {
             TType ValueProperty { get; set; }
-            TType this [TType index] { get; set; }
+            TType this[TType index] { get; set; }
             event TesterGenericHandler<TType> Event;
             TType RaiseEvent(TType data);
             TType Method(TType data);
         }
-        
+
         private class TesterGenericType<TType> : ITesterGenericType<TType>
             where TType : class
-        {        
+        {
             private TType _indexer;
             public TType ValueProperty { get; set; }
-        
-            public TType this [TType index]
+
+            public TType this[TType index]
             {
                 get => _indexer;
                 set => _indexer = value;
             }
-        
+
             public event TesterGenericHandler<TType> Event;
 
             public TType RaiseEvent(TType data)

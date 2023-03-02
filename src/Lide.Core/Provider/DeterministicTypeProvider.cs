@@ -10,7 +10,7 @@ public class DeterministicTypeProvider
 {
     private readonly IMethodDependenciesProvider _methodDependenciesProvider;
 
-    private readonly HashSet<Type> _volatileTypes = new HashSet<Type>()
+    private readonly HashSet<Type> _volatileTypes = new()
     {
         typeof(DateTime),
         typeof(Random),
@@ -28,12 +28,12 @@ public class DeterministicTypeProvider
         typeof(System.IO.FileSystemWatcher),
     };
 
-    private readonly HashSet<string> _volatileFullNamespaces = new HashSet<string>()
+    private readonly HashSet<string> _volatileFullNamespaces = new()
     {
         "System.Net",
     };
 
-    private readonly HashSet<string> _volatilePartialNamespaces = new HashSet<string>()
+    private readonly HashSet<string> _volatilePartialNamespaces = new()
     {
         "System.Net",
     };

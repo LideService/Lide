@@ -5,7 +5,10 @@
         <OutputType>Library</OutputType>
         <IsPackable>true</IsPackable>
         <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
         <LangVersion>latest</LangVersion>
+        <NoWarn>IDE0090,IDE0015,IDE0038,IDE0060,IDE0074,IDE1006</NoWarn>
+        <WarningLevel>1</WarningLevel>
     </PropertyGroup>
 
 </Project>

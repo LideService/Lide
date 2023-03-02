@@ -1,3 +1,4 @@
+/* cSpell:disable */
 using System;
 using System.IO;
 using System.Linq;
@@ -38,7 +39,7 @@ namespace Lide.Decorators.Tests
             level2Proxy.SetOriginalObject(level2, false);
             level2Proxy.SetDecorator(decorator);
             var level2Decorated = level2Proxy.GetDecoratedObject();
-            
+
             var level1 = new Level1(level2Decorated);
             var level1Proxy = ProxyDecoratorFactory.CreateProxyDecorator<ILevel1>();
             level1Proxy.SetOriginalObject(level1, false);
@@ -51,7 +52,7 @@ namespace Lide.Decorators.Tests
             var signature1 = signatureProvider.GetMethodSignature(typeof(ILevel1).GetMethods().First(x => x.Name == "Method1"), SignatureOptions.AllSet);
             var signature2 = signatureProvider.GetMethodSignature(typeof(ILevel2).GetMethods().First(x => x.Name == "Method2"), SignatureOptions.AllSet);
             var signature3 = signatureProvider.GetMethodSignature(typeof(ILevel2).GetMethods().First(x => x.Name == "Method3"), SignatureOptions.AllSet);
-            
+
             loader.LoadAll(stream);
             var befores = loader.BeforeMethods;
             var afters = loader.AfterMethods;
@@ -64,17 +65,17 @@ namespace Lide.Decorators.Tests
             Assert.AreEqual(signature1, befores[0].MethodSignature);
             Assert.AreEqual(signature2, befores[1].MethodSignature);
             Assert.AreEqual(signature3, befores[2].MethodSignature);
-            CollectionAssert.AreEqual(new object[] {"Something to test with", 24}, (object[])binarySerializer.Deserialize(befores[0].InputParameters));
-            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method2", 24+13}, (object[])binarySerializer.Deserialize(befores[1].InputParameters));
-            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method3", 24+17}, (object[])binarySerializer.Deserialize(befores[2].InputParameters));
-            
+            CollectionAssert.AreEqual(new object[] { "Something to test with", 24 }, (object[])binarySerializer.Deserialize(befores[0].InputParameters));
+            CollectionAssert.AreEqual(new object[] { "Something to test with.Level2.Method2", 24 + 13 }, (object[])binarySerializer.Deserialize(befores[1].InputParameters));
+            CollectionAssert.AreEqual(new object[] { "Something to test with.Level2.Method3", 24 + 17 }, (object[])binarySerializer.Deserialize(befores[2].InputParameters));
+
             Assert.AreEqual(3, afters.Count);
             Assert.AreEqual(2, afters[0].CallId); // First Level2.Method1 finishes
             Assert.AreEqual(3, afters[1].CallId); // Next Level2.Method3 finishes
             Assert.AreEqual(1, afters[2].CallId); // Last Level1.Method2 finishes
-            CollectionAssert.AreEqual(new object[] {"Something to test with", 24}, (object[])binarySerializer.Deserialize(afters[2].InputParameters));
-            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method2", 24+13}, (object[])binarySerializer.Deserialize(afters[0].InputParameters));
-            CollectionAssert.AreEqual(new object[] {"Something to test with.Level2.Method3", 24+17}, (object[])binarySerializer.Deserialize(afters[1].InputParameters));
+            CollectionAssert.AreEqual(new object[] { "Something to test with", 24 }, (object[])binarySerializer.Deserialize(afters[2].InputParameters));
+            CollectionAssert.AreEqual(new object[] { "Something to test with.Level2.Method2", 24 + 13 }, (object[])binarySerializer.Deserialize(afters[0].InputParameters));
+            CollectionAssert.AreEqual(new object[] { "Something to test with.Level2.Method3", 24 + 17 }, (object[])binarySerializer.Deserialize(afters[1].InputParameters));
         }
 
         private interface ILevel1
@@ -138,7 +139,7 @@ namespace Lide.Decorators.Tests
 
         private class FileFacadeStub : IFileFacade
         {
-            private readonly MemoryStream _ms = new MemoryStream();
+            private readonly MemoryStream _ms = new();
 
             public Stream OpenFile(string filePath)
             {

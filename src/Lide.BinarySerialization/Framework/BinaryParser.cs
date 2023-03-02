@@ -1,3 +1,4 @@
+/* cSpell:disable */
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -14,8 +15,6 @@ namespace Lide.BinarySerialization.Framework;
 
 internal sealed class BinaryParser
 {
-    private const string BinaryParserUnreferencedCodeMessage = "ObjectReader requires unreferenced code";
-
     private const int ChunkSize = 4096;
     private static readonly Encoding s_encoding = new UTF8Encoding(false, true);
 
@@ -71,7 +70,7 @@ internal sealed class BinaryParser
     // Reads each record from the input stream. If the record is a primitive type (A number)
     //  then it doesn't have a BinaryHeaderEnum byte. For this case the expected type
     //  has been previously set to Primitive
-        
+
     internal void Run()
     {
         try
@@ -720,10 +719,10 @@ internal sealed class BinaryParser
 
     private void ReadArray(BinaryHeaderEnum binaryHeaderEnum)
     {
-        BinaryAssemblyInfo? assemblyInfo = null;
         BinaryArray record = new BinaryArray(binaryHeaderEnum);
         record.Read(this);
 
+        BinaryAssemblyInfo? assemblyInfo;
         if (record._binaryTypeEnum == BinaryTypeEnum.ObjectUser)
         {
             if (record._assemId < 1)
@@ -828,7 +827,7 @@ internal sealed class BinaryParser
             case BinaryArrayTypeEnum.RectangularOffset:
                 int arrayLength = 1;
                 for (int i = 0; i < record._rank; i++)
-                    arrayLength = arrayLength * record._lengthA[i];
+                    arrayLength *= record._lengthA[i];
                 op._numItems = arrayLength;
                 pr._arrayTypeEnum = InternalArrayTypeE.Rectangular;
                 break;
@@ -891,9 +890,7 @@ internal sealed class BinaryParser
                     {
                         for (int j = 0; j < typeLength / 2; j++)
                         {
-                            byte tmp = _byteBuffer[i + j];
-                            _byteBuffer[i + j] = _byteBuffer[i + typeLength - 1 - j];
-                            _byteBuffer[i + typeLength - 1 - j] = tmp;
+                            (_byteBuffer[i + typeLength - 1 - j], _byteBuffer[i + j]) = (_byteBuffer[i + j], _byteBuffer[i + typeLength - 1 - j]);
                         }
                     }
                 }
@@ -935,7 +932,7 @@ internal sealed class BinaryParser
         _objectReader.Parse(PRs);
     }
 
-        
+
     private void ReadMemberReference()
     {
         if (_memberReference == null)
@@ -966,7 +963,7 @@ internal sealed class BinaryParser
         _objectReader.Parse(PRs);
     }
 
-        
+
     private void ReadObjectNull(BinaryHeaderEnum binaryHeaderEnum)
     {
         if (_objectNull == null)

@@ -49,8 +49,8 @@ namespace Lide.Core.Tests
             source.Inner = new CircularReferenceInner(source, "TestData2");
             source.Data = "TestData";
             var target = new CircularReference();
-            target.Inner = new CircularReferenceInner(target, "lqlqlqwl2");
-            target.Data = "lqlqlq";
+            target.Inner = new CircularReferenceInner(target, "not important2");
+            target.Data = "not important";
 
             provider.DeepCopyIntoExistingObject(source, target);
             Assert.IsNotNull(target);
@@ -86,7 +86,7 @@ namespace Lide.Core.Tests
             public int Data2 { get; }
             public int[] Data3 { get; }
 
-            public static Tester GetInstance(Inner inner, string data1, int data2, int[] data3) => new Tester(inner, data1, data2, data3);
+            public static Tester GetInstance(Inner inner, string data1, int data2, int[] data3) => new(inner, data1, data2, data3);
             private Tester(Inner inner, string data1, int data2, int[] data3)
             {
                 Inner = inner;
@@ -100,7 +100,7 @@ namespace Lide.Core.Tests
         {
             public string Data { get; }
 
-            public static Inner GetInstance(string data) => new Inner(data);
+            public static Inner GetInstance(string data) => new(data);
             private Inner(string data)
             {
                 Data = data;

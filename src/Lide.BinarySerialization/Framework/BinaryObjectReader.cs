@@ -1,3 +1,4 @@
+/* cSpell:disable */
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -14,8 +15,6 @@ namespace Lide.BinarySerialization.Framework;
 
 internal sealed class ObjectReader
 {
-    private const string ObjectReaderUnreferencedCodeMessage = "ObjectReader requires unreferenced code";
-
     // System.Serializer information
     internal Stream _stream;
     internal ISurrogateSelector? _surrogates;
@@ -45,7 +44,7 @@ internal sealed class ObjectReader
 
     private SerStack ValueFixupStack => _valueFixupStack ?? (_valueFixupStack = new SerStack("ValueType Fixup Stack"));
 
-    // Older formatters generate ids for valuetypes using a different counter than ref types. Newer ones use
+    // Older formatters generate ids for value types using a different counter than ref types. Newer ones use
     // a single counter, only value types have a negative value. Need a way to handle older formats.
     private const int ThresholdForValueTypeIds = int.MaxValue;
     private bool _oldFormatDetected;
@@ -69,12 +68,7 @@ internal sealed class ObjectReader
 
     internal ObjectReader(Stream stream, ISurrogateSelector? selector, StreamingContext context, InternalFE formatterEnums, SerializationBinder? binder)
     {
-        if (stream == null)
-        {
-            throw new ArgumentNullException(nameof(stream));
-        }
-
-        _stream = stream;
+        _stream = stream ?? throw new ArgumentNullException(nameof(stream));
         _surrogates = selector;
         _context = context;
         _binder = binder;
@@ -136,8 +130,7 @@ internal sealed class ObjectReader
     }
     private bool HasSurrogate(Type t)
     {
-        ISurrogateSelector ignored;
-        return _surrogates != null && _surrogates.GetSurrogate(t, _context, out ignored) != null;
+        return _surrogates != null && _surrogates.GetSurrogate(t, _context, out _) != null;
     }
 
     private void InitFullDeserialization()
@@ -474,7 +467,7 @@ internal sealed class ObjectReader
             int sum = 1;
             for (int i = 0; i < pr._rank; i++)
             {
-                sum = sum * pr._lengthA[i];
+                sum *= pr._lengthA[i];
             }
             pr._indexMap = new int[pr._rank];
             pr._rectangularMap = new int[pr._rank];
@@ -634,8 +627,7 @@ internal sealed class ObjectReader
                     throw new SerializationException(SR.Serialization_ArrayTypeObject);
                 }
 
-                object? var = null;
-
+                object? var;
                 if (ReferenceEquals(pr._dtType, Converter.s_typeofString))
                 {
                     ParseString(pr, objectPr);
@@ -643,9 +635,7 @@ internal sealed class ObjectReader
                 }
                 else
                 {
-                    var = pr._varValue != null ?
-                        pr._varValue :
-                        Converter.FromString(pr._value, pr._dtTypeCode);
+                    var = pr._varValue ?? Converter.FromString(pr._value, pr._dtTypeCode);
                 }
                 if (objectPr._objectA != null)
                 {
@@ -668,9 +658,7 @@ internal sealed class ObjectReader
                 }
                 else
                 {
-                    object? var = pr._varValue != null ?
-                        pr._varValue :
-                        Converter.FromString(pr._value, objectPr._arrayElementTypeCode);
+                    object? var = pr._varValue ?? Converter.FromString(pr._value, objectPr._arrayElementTypeCode);
                     if (objectPr._objectA != null)
                     {
                         objectPr._objectA[objectPr._indexMap[0]] = var;
@@ -742,8 +730,8 @@ internal sealed class ObjectReader
 
             if ((pr._objectInfo != null) && pr._objectInfo._objectType != null && (pr._objectInfo._objectType.IsValueType))
             {
-                pr._isValueTypeFixup = true; //Valuefixup
-                ValueFixupStack.Push(new ValueFixup(objectPr._newObj, pr._name, objectPr._objectInfo)); //valuefixup
+                pr._isValueTypeFixup = true; //Value fixup
+                ValueFixupStack.Push(new ValueFixup(objectPr._newObj, pr._name, objectPr._objectInfo)); //value fixup
             }
             else
             {
@@ -805,9 +793,7 @@ internal sealed class ObjectReader
             }
             else
             {
-                object? var = pr._varValue != null ?
-                    pr._varValue :
-                    Converter.FromString(pr._value, pr._dtTypeCode);
+                object? var = pr._varValue ?? Converter.FromString(pr._value, pr._dtTypeCode);
                 objectPr._objectInfo.AddValue(pr._name, var, ref objectPr._si, ref objectPr._memberData);
             }
         }
@@ -885,7 +871,7 @@ internal sealed class ObjectReader
             if (bIsString)
             {
                 var method = _objectManager.GetType().GetMethods(BindingFlags.Instance | BindingFlags.NonPublic).First(x => x.Name == "RegisterString");
-                method.Invoke(_objectManager, new object[] { (string?)obj, pr._objectId, si, parentId, memberInfo });
+                method.Invoke(_objectManager, new object?[] { (string?)obj, pr._objectId, si, parentId, memberInfo });
             }
             else
             {
@@ -917,7 +903,7 @@ internal sealed class ObjectReader
                 _valTypeObjectIdTable = new IntSizedArray();
             }
 
-            long tempObjId = 0;
+            long tempObjId;
             if ((tempObjId = _valTypeObjectIdTable[(int)objectId]) == 0)
             {
                 tempObjId = ThresholdForValueTypeIds + objectId;
@@ -964,8 +950,7 @@ internal sealed class ObjectReader
             }
 
             Assembly? assm = null;
-            AssemblyName? assmName = null;
-
+            AssemblyName? assmName;
             try
             {
                 assmName = new AssemblyName(assemblyName);
@@ -1010,9 +995,11 @@ internal sealed class ObjectReader
             // before adding it to cache, let us do the security check
             CheckTypeForwardedTo(assm, type.Assembly, type);
 
-            entry = new TypeNAssembly();
-            entry.Type = type;
-            entry.AssemblyName = assemblyName;
+            entry = new TypeNAssembly
+            {
+                Type = type,
+                AssemblyName = assemblyName
+            };
             _typeCache.SetCachedValue(entry);
         }
         return entry.Type;

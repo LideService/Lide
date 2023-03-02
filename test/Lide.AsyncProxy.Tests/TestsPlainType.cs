@@ -1,3 +1,4 @@
+/* cSpell:disable */
 using System;
 using System.Runtime.ExceptionServices;
 using Lide.AsyncProxy.Tests.Proxy;
@@ -11,12 +12,12 @@ namespace Lide.AsyncProxy.Tests
         [TestMethod]
         public void That_Properties_AreProxied()
         {
-            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DifferedFunctionProxyForTests>();
             Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITesterInheritedBase1));
             Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITesterInheritedBase2));
             Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITesterInheritedBase3));
             Assert.IsInstanceOfType(proxyData.SourceProxy, typeof(ITesterPlainType));
-            
+
             var targetProxy = proxyData.TargetProxy;
             var dataField = new object();
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.BaseField1 = 17, null, 17);
@@ -39,7 +40,7 @@ namespace Lide.AsyncProxy.Tests
         [TestMethod]
         public void That_Indexers_AreProxied()
         {
-            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DifferedFunctionProxyForTests>();
             var targetProxy = proxyData.TargetProxy;
             var dataFiled1 = new Poco() { StringField = "Poco1", IntField = -29 };
             var dataFiled2 = new Poco() { StringField = "Poco2", IntField = -48 };
@@ -54,7 +55,7 @@ namespace Lide.AsyncProxy.Tests
         [TestMethod]
         public void That_Events_AreProxied()
         {
-            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DifferedFunctionProxyForTests>();
             var targetProxy = proxyData.TargetProxy;
             var handlerIsCalled = false;
             var poco = new Poco { StringField = "Poco3", IntField = 7 };
@@ -79,15 +80,15 @@ namespace Lide.AsyncProxy.Tests
             Helpers.AssertExecuteOnInvoke(proxyData, () => { targetProxy.RaiseEvent2(13); AssertHandler(false); }, -1, 13);
             Helpers.AssertExecuteOnInvoke(proxyData, () => { targetProxy.RaiseEvent3(poco); AssertHandler(false); }, null, poco);
         }
-        
+
         [TestMethod]
         public void That_Methods_AreProxied()
         {
-            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterPlainType, TesterPlainType, DifferedFunctionProxyForTests>();
             var targetProxy = proxyData.TargetProxy;
             var poco = new Poco { StringField = "Poco4", IntField = 9 };
-            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.PlainMethod(9, poco), poco, 9 , poco);
-            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.ParamsMethod(7, 8, 9 , 1, 2 ,3), 12, 7, new object[] {8,9,1,2,3});
+            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.PlainMethod(9, poco), poco, 9, poco);
+            Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.ParamsMethod(7, 8, 9, 1, 2, 3), 12, 7, new object[] { 8, 9, 1, 2, 3 });
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.OptionalMethod(5, 9), 14, 5, 9);
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.OptionalMethod(6), 5, 6, -1);
             Helpers.AssertExecuteOnInvoke(proxyData, () => targetProxy.ImplementedMethod(13, 8), 21, 13, 8);
@@ -103,11 +104,11 @@ namespace Lide.AsyncProxy.Tests
             var exception = new Exception("Thrown");
             Assert.ThrowsException<Exception>(() => targetProxy.ThrowMethod(exception), exception.Message);
         }
-        
+
         private delegate void TesterHandler();
         private delegate int TesterHandlerValue(int data);
         private delegate Poco TesterHandlerReference(Poco data);
-        
+
         private interface ITesterInheritedBase1
         {
             int BaseField1 { get; set; }
@@ -130,29 +131,29 @@ namespace Lide.AsyncProxy.Tests
             string StringProperty { get; set; }
             object GetterOnly { get; }
             object SetterOnly { set; }
-            
-            long this [long index] { get; set; }
-            int this [int index] { get; }
-            Poco this [Poco index] { set; }
-            
+
+            long this[long index] { get; set; }
+            int this[int index] { get; }
+            Poco this[Poco index] { set; }
+
             event TesterHandler Event1;
             event TesterHandlerValue Event2;
             event TesterHandlerReference Event3;
             void RaiseEvent1();
             int RaiseEvent2(int data);
             Poco RaiseEvent3(Poco data);
-            
+
             Poco PlainMethod(int number, Poco data);
             int ParamsMethod(int data1, params object[] dataParams);
-            int OptionalMethod(int data1, int data2 = -1); 
+            int OptionalMethod(int data1, int data2 = -1);
             int ImplementedMethod(int data1, int data2)
             {
                 return data1 + data2;
             }
-            
+
             void ThrowMethod(Exception e);
         }
-        
+
         private class TesterPlainType : ITesterPlainType
         {
             private object _getterSetterValue;
@@ -164,7 +165,7 @@ namespace Lide.AsyncProxy.Tests
             public int BaseField2 { get; set; }
             public int BaseField3 { get; set; }
             #endregion
-            
+
             #region properties
             public int IntProperty { get; set; }
             public decimal DecimalProperty { get; set; }
@@ -175,7 +176,7 @@ namespace Lide.AsyncProxy.Tests
                 set => _getterSetterValue = value;
             }
             #endregion
-            
+
             #region indexers
             public long this[long index]
             {
@@ -192,11 +193,11 @@ namespace Lide.AsyncProxy.Tests
 
 
             #endregion
-            
+
             #region methods
             public Poco PlainMethod(int number, Poco data)
             {
-                data.IntField = data.IntField + number;
+                data.IntField += number;
                 data.StringField = $"{data.StringField}.{number}";
                 return data;
             }
@@ -225,7 +226,7 @@ namespace Lide.AsyncProxy.Tests
             {
                 Event1?.Invoke();
             }
-            
+
             public int RaiseEvent2(int data)
             {
                 return Event2?.Invoke(data) ?? -1;

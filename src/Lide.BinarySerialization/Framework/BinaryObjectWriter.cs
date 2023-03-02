@@ -1,3 +1,4 @@
+/* cSpell:disable */
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -15,8 +16,6 @@ namespace Lide.BinarySerialization.Framework;
 
 internal sealed class ObjectWriter
 {
-    private const string ObjectWriterUnreferencedCodeMessage = "ObjectWriter requires unreferenced code";
-
     private Queue<object>? _objectQueue;
     private ObjectIDGenerator? _idGenerator;
     private int _currentId;
@@ -61,17 +60,11 @@ internal sealed class ObjectWriter
         {
             throw new ArgumentNullException(nameof(graph));
         }
-        if (serWriter == null)
-        {
-            throw new ArgumentNullException(nameof(serWriter));
-        }
 
-        _serWriter = serWriter;
+        _serWriter = serWriter ?? throw new ArgumentNullException(nameof(serWriter));
 
         serWriter.WriteBegin();
-        long headerId = 0;
         object? obj;
-        bool isNew;
 
         // allocations if methodCall or methodResponse and no graph
         _idGenerator = new ObjectIDGenerator();
@@ -79,14 +72,14 @@ internal sealed class ObjectWriter
         _formatterConverter = new FormatterConverter();
         _serObjectInfoInit = new SerObjectInfoInit();
 
-        _topId = InternalGetId(graph, false, null, out isNew);
-        headerId = -1;
+        _topId = InternalGetId(graph, false, null, out _);
+        long headerId = -1;
         WriteSerializedStreamHeader(_topId, headerId);
 
         _objectQueue.Enqueue(graph);
         while ((obj = GetNext(out long objectId)) != null)
         {
-            WriteObjectInfo? objectInfo = null;
+            WriteObjectInfo? objectInfo;
 
             // GetNext will return either an object or a WriteObjectInfo.
             // A WriteObjectInfo is returned if this object was member of another object
@@ -165,9 +158,8 @@ internal sealed class ObjectWriter
                 for (int i = 0; i < memberTypes.Length; i++)
                 {
                     Type type =
-                        memberTypes[i] != null ? memberTypes[i] :
-                        memberData[i] != null ? GetType(memberData[i]!) :
-                        Converter.s_typeofObject;
+                        memberTypes[i] ?? (memberData[i] != null ? GetType(memberData[i]!) :
+                        Converter.s_typeofObject);
 
                     InternalPrimitiveTypeE code = ToCode(type);
                     if ((code == InternalPrimitiveTypeE.Invalid) &&
@@ -581,7 +573,6 @@ internal sealed class ObjectWriter
             return;
         }
 
-        NameInfo? actualTypeInfo = null;
         Type? dataType = null;
         bool isObjectOnMember = false;
 
@@ -599,6 +590,8 @@ internal sealed class ObjectWriter
             }
         }
 
+
+        NameInfo? actualTypeInfo;
         if (isObjectOnMember)
         {
             // Object array, need type of member
@@ -722,7 +715,6 @@ internal sealed class ObjectWriter
     // and the Object itself is returned from the function.
     private object? GetNext(out long objID)
     {
-        bool isNew;
 
         //The Queue is empty here.  We'll throw if we try to dequeue the empty queue.
         if (_objectQueue!.Count == 0)
@@ -736,7 +728,7 @@ internal sealed class ObjectWriter
         // A WriteObjectInfo is queued if this object was a member of another object
         object? realObj = obj is WriteObjectInfo ? ((WriteObjectInfo)obj)._obj : obj;
         Debug.Assert(realObj != null);
-        objID = _idGenerator!.HasId(realObj, out isNew);
+        objID = _idGenerator!.HasId(realObj, out bool isNew);
         if (isNew)
         {
             throw new SerializationException(SR.Format(SR.Serialization_ObjNoID, realObj));
@@ -788,8 +780,7 @@ internal sealed class ObjectWriter
         long id = 0;
         if (obj != null)
         {
-            bool isNew;
-            id = InternalGetId(obj, assignUniqueIdToValueType, type, out isNew);
+            id = InternalGetId(obj, assignUniqueIdToValueType, type, out bool isNew);
             if (isNew && id > 0)
             {
                 Debug.Assert(_objectQueue != null);
@@ -969,10 +960,11 @@ internal sealed class ObjectWriter
             _assemblyToIdTable = new Dictionary<string, long>();
         }
 
-        long assemId = 0;
         string assemblyString = objectInfo.GetAssemblyString();
 
         string serializedAssemblyString = assemblyString;
+
+        long assemId;
         if (assemblyString.Length == 0)
         {
             assemId = 0;
@@ -989,7 +981,7 @@ internal sealed class ObjectWriter
             // Need to prefix assembly string to separate the string names from the
             // assemblyName string names. That is a string can have the same value
             // as an assemblyNameString, but it is serialized differently
-            bool isNew = false;
+            bool isNew;
             if (_assemblyToIdTable.TryGetValue(assemblyString, out assemId))
             {
                 isNew = false;

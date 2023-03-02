@@ -1,7 +1,9 @@
+/* cSpell:disable */
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
@@ -30,7 +32,7 @@ internal sealed class MemberHolder
                mh._context.State == _context.State;
     }
 }
-    
+
 public static class FormatterServices
 {
     private static readonly ConcurrentDictionary<MemberHolder, MemberInfo[]> s_memberInfoTable = new ConcurrentDictionary<MemberHolder, MemberInfo[]>();
@@ -61,7 +63,7 @@ public static class FormatterServices
                 {
                     parentType = parentTypes![i];
                     FieldInfo[] typeFields = parentType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance);
-                    string typeName = classNamesUnique ? parentType.Name : parentType.FullName!;
+                    _ = classNamesUnique ? parentType.Name : parentType.FullName!;
                     foreach (FieldInfo field in typeFields)
                     {
                         // Family and Assembly fields will be gathered by the type itself.
@@ -192,7 +194,7 @@ public static class FormatterServices
         // This API doesn't call any constructors, but the type needs to be seen as constructed.
         // A type is seen as constructed if a constructor is kept.
         // This obviously won't cover a type with no constructor. Reference types with no
-        // constructor are an academic problem. Valuetypes with no constructors are a problem,
+        // constructor are an academic problem. Value types with no constructors are a problem,
         // but IL Linker currently treats them as always implicitly boxed.
         Type type) => RuntimeHelpers.GetUninitializedObject(type);
 
@@ -339,7 +341,7 @@ public static class FormatterServices
             attributedType = attributedType.GetElementType()!;
         }
 
-        foreach (Attribute first in attributedType.GetCustomAttributes(typeof(TypeForwardedFromAttribute), false))
+        foreach (Attribute first in attributedType.GetCustomAttributes(typeof(TypeForwardedFromAttribute), false).Cast<Attribute>())
         {
             hasTypeForwardedFrom = true;
             return ((TypeForwardedFromAttribute)first).AssemblyFullName;
@@ -375,18 +377,17 @@ public static class FormatterServices
 
         var builder = new StringBuilder(type.GetGenericTypeDefinition().FullName).Append('[');
 
-        bool hasTypeForwardedFrom;
         foreach (Type genericArgument in type.GetGenericArguments())
         {
             builder.Append('[').Append(GetClrTypeFullName(genericArgument)).Append(", ");
-            builder.Append(GetClrAssemblyName(genericArgument, out hasTypeForwardedFrom)).Append("],");
+            _ = builder.Append(GetClrAssemblyName(genericArgument, out _)).Append("],");
         }
 
         //remove the last comma and close typename for generic with a close bracket
         return builder.Remove(builder.Length - 1, 1).Append(']').ToString();
     }
 }
-    
+
 internal sealed class SurrogateForCyclicalReference : ISerializationSurrogate
 {
     private readonly ISerializationSurrogate _innerSurrogate;

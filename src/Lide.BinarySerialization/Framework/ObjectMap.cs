@@ -1,3 +1,4 @@
+/* cSpell:disable */
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -73,12 +74,9 @@ internal sealed class ObjectMap
 
         for (int i = 0; i < memberNames.Length; i++)
         {
-            InternalPrimitiveTypeE primitiveTypeEnum;
-            bool isVariant;
-
             BinaryTypeConverter.TypeFromInfo(
                 binaryTypeEnumA[i], typeInformationA[i], objectReader, (BinaryAssemblyInfo?)assemIdToAssemblyTable[memberAssemIds[i]],
-                out primitiveTypeEnum, out string? typeString, out Type? type, out isVariant);
+                out _, out _, out Type? type, out _);
             _memberTypes[i] = type;
         }
 

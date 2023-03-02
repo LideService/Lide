@@ -67,6 +67,7 @@ namespace Lide.Core.Tests
             CollectionAssert.Contains(dependentTypes, typeof(Console));
         }
 
+#pragma warning disable
         private class TesterBroken
         {
             public void Method(Func<object> p1)
@@ -81,17 +82,12 @@ namespace Lide.Core.Tests
         {
             public void Method()
             {
-                var e = new Exception("lqlqlq");
+                var e = new Exception("Not interesting");
                 Console.WriteLine(e);
-                var c = Encoding.UTF8.GetBytes("ada");
+                _ = Encoding.UTF8.GetBytes("ada");
             }
-
-            private static void Internal()
-            {
-                Console.WriteLine("Something");
-            }
-
         }
+#pragma warning restore
 
         private interface ITesterDependency
         {

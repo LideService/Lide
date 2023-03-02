@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Lide.AsyncProxy.Tests.Proxy
 {
-    public class DefferedFunctionProxy : DispatchProxyAsync, ICallOnInvoke
+    public class DifferedFunctionProxyForTests : DispatchProxyAsync, ICallOnInvoke
     {
         private object _callOnInvokeAsyncT;
         public Func<MethodInfo, object[], object> CallOnInvoke { get; set; }

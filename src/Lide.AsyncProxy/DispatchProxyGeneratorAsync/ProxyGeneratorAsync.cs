@@ -10,16 +10,16 @@ namespace Lide.AsyncProxy.DispatchProxyGeneratorAsync;
 
 internal static class ProxyGeneratorAsync
 {
-    private static readonly Dictionary<Type, Dictionary<Type, Type>> BaseTypeAndInterfaceToGeneratedProxyType = new ();
-    private static readonly ProxyAssembly ProxyAssembly = new ();
+    private static readonly Dictionary<Type, Dictionary<Type, Type>> BaseTypeAndInterfaceToGeneratedProxyType = new();
+    private static readonly ProxyAssembly ProxyAssembly = new();
     private static readonly MethodInfo DispatchProxyInvokeMethod = typeof(DispatchProxyAsync).GetTypeInfo().GetDeclaredMethod(nameof(DispatchProxyAsync.Invoke));
     private static readonly MethodInfo DispatchProxyInvokeAsyncMethod = typeof(DispatchProxyAsync).GetTypeInfo().GetDeclaredMethod(nameof(DispatchProxyAsync.InvokeAsync));
     private static readonly MethodInfo DispatchProxyInvokeAsyncTMethod = typeof(DispatchProxyAsync).GetTypeInfo().GetDeclaredMethod(nameof(DispatchProxyAsync.InvokeAsyncT));
 
     public static object CreateProxyInstance(Type interfaceType, Type proxyType)
     {
-        var proxiedType = GetProxyType(proxyType, interfaceType);
-        return Activator.CreateInstance(proxiedType, new DispatchProxyHandlerAsync());
+        var generatedProxyType = GetProxyType(proxyType, interfaceType);
+        return Activator.CreateInstance(generatedProxyType, new DispatchProxyHandlerAsync());
     }
 
     [DebuggerStepThrough]

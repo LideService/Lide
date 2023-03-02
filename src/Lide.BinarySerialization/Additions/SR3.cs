@@ -1,3 +1,4 @@
+/* cSpell:disable */
 namespace System.Private.CoreLib
 {
     internal static class Strings { }
@@ -8,8 +9,8 @@ namespace Lide.BinarySerialization.Additions
 
     internal static partial class SR
     {
-        private static global::System.Resources.ResourceManager s_resourceManager;
-        internal static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ?? 
+        private static global::System.Resources.ResourceManager? s_resourceManager;
+        internal static global::System.Resources.ResourceManager ResourceManager => s_resourceManager ??
         (s_resourceManager = new global::System.Resources.ResourceManager(typeof(System.Private.CoreLib.Strings)));
 
         /// <summary>Cannot create an abstract class.</summary>

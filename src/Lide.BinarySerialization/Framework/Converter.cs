@@ -1,3 +1,4 @@
+/* cSpell:disable */
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -82,24 +83,22 @@ internal static class Converter
 
     internal static bool IsWriteAsByteArray(InternalPrimitiveTypeE code)
     {
-        switch (code)
+        return code switch
         {
-            case InternalPrimitiveTypeE.Boolean:
-            case InternalPrimitiveTypeE.Char:
-            case InternalPrimitiveTypeE.Byte:
-            case InternalPrimitiveTypeE.Double:
-            case InternalPrimitiveTypeE.Int16:
-            case InternalPrimitiveTypeE.Int32:
-            case InternalPrimitiveTypeE.Int64:
-            case InternalPrimitiveTypeE.SByte:
-            case InternalPrimitiveTypeE.Single:
-            case InternalPrimitiveTypeE.UInt16:
-            case InternalPrimitiveTypeE.UInt32:
-            case InternalPrimitiveTypeE.UInt64:
-                return true;
-            default:
-                return false;
-        }
+            InternalPrimitiveTypeE.Boolean
+            or InternalPrimitiveTypeE.Char
+            or InternalPrimitiveTypeE.Byte
+            or InternalPrimitiveTypeE.Double
+            or InternalPrimitiveTypeE.Int16
+            or InternalPrimitiveTypeE.Int32
+            or InternalPrimitiveTypeE.Int64
+            or InternalPrimitiveTypeE.SByte
+            or InternalPrimitiveTypeE.Single
+            or InternalPrimitiveTypeE.UInt16
+            or InternalPrimitiveTypeE.UInt32
+            or InternalPrimitiveTypeE.UInt64 => true,
+            _ => false,
+        };
     }
 
     internal static int TypeLength(InternalPrimitiveTypeE code) =>

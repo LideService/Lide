@@ -1,3 +1,4 @@
+/* cSpell:disable */
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -46,7 +47,7 @@ internal static class BinaryTypeConverter
             switch (primitiveTypeEnum)
             {
                 case InternalPrimitiveTypeE.Invalid:
-                    string? assembly = null;
+                    string? assembly;
                     if (objectInfo == null)
                     {
                         assembly = type.Assembly.FullName;

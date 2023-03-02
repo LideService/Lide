@@ -8,9 +8,9 @@ namespace Lide.AsyncProxy.Tests
     public class TestsAsyncType
     {
         [TestMethod]
-        public async Task That_AsyncMethods_AreProxied()
+        public async Task That_AsyncMethods_CanBeUsedInProxy()
         {
-            var proxyData = Helpers.GetProxy<ITesterAsyncType, TesterAsyncType, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterAsyncType, TesterAsyncType, DifferedFunctionProxyForTests>();
             var targetProxy = proxyData.TargetProxy;
             var sourceProxy = proxyData.SourceProxy;
             var handlerIsCalled = false;
@@ -21,7 +21,7 @@ namespace Lide.AsyncProxy.Tests
                 handlerIsCalled = true;
                 return info.Invoke(proxyData.BaseObject, objects);
             };
-            
+
             sourceProxy.CallOnInvokeAsync = (info, objects) =>
             {
                 handlerAsyncIsCalled = true;
@@ -41,7 +41,7 @@ namespace Lide.AsyncProxy.Tests
             AssertAndReset(false, ref handlerIsCalled);
             AssertAndReset(false, ref handlerAsyncIsCalled);
             AssertAndReset(true, ref handlerAsyncTIsCalled);
-            
+
             await targetProxy.AsyncMethod1();
             AssertAndReset(false, ref handlerIsCalled);
             AssertAndReset(true, ref handlerAsyncIsCalled);

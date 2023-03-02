@@ -1,3 +1,4 @@
+/* cSpell:disable */
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,9 +14,9 @@ internal class ProxyAssembly
     private readonly AssemblyBuilder _assemblyBuilder;
     private readonly ModuleBuilder _moduleBuilder;
 
-    private readonly Dictionary<MethodBase, int> _methodToToken = new ();
-    private readonly List<MethodBase> _methodsByToken = new ();
-    private readonly HashSet<string> _ignoresAccessAssemblyNames = new ();
+    private readonly Dictionary<MethodBase, int> _methodToToken = new();
+    private readonly List<MethodBase> _methodsByToken = new();
+    private readonly HashSet<string> _ignoresAccessAssemblyNames = new();
     private ConstructorInfo _ignoresAccessChecksToAttributeConstructor;
     private int _typeId;
 
@@ -55,7 +56,6 @@ internal class ProxyAssembly
     internal void GetTokenForMethod(MethodBase method, out Type type, out int token)
     {
         type = method.DeclaringType;
-        token = 0;
         if (!_methodToToken.TryGetValue(method, out token))
         {
             _methodsByToken.Add(method);
@@ -119,7 +119,7 @@ internal class ProxyAssembly
                 .Single(f => string.Equals(f.Name, "AllowMultiple"));
 
         CustomAttributeBuilder customAttributeBuilder =
-            new CustomAttributeBuilder(attributeUsageConstructorInfo,
+            new(attributeUsageConstructorInfo,
                 new object[] { AttributeTargets.Assembly },
                 new[] { allowMultipleProperty },
                 new object[] { true });
@@ -138,7 +138,7 @@ internal class ProxyAssembly
 
         ConstructorInfo attributeConstructor = _ignoresAccessChecksToAttributeConstructor;
         CustomAttributeBuilder customAttributeBuilder =
-            new CustomAttributeBuilder(attributeConstructor, new object[] { assemblyName });
+            new(attributeConstructor, new object[] { assemblyName });
         _assemblyBuilder.SetCustomAttribute(customAttributeBuilder);
     }
 }

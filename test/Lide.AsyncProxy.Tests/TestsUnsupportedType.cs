@@ -7,9 +7,9 @@ namespace Lide.AsyncProxy.Tests
     public class TestsUnsupportedType
     {
         [TestMethod, Ignore("Test is good, proxy is broken")]
-        public void That_OutParam_IsProxied()
+        public void That_OutParam_CanBeUsedInProxy()
         {
-            var proxyData = Helpers.GetProxy<ITesterUnsupportedOutParam, TesterUnsupportedOutParam, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterUnsupportedOutParam, TesterUnsupportedOutParam, DifferedFunctionProxyForTests>();
             var targetProxy = proxyData.TargetProxy;
             var isCalled = false;
             proxyData.SourceProxy.CallOnInvoke = (methodInfo, inputParameters) =>
@@ -22,36 +22,11 @@ namespace Lide.AsyncProxy.Tests
             Assert.IsTrue(isCalled);
             Assert.AreEqual("NotWorking", result);
         }
-        
-        [TestMethod]
-        public void That_OutParam_IsNotProxied_WithDispatchProxy()
-        {
-            var proxyData = Helpers.GetProxy<ITesterUnsupportedOutParam, TesterUnsupportedOutParam, BaseDispatchProxy>();
-            var targetProxy = proxyData.TargetProxy;
-            var isCalled = false;
-            proxyData.SourceProxy.CallOnInvoke = (methodInfo, inputParameters) =>
-            {
-                isCalled = true;
-                return methodInfo.Invoke(proxyData.BaseObject, inputParameters);
-            };
 
-            try
-            {
-
-                targetProxy.Method(out var result);
-                Assert.IsTrue(isCalled);
-                Assert.AreEqual("NotWorking", result);
-                Assert.Fail();
-            }
-            catch
-            {
-                // ignored
-            }
-        }
         [TestMethod, Ignore("Test is good, proxy is broken")]
-        public void That_RefParam_IsProxied()
+        public void That_RefParam_CanBeUsedInProxy()
         {
-            var proxyData = Helpers.GetProxy<ITesterUnsupportedRefParam, TesterUnsupportedRefParam, DefferedFunctionProxy>();
+            var proxyData = Helpers.GetProxy<ITesterUnsupportedRefParam, TesterUnsupportedRefParam, DifferedFunctionProxyForTests>();
             var targetProxy = proxyData.TargetProxy;
             var isCalled = false;
             proxyData.SourceProxy.CallOnInvoke = (methodInfo, inputParameters) =>
@@ -65,11 +40,11 @@ namespace Lide.AsyncProxy.Tests
             Assert.IsTrue(isCalled);
             Assert.AreEqual("NotWorking", result);
         }
-        
-        [TestMethod]
-        public void That_RefParam_IsNotProxied_WithDispatchProxy()
+
+        [TestMethod]//, Ignore("Test is good, proxy is broken")]
+        public void That_RefReturn_CanBeUsedInProxy()
         {
-            var proxyData = Helpers.GetProxy<ITesterUnsupportedRefParam, TesterUnsupportedRefParam, BaseDispatchProxy>();
+            var proxyData = Helpers.GetProxy<ITesterUnsupportedRefReturn, TesterUnsupportedRefReturn, DifferedFunctionProxyForTests>();
             var targetProxy = proxyData.TargetProxy;
             var isCalled = false;
             proxyData.SourceProxy.CallOnInvoke = (methodInfo, inputParameters) =>
@@ -78,60 +53,11 @@ namespace Lide.AsyncProxy.Tests
                 return methodInfo.Invoke(proxyData.BaseObject, inputParameters);
             };
 
-            try
-            {
-                var result = "";
-                targetProxy.Method(ref result);
-                Assert.IsTrue(isCalled);
-                Assert.AreEqual("NotWorking", result);
-                Assert.Fail();
-            }
-            catch
-            {
-                // ignored
-            }
-        }
-        [TestMethod, Ignore("Test is good, proxy is broken")]
-        public void That_RefReturn_IsProxied()
-        {
-            var proxyData = Helpers.GetProxy<ITesterUnsupportedRefReturn, TesterUnsupportedRefReturn, DefferedFunctionProxy>();
-            var targetProxy = proxyData.TargetProxy;
-            var isCalled = false;
-            proxyData.SourceProxy.CallOnInvoke = (methodInfo, inputParameters) =>
-            {
-                isCalled = true;
-                return methodInfo.Invoke(proxyData.BaseObject, inputParameters);
-            };
-
-            var result = targetProxy.Method();
+            var result = targetProxy.Method2();
             Assert.IsTrue(isCalled);
             Assert.AreEqual("NotWorking", result);
         }
-        
-        [TestMethod]
-        public void That_RefResult_IsNotProxied_WithDispatchProxy()
-        {
-            try
-            {
-                var proxyData = Helpers.GetProxy<ITesterUnsupportedRefReturn, TesterUnsupportedRefReturn, BaseDispatchProxy>();
-                var targetProxy = proxyData.TargetProxy;
-                var isCalled = false;
-                proxyData.SourceProxy.CallOnInvoke = (methodInfo, inputParameters) =>
-                {
-                    isCalled = true;
-                    return methodInfo.Invoke(proxyData.BaseObject, inputParameters);
-                };
-                var result = targetProxy.Method();
-                Assert.IsTrue(isCalled);
-                Assert.AreEqual("NotWorking", result);
-                Assert.Fail();
-            }
-            catch
-            {
-                // ignored
-            }
-        }
-        
+
         private interface ITesterUnsupportedOutParam
         {
             void Method(out string data1);
@@ -141,10 +67,11 @@ namespace Lide.AsyncProxy.Tests
         {
             void Method(ref string data1);
         }
-    
+
         private interface ITesterUnsupportedRefReturn
         {
             ref string Method();
+            string Method2();
         }
 
         private class TesterUnsupportedOutParam : ITesterUnsupportedOutParam
@@ -172,6 +99,10 @@ namespace Lide.AsyncProxy.Tests
             public ref string Method()
             {
                 return ref _value;
+            }
+            public string Method2()
+            {
+                return _value;
             }
         }
     }

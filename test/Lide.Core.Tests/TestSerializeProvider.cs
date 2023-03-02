@@ -17,7 +17,7 @@ namespace Lide.Core.Tests
             var provider = new BinarySerializeProvider();
             var data = new LideResponse
             {
-                Path = "api/something/lqlqlq",
+                Path = "api/something/not/important",
                 ContentData = new byte[] { 1, 7, 13, 6, 1, 29 },
             };
 
@@ -54,7 +54,7 @@ namespace Lide.Core.Tests
                 Field4 = new Dictionary<string, byte[]>()
                 {
                     {"Key1", new byte[] {12,15,1,240}},
-                    {"Key2", new byte[] {}},
+                    {"Key2", Array.Empty<byte>()},
                     {"Key3", new byte[] {240, 142, 1, 0, 13, 0}},
                 },
                 Field5 = DateTime.Now,
@@ -77,7 +77,7 @@ namespace Lide.Core.Tests
             Assert.IsTrue(tester.Field4.ContainsKey("Key2"));
             Assert.IsTrue(tester.Field4.ContainsKey("Key3"));
             CollectionAssert.AreEqual(tester.Field4["Key1"], new byte[] { 12, 15, 1, 240 });
-            CollectionAssert.AreEqual(tester.Field4["Key2"], new byte[] { });
+            CollectionAssert.AreEqual(tester.Field4["Key2"], Array.Empty<byte>());
             CollectionAssert.AreEqual(tester.Field4["Key3"], new byte[] { 240, 142, 1, 0, 13, 0 });
         }
 
@@ -159,7 +159,7 @@ namespace Lide.Core.Tests
             }
             public int Field1 { get; set; }
             public TestEnum TestEnum { get; set; }
-            private decimal Field2;
+            private readonly decimal Field2;
             public List<string> Field3 { get; set; }
             public Dictionary<string, byte[]> Field4 { get; set; }
             public DateTime Field5 { get; set; }

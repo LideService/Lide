@@ -1,3 +1,4 @@
+/* cSpell:disable */
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -222,7 +223,7 @@ internal class ProxyBuilder
             }
         }
 
-        GenericArray<object> packedArr = new GenericArray<object>(ilGenerator, PackedArgs.PackedTypes.Length);
+        GenericArray<object> packedArr = new(ilGenerator, PackedArgs.PackedTypes.Length);
 
         packedArr.BeginSet(ArgumentPositions.DispatchProxyPosition);
         ilGenerator.Emit(OpCodes.Ldarg_0);

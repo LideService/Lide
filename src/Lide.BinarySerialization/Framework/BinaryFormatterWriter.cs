@@ -1,3 +1,4 @@
+/* cSpell:disable */
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -18,9 +19,6 @@ namespace Lide.BinarySerialization.Framework;
 internal sealed class BinaryFormatterWriter
 {
     private const int ChunkSize = 4096;
-
-    private readonly Stream _outputStream;
-    private readonly FormatterTypeStyle _formatterTypeStyle;
     private readonly ObjectWriter _objectWriter;
     private readonly BinaryWriter _dataWriter;
 
@@ -41,8 +39,6 @@ internal sealed class BinaryFormatterWriter
 
     internal BinaryFormatterWriter(Stream outputStream, ObjectWriter objectWriter, FormatterTypeStyle formatterTypeStyle)
     {
-        _outputStream = outputStream;
-        _formatterTypeStyle = formatterTypeStyle;
         _objectWriter = objectWriter;
         _dataWriter = new BinaryWriter(outputStream, Encoding.UTF8);
     }
@@ -92,7 +88,7 @@ internal sealed class BinaryFormatterWriter
         // BinaryFormatter, which is now in a separate assembly).  To address that,
         // we access the sole field directly via an unsafe cast.
         var field = typeof(DateTime).GetFields(BindingFlags.Instance | BindingFlags.NonPublic).First();
-        var fieldValue = (ulong) field.GetValue(value)!;
+        var fieldValue = (ulong)field.GetValue(value)!;
         var dateData = (long)(fieldValue);
         WriteInt64(dateData);
     }
@@ -172,8 +168,7 @@ internal sealed class BinaryFormatterWriter
             var assemIdA = new int[numMembers];
             for (int i = 0; i < numMembers; i++)
             {
-                object? typeInformation = null;
-                binaryTypeEnumA[i] = BinaryTypeConverter.GetBinaryTypeInfo(memberTypes[i], memberObjectInfos[i], null, _objectWriter, out typeInformation, out assemId);
+                binaryTypeEnumA[i] = BinaryTypeConverter.GetBinaryTypeInfo(memberTypes[i], memberObjectInfos[i], null, _objectWriter, out object? typeInformation, out assemId);
                 typeInformationA[i] = typeInformation;
                 assemIdA[i] = assemId;
             }
@@ -214,8 +209,6 @@ internal sealed class BinaryFormatterWriter
         var lengthA = new int[1];
         lengthA[0] = length;
         int[]? lowerBoundA = null;
-        object? typeInformation = null;
-
         if (lowerBound == 0)
         {
             binaryArrayTypeEnum = BinaryArrayTypeEnum.Single;
@@ -227,9 +220,8 @@ internal sealed class BinaryFormatterWriter
             lowerBoundA[0] = lowerBound;
         }
 
-        int assemId;
         BinaryTypeEnum binaryTypeEnum = BinaryTypeConverter.GetBinaryTypeInfo(
-            arrayElemTypeNameInfo._type!, objectInfo, arrayElemTypeNameInfo.NIname, _objectWriter, out typeInformation, out assemId);
+            arrayElemTypeNameInfo._type!, objectInfo, arrayElemTypeNameInfo.NIname, _objectWriter, out object? typeInformation, out int assemId);
 
         if (_binaryArray == null)
         {
@@ -278,9 +270,7 @@ internal sealed class BinaryFormatterWriter
                 {
                     for (int j = 0; j < typeLength / 2; j++)
                     {
-                        byte tmp = _byteBuffer[i + j];
-                        _byteBuffer[i + j] = _byteBuffer[i + typeLength - 1 - j];
-                        _byteBuffer[i + typeLength - 1 - j] = tmp;
+                        (_byteBuffer[i + typeLength - 1 - j], _byteBuffer[i + j]) = (_byteBuffer[i + j], _byteBuffer[i + typeLength - 1 - j]);
                     }
                 }
             }
@@ -296,8 +286,6 @@ internal sealed class BinaryFormatterWriter
         var lengthA = new int[1];
         lengthA[0] = length;
         int[]? lowerBoundA = null;
-        object? typeInformation = null;
-        int assemId = 0;
 
         if (lowerBound == 0)
         {
@@ -310,7 +298,7 @@ internal sealed class BinaryFormatterWriter
             lowerBoundA[0] = lowerBound;
         }
 
-        BinaryTypeEnum binaryTypeEnum = BinaryTypeConverter.GetBinaryTypeInfo(arrayElemTypeNameInfo._type!, objectInfo, arrayElemTypeNameInfo.NIname, _objectWriter, out typeInformation, out assemId);
+        BinaryTypeEnum binaryTypeEnum = BinaryTypeConverter.GetBinaryTypeInfo(arrayElemTypeNameInfo._type!, objectInfo, arrayElemTypeNameInfo.NIname, _objectWriter, out object? typeInformation, out int assemId);
 
         if (_binaryArray == null)
         {
@@ -326,9 +314,7 @@ internal sealed class BinaryFormatterWriter
         InternalWriteItemNull();
 
         BinaryArrayTypeEnum binaryArrayTypeEnum = BinaryArrayTypeEnum.Rectangular;
-        object? typeInformation = null;
-        int assemId = 0;
-        BinaryTypeEnum binaryTypeEnum = BinaryTypeConverter.GetBinaryTypeInfo(arrayElemTypeNameInfo._type!, objectInfo, arrayElemTypeNameInfo.NIname, _objectWriter, out typeInformation, out assemId);
+        BinaryTypeEnum binaryTypeEnum = BinaryTypeConverter.GetBinaryTypeInfo(arrayElemTypeNameInfo._type!, objectInfo, arrayElemTypeNameInfo.NIname, _objectWriter, out object? typeInformation, out int assemId);
 
         if (_binaryArray == null)
         {

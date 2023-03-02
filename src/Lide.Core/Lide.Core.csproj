@@ -10,7 +10,7 @@
     
     <PropertyGroup>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <CodeAnalysisRuleSet>..\..\config\StyleCopRules.ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet>../../config/StyleCopRules.ruleset</CodeAnalysisRuleSet>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
 

@@ -1,3 +1,4 @@
+/* cSpell:disable */
 using System;
 using System.Resources;
 
@@ -6,7 +7,7 @@ namespace Lide.BinarySerialization.Additions;
 internal partial class SR
 {
 #if (!NETSTANDARD1_0 && !NETSTANDARD1_1 && !NET45) // AppContext is not supported on < NetStandard1.3 or < .NET Framework 4.5
-    private static readonly bool s_usingResourceKeys = AppContext.TryGetSwitch("System.Resources.UseSystemResourceKeys", out bool usingResourceKeys) ? usingResourceKeys : false;
+    private static readonly bool s_usingResourceKeys = AppContext.TryGetSwitch("System.Resources.UseSystemResourceKeys", out bool usingResourceKeys) && usingResourceKeys;
 #endif
 
     // This method is used to decide if we need to append the exception message parameters to the message when calling SR.Format.

@@ -1,3 +1,4 @@
+/* cSpell:disable */
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
@@ -91,9 +92,7 @@ internal sealed class WriteObjectInfo
 
         InvokeSerializationBinder(binder);
         objectWriter.ObjectManager.RegisterObject(obj);
-
-        ISurrogateSelector surrogateSelectorTemp;
-        if (surrogateSelector != null && (_serializationSurrogate = surrogateSelector.GetSurrogate(_objectType, context, out surrogateSelectorTemp)) != null)
+        if (surrogateSelector != null && (_serializationSurrogate = surrogateSelector.GetSurrogate(_objectType, context, out _)) != null)
         {
             _si = new SerializationInfo(_objectType, converter);
             if (!_objectType.IsPrimitive)
@@ -156,7 +155,7 @@ internal sealed class WriteObjectInfo
 
         if (surrogateSelector != null)
         {
-            _serializationSurrogate = surrogateSelector.GetSurrogate(objectType, context, out ISurrogateSelector surrogateSelectorTemp);
+            _serializationSurrogate = surrogateSelector.GetSurrogate(objectType, context, out _);
         }
 
         if (_serializationSurrogate != null)
@@ -183,14 +182,10 @@ internal sealed class WriteObjectInfo
 
     private void InitSiWrite()
     {
-        SerializationInfoEnumerator? siEnum = null;
         _isSi = true;
         Debug.Assert(_si != null);
-        siEnum = _si.GetEnumerator();
-        int infoLength = 0;
-
-        infoLength = _si.MemberCount;
-
+        _ = _si.GetEnumerator();
+        int infoLength = _si.MemberCount;
         int count = infoLength;
 
         // For ISerializable cache cannot be saved because each object instance can have different values
@@ -217,13 +212,14 @@ internal sealed class WriteObjectInfo
             hasTypeForwardedFrom = typeInformation.HasTypeForwardedFrom;
         }
 
-        _cache = new SerObjectInfoCache(fullTypeName, assemblyString, hasTypeForwardedFrom);
-
-        _cache._memberNames = new string[count];
-        _cache._memberTypes = new Type[count];
+        _cache = new SerObjectInfoCache(fullTypeName, assemblyString, hasTypeForwardedFrom)
+        {
+            _memberNames = new string[count],
+            _memberTypes = new Type[count]
+        };
         _memberData = new object[count];
 
-        siEnum = _si.GetEnumerator();
+        SerializationInfoEnumerator? siEnum = _si.GetEnumerator();
         for (int i = 0; siEnum.MoveNext(); i++)
         {
             _cache._memberNames[i] = siEnum.Name;
@@ -254,9 +250,10 @@ internal sealed class WriteObjectInfo
         Debug.Assert(_serObjectInfoInit != null && _objectType != null);
         if (!_serObjectInfoInit._seenBeforeTable.TryGetValue(_objectType, out _cache!))
         {
-            _cache = new SerObjectInfoCache(_objectType);
-
-            _cache._memberInfos = Lide.BinarySerialization.Additions.FormatterServices.GetSerializableMembers(_objectType, _context);
+            _cache = new SerObjectInfoCache(_objectType)
+            {
+                _memberInfos = Lide.BinarySerialization.Additions.FormatterServices.GetSerializableMembers(_objectType, _context)
+            };
             int count = _cache._memberInfos.Length;
             _cache._memberNames = new string[count];
             _cache._memberTypes = new Type[count];
@@ -311,8 +308,10 @@ internal sealed class WriteObjectInfo
         }
         else
         {
-            objectInfo = new WriteObjectInfo();
-            objectInfo._objectInfoId = serObjectInfoInit._objectInfoIdCount++;
+            objectInfo = new WriteObjectInfo
+            {
+                _objectInfoId = serObjectInfoInit._objectInfoIdCount++
+            };
         }
 
         return objectInfo;
@@ -450,10 +449,9 @@ internal sealed class ReadObjectInfo
             return;
         }
 
-        ISurrogateSelector? surrogateSelectorTemp = null;
         if (surrogateSelector != null)
         {
-            _serializationSurrogate = surrogateSelector.GetSurrogate(objectType, context, out surrogateSelectorTemp);
+            _serializationSurrogate = surrogateSelector.GetSurrogate(objectType, context, out _);
         }
 
         if (_serializationSurrogate != null)
@@ -490,8 +488,10 @@ internal sealed class ReadObjectInfo
 
     private void InitMemberInfo()
     {
-        _cache = new SerObjectInfoCache(_objectType!);
-        _cache._memberInfos = Lide.BinarySerialization.Additions.FormatterServices.GetSerializableMembers(_objectType!, _context);
+        _cache = new SerObjectInfoCache(_objectType!)
+        {
+            _memberInfos = Lide.BinarySerialization.Additions.FormatterServices.GetSerializableMembers(_objectType!, _context)
+        };
         _count = _cache._memberInfos.Length;
         _cache._memberNames = new string[_count];
         _cache._memberTypes = new Type[_count];
@@ -688,7 +688,6 @@ internal sealed class ReadObjectInfo
         }
 
         Type[] outMemberTypes = new Type[_cache._memberInfos.Length];
-        bool isFound = false;
         for (int i = 0; i < _cache._memberInfos.Length; i++)
         {
             if (!memberMissing && inMemberNames[i].Equals(_cache._memberInfos[i].Name))
@@ -698,7 +697,7 @@ internal sealed class ReadObjectInfo
             else
             {
                 // MemberNames on wire in different order then memberInfos returned by reflection
-                isFound = false;
+                bool isFound = false;
                 for (int j = 0; j < inMemberNames.Length; j++)
                 {
                     if (_cache._memberInfos[i].Name.Equals(inMemberNames[j]))
@@ -739,8 +738,10 @@ internal sealed class ReadObjectInfo
 
     private static ReadObjectInfo GetObjectInfo(SerObjectInfoInit? serObjectInfoInit)
     {
-        ReadObjectInfo roi = new ReadObjectInfo();
-        roi._objectInfoId = Interlocked.Increment(ref _readObjectInfoCounter);
+        ReadObjectInfo roi = new ReadObjectInfo
+        {
+            _objectInfoId = Interlocked.Increment(ref _readObjectInfoCounter)
+        };
         return roi;
     }
 }

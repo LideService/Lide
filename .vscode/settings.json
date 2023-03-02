@@ -1,5 +1,7 @@
 {
     "cSpell.words": [
         "Lide"
-    ]
+    ],
+    "dotnet-test-explorer.testProjectPath": "**/test/**/*.csproj",
+    "cSpell.language": "en,lorem",
 }
