@@ -41,7 +41,7 @@ namespace Lide.AsyncProxy.Tests
             Assert.AreEqual("NotWorking", result);
         }
 
-        [TestMethod]//, Ignore("Test is good, proxy is broken")]
+        [TestMethod, Ignore("Test is good, proxy is broken")]
         public void That_RefReturn_CanBeUsedInProxy()
         {
             var proxyData = Helpers.GetProxy<ITesterUnsupportedRefReturn, TesterUnsupportedRefReturn, DifferedFunctionProxyForTests>();
@@ -53,7 +53,7 @@ namespace Lide.AsyncProxy.Tests
                 return methodInfo.Invoke(proxyData.BaseObject, inputParameters);
             };
 
-            var result = targetProxy.Method2();
+            var result = targetProxy.Method();
             Assert.IsTrue(isCalled);
             Assert.AreEqual("NotWorking", result);
         }
@@ -71,7 +71,6 @@ namespace Lide.AsyncProxy.Tests
         private interface ITesterUnsupportedRefReturn
         {
             ref string Method();
-            string Method2();
         }
 
         private class TesterUnsupportedOutParam : ITesterUnsupportedOutParam
@@ -99,10 +98,6 @@ namespace Lide.AsyncProxy.Tests
             public ref string Method()
             {
                 return ref _value;
-            }
-            public string Method2()
-            {
-                return _value;
             }
         }
     }

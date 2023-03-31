@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <OutputType>Library</OutputType>
+        <IsPackable>true</IsPackable>
+        <ImplicitUsings>disable</ImplicitUsings>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <CodeAnalysisRuleSet>..\..\..\config\StyleCopRules.ruleset</CodeAnalysisRuleSet>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
+        <PackageReference Include="MSTest.TestAdapter" Version="2.1.1" />
+        <PackageReference Include="MSTest.TestFramework" Version="2.1.1" />
+        <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="7.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Lide.Demo.Exchange.Client\Lide.Demo.Exchange.Client.csproj" />
+        <ProjectReference Include="..\Lide.Demo.Exchange.Core\Lide.Demo.Exchange.Core.csproj" />
+        <ProjectReference Include="..\Lide.Demo.Exchange.WebAPI\Lide.Demo.Exchange.WebAPI.csproj" />
+    </ItemGroup>
+
+</Project>
